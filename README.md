@@ -63,8 +63,6 @@ It also ignored essential developer practices like writing tests, integration ch
 
 ### Mini-SWE-agent Simplified the Loop Even Further
 
-### Mini-SWE-agent Simplified the Loop Even Further
-
 The later **mini-SWE-agent** reduced the SWE-agent scaffold to ~100 lines of Python:  
 - Bash-only execution (no LM tool-calling)  
 - Linear history  
@@ -249,7 +247,6 @@ Then the previous work on issue labelling, PR assessment, and integration testin
 
 ---
 
-## References
 ## References
 
 - **SWE-bench** – *Can Language Models Resolve Real-World GitHub Issues?* (Princeton, 2023)  

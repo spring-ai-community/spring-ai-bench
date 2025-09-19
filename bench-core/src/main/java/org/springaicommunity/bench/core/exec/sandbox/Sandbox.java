@@ -17,15 +17,19 @@ package org.springaicommunity.bench.core.exec.sandbox;
 
 import java.io.IOException;
 import java.nio.file.Path;
-
 import org.springaicommunity.bench.core.exec.ExecResult;
 import org.springaicommunity.bench.core.exec.ExecSpec;
 import org.springaicommunity.bench.core.exec.TimeoutException;
 
 public interface Sandbox extends AutoCloseable {
-    ExecResult exec(ExecSpec spec)
-            throws IOException, InterruptedException, TimeoutException;
-    Path workDir();
-    boolean isClosed();
-    @Override void close() throws IOException;
+
+	ExecResult exec(ExecSpec spec) throws IOException, InterruptedException, TimeoutException;
+
+	Path workDir();
+
+	boolean isClosed();
+
+	@Override
+	void close() throws IOException;
+
 }

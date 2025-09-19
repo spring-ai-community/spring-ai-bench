@@ -15,210 +15,202 @@
  */
 package org.springaicommunity.bench.agents.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.springaicommunity.agents.claudecode.ClaudeCodeAgentModel;
+import org.springaicommunity.agents.claudecode.ClaudeCodeAgentOptions;
+import org.springaicommunity.agents.claudecode.sdk.ClaudeCodeClient;
 import org.springaicommunity.bench.agents.runner.ClaudeCodeAgentRunner;
 import org.springaicommunity.bench.agents.verifier.HelloWorldVerifier;
 import org.springaicommunity.bench.core.run.AgentResult;
 import org.springaicommunity.bench.core.spec.AgentSpec;
-import org.springaicommunity.agents.claudecode.ClaudeCodeAgentModel;
-import org.springaicommunity.agents.claudecode.ClaudeCodeAgentOptions;
-import org.springaicommunity.agents.claudecode.sdk.ClaudeCodeClient;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.Duration;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
- * Integration test for real ClaudeCodeAgentModel execution through bench-agents.
- * This test verifies the complete pipeline with actual Claude Code calls.
+ * Integration test for real ClaudeCodeAgentModel execution through bench-agents. This
+ * test verifies the complete pipeline with actual Claude Code calls.
  */
 @Tag("agents-live")
 @EnabledIfEnvironmentVariable(named = "ANTHROPIC_API_KEY", matches = ".+")
-@Timeout(180)  // Cap runtime at 3 minutes for Claude execution
+@Timeout(180) // Cap runtime at 3 minutes for Claude execution
 class ClaudeCodeAgentModelIntegrationTest {
 
-    private Path tempWorkspace;
-    private ClaudeCodeAgentRunner agentRunner;
+	private Path tempWorkspace;
 
-    @BeforeAll
-    static void requireClaudeCode() {
-        // Check if Claude CLI is available
-        assumeTrue(isCliAvailable("claude"), "Claude CLI not available on PATH");
-    }
+	private ClaudeCodeAgentRunner agentRunner;
 
-    @BeforeEach
-    void setUp() throws Exception {
-        tempWorkspace = Files.createTempDirectory("claude-model-test-");
+	@BeforeAll
+	static void requireClaudeCode() {
+		// Check if Claude CLI is available
+		assumeTrue(isCliAvailable("claude"), "Claude CLI not available on PATH");
+	}
 
-        // Create ClaudeCodeAgentModel with default configuration
-        ClaudeCodeClient client = ClaudeCodeClient.create();
-        ClaudeCodeAgentOptions options = new ClaudeCodeAgentOptions();
-        options.setYolo(true); // Skip permissions for testing
+	@BeforeEach
+	void setUp() throws Exception {
+		tempWorkspace = Files.createTempDirectory("claude-model-test-");
 
-        ClaudeCodeAgentModel agentModel = new ClaudeCodeAgentModel(client, options);
-        assumeTrue(agentModel.isAvailable(), "ClaudeCodeAgentModel not available");
+		// Create ClaudeCodeAgentModel with default configuration
+		ClaudeCodeClient client = ClaudeCodeClient.create();
+		ClaudeCodeAgentOptions options = new ClaudeCodeAgentOptions();
+		options.setYolo(true); // Skip permissions for testing
 
-        agentRunner = new ClaudeCodeAgentRunner(agentModel, new HelloWorldVerifier());
-    }
+		ClaudeCodeAgentModel agentModel = new ClaudeCodeAgentModel(client, options);
+		assumeTrue(agentModel.isAvailable(), "ClaudeCodeAgentModel not available");
 
-    @AfterEach
-    void tearDown() throws Exception {
-        if (tempWorkspace != null && Files.exists(tempWorkspace)) {
-            Files.walk(tempWorkspace)
-                .sorted((a, b) -> b.compareTo(a)) // Delete files before directories
-                .forEach(path -> {
-                    try {
-                        Files.deleteIfExists(path);
-                    } catch (Exception e) {
-                        // Best effort cleanup
-                    }
-                });
-        }
-    }
+		agentRunner = new ClaudeCodeAgentRunner(agentModel, new HelloWorldVerifier());
+	}
 
-    @Test
-    void claudeCodeAgentModel_integration_pipeline_works() throws Exception {
-        // Create AgentSpec for hello world task
-        AgentSpec spec = new AgentSpec(
-            "hello-world",      // kind
-            null,              // model - will use default
-            true,              // autoApprove - skip permissions
-            "Create a file named hello.txt in the current working directory with EXACT contents: Hello World!", // prompt
-            null,              // genParams
-            null               // role
-        );
+	@AfterEach
+	void tearDown() throws Exception {
+		if (tempWorkspace != null && Files.exists(tempWorkspace)) {
+			Files.walk(tempWorkspace)
+				.sorted((a, b) -> b.compareTo(a)) // Delete files before directories
+				.forEach(path -> {
+					try {
+						Files.deleteIfExists(path);
+					}
+					catch (Exception e) {
+						// Best effort cleanup
+					}
+				});
+		}
+	}
 
-        // Run the agent through the full pipeline
-        AgentResult result = agentRunner.run(tempWorkspace, spec, Duration.ofMinutes(2));
+	@Test
+	void claudeCodeAgentModel_integration_pipeline_works() throws Exception {
+		// Create AgentSpec for hello world task
+		AgentSpec spec = new AgentSpec("hello-world", // kind
+				null, // model - will use default
+				true, // autoApprove - skip permissions
+				"Create a file named hello.txt in the current working directory with EXACT contents: Hello World!", // prompt
+				null, // genParams
+				null // role
+		);
 
-        // Verify the result
-        assertThat(result.exitCode()).isEqualTo(0);
-        assertThat(result.logFile()).exists();
-        assertThat(result.durationMillis()).isGreaterThan(0); // Should take some time with real Claude
+		// Run the agent through the full pipeline
+		AgentResult result = agentRunner.run(tempWorkspace, spec, Duration.ofMinutes(2));
 
-        // Verify the hello.txt file was created with correct content
-        Path helloFile = tempWorkspace.resolve("hello.txt");
-        assertThat(helloFile).exists();
+		// Verify the result
+		assertThat(result.exitCode()).isEqualTo(0);
+		assertThat(result.logFile()).exists();
+		assertThat(result.durationMillis()).isGreaterThan(0); // Should take some time
+																// with real Claude
 
-        String content = Files.readString(helloFile);
-        assertThat(content.trim()).isEqualTo("Hello World!");
+		// Verify the hello.txt file was created with correct content
+		Path helloFile = tempWorkspace.resolve("hello.txt");
+		assertThat(helloFile).exists();
 
-        System.out.println("✅ SUCCESS: ClaudeCodeAgentModel integration pipeline works end-to-end");
-    }
+		String content = Files.readString(helloFile);
+		assertThat(content.trim()).isEqualTo("Hello World!");
 
-    @Test
-    void claudeCodeAgentModel_report_generation_with_provenance() throws Exception {
-        // Create AgentSpec
-        AgentSpec spec = new AgentSpec(
-            "hello-world",       // kind
-            "claude-sonnet-4-0", // specific model
-            true,               // autoApprove
-            "Create hello.txt with exact content: Hello World!", // prompt
-            null,               // genParams
-            null                // role
-        );
+		System.out.println("✅ SUCCESS: ClaudeCodeAgentModel integration pipeline works end-to-end");
+	}
 
-        // Run the agent
-        AgentResult result = agentRunner.run(tempWorkspace, spec, Duration.ofMinutes(2));
+	@Test
+	void claudeCodeAgentModel_report_generation_with_provenance() throws Exception {
+		// Create AgentSpec
+		AgentSpec spec = new AgentSpec("hello-world", // kind
+				"claude-sonnet-4-0", // specific model
+				true, // autoApprove
+				"Create hello.txt with exact content: Hello World!", // prompt
+				null, // genParams
+				null // role
+		);
 
-        // Verify reports were generated
-        Path reportsDir = tempWorkspace.getParent().resolve("bench-reports");
-        assertThat(reportsDir).exists();
+		// Run the agent
+		AgentResult result = agentRunner.run(tempWorkspace, spec, Duration.ofMinutes(2));
 
-        // Find the most recent run directory
-        Path runDir = Files.list(reportsDir)
-            .filter(Files::isDirectory)
-            .sorted((a, b) -> {
-                try {
-                    return Files.getLastModifiedTime(b).compareTo(Files.getLastModifiedTime(a));
-                } catch (Exception e) {
-                    return 0;
-                }
-            })
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("No run directory found"));
+		// Verify reports were generated
+		Path reportsDir = tempWorkspace.getParent().resolve("bench-reports");
+		assertThat(reportsDir).exists();
 
-        // Verify report files exist
-        Path jsonReport = runDir.resolve("report.json");
-        Path htmlReport = runDir.resolve("index.html");
-        Path logFile = runDir.resolve("run.log");
+		// Find the most recent run directory
+		Path runDir = Files.list(reportsDir).filter(Files::isDirectory).sorted((a, b) -> {
+			try {
+				return Files.getLastModifiedTime(b).compareTo(Files.getLastModifiedTime(a));
+			}
+			catch (Exception e) {
+				return 0;
+			}
+		}).findFirst().orElseThrow(() -> new AssertionError("No run directory found"));
 
-        assertThat(jsonReport).exists();
-        assertThat(htmlReport).exists();
-        assertThat(logFile).exists();
+		// Verify report files exist
+		Path jsonReport = runDir.resolve("report.json");
+		Path htmlReport = runDir.resolve("index.html");
+		Path logFile = runDir.resolve("run.log");
 
-        // Verify JSON report contains Claude-specific provenance
-        String jsonContent = Files.readString(jsonReport);
-        assertThat(jsonContent).contains("\"success\" : true");
-        assertThat(jsonContent).contains("\"caseId\" : \"hello-world\"");
-        assertThat(jsonContent).contains("\"provenance\"");
-        assertThat(jsonContent).contains("\"benchVersion\"");
+		assertThat(jsonReport).exists();
+		assertThat(htmlReport).exists();
+		assertThat(logFile).exists();
 
-        // Verify agent-specific provenance
-        assertThat(jsonContent).contains("\"provider\" : \"claude-code\"");
-        assertThat(jsonContent).contains("\"agentsVersion\"");
+		// Verify JSON report contains Claude-specific provenance
+		String jsonContent = Files.readString(jsonReport);
+		assertThat(jsonContent).contains("\"success\" : true");
+		assertThat(jsonContent).contains("\"caseId\" : \"hello-world\"");
+		assertThat(jsonContent).contains("\"provenance\"");
+		assertThat(jsonContent).contains("\"benchVersion\"");
 
-        // Verify HTML report contains expected structure
-        String htmlContent = Files.readString(htmlReport);
-        assertThat(htmlContent).contains("Agent Execution Report");
-        assertThat(htmlContent).contains("SUCCESS");
-        assertThat(htmlContent).contains("Verification Checks");
+		// Verify agent-specific provenance
+		assertThat(jsonContent).contains("\"provider\" : \"claude-code\"");
+		assertThat(jsonContent).contains("\"agentsVersion\"");
 
-        System.out.println("✅ SUCCESS: ClaudeCodeAgentModel report generation with proper provenance");
-    }
+		// Verify HTML report contains expected structure
+		String htmlContent = Files.readString(htmlReport);
+		assertThat(htmlContent).contains("Agent Execution Report");
+		assertThat(htmlContent).contains("SUCCESS");
+		assertThat(htmlContent).contains("Verification Checks");
 
-    @Test
-    void claudeCodeAgentModel_verification_system_works() throws Exception {
-        // Test with a scenario that should pass verification
-        AgentSpec spec = new AgentSpec(
-            "hello-world",  // kind
-            null,          // model
-            true,          // autoApprove
-            "Create hello.txt with exact content: Hello World!", // prompt
-            null,          // genParams
-            null           // role
-        );
+		System.out.println("✅ SUCCESS: ClaudeCodeAgentModel report generation with proper provenance");
+	}
 
-        AgentResult result = agentRunner.run(tempWorkspace, spec, Duration.ofMinutes(2));
+	@Test
+	void claudeCodeAgentModel_verification_system_works() throws Exception {
+		// Test with a scenario that should pass verification
+		AgentSpec spec = new AgentSpec("hello-world", // kind
+				null, // model
+				true, // autoApprove
+				"Create hello.txt with exact content: Hello World!", // prompt
+				null, // genParams
+				null // role
+		);
 
-        // Should succeed because ClaudeCodeAgentModel should create the correct file
-        assertThat(result.exitCode()).isEqualTo(0);
+		AgentResult result = agentRunner.run(tempWorkspace, spec, Duration.ofMinutes(2));
 
-        // Verify the verification checks passed
-        Path reportsDir = tempWorkspace.getParent().resolve("bench-reports");
-        Path runDir = Files.list(reportsDir)
-            .filter(Files::isDirectory)
-            .sorted((a, b) -> {
-                try {
-                    return Files.getLastModifiedTime(b).compareTo(Files.getLastModifiedTime(a));
-                } catch (Exception e) {
-                    return 0;
-                }
-            })
-            .findFirst()
-            .orElseThrow();
+		// Should succeed because ClaudeCodeAgentModel should create the correct file
+		assertThat(result.exitCode()).isEqualTo(0);
 
-        String jsonContent = Files.readString(runDir.resolve("report.json"));
-        assertThat(jsonContent).contains("\"success\" : true");
-        assertThat(jsonContent).contains("\"pass\" : true"); // Verification checks passed
+		// Verify the verification checks passed
+		Path reportsDir = tempWorkspace.getParent().resolve("bench-reports");
+		Path runDir = Files.list(reportsDir).filter(Files::isDirectory).sorted((a, b) -> {
+			try {
+				return Files.getLastModifiedTime(b).compareTo(Files.getLastModifiedTime(a));
+			}
+			catch (Exception e) {
+				return 0;
+			}
+		}).findFirst().orElseThrow();
 
-        System.out.println("✅ SUCCESS: ClaudeCodeAgentModel verification system correctly validates agent output");
-    }
+		String jsonContent = Files.readString(runDir.resolve("report.json"));
+		assertThat(jsonContent).contains("\"success\" : true");
+		assertThat(jsonContent).contains("\"pass\" : true"); // Verification checks passed
 
-    private static boolean isCliAvailable(String cmd) {
-        try {
-            Process p = new ProcessBuilder(cmd, "--version")
-                .redirectErrorStream(true)
-                .start();
-            boolean finished = p.waitFor(3, java.util.concurrent.TimeUnit.SECONDS);
-            return finished && p.exitValue() == 0;
-        } catch (Exception e) {
-            return false;
-        }
-    }
+		System.out.println("✅ SUCCESS: ClaudeCodeAgentModel verification system correctly validates agent output");
+	}
+
+	private static boolean isCliAvailable(String cmd) {
+		try {
+			Process p = new ProcessBuilder(cmd, "--version").redirectErrorStream(true).start();
+			boolean finished = p.waitFor(3, java.util.concurrent.TimeUnit.SECONDS);
+			return finished && p.exitValue() == 0;
+		}
+		catch (Exception e) {
+			return false;
+		}
+	}
+
 }

@@ -15,7 +15,6 @@
  */
 package org.springaicommunity.bench.agents.verifier;
 
-
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,68 +22,67 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Verifies that the HelloWorldAgent created a file with exact content.
- * Simple verification using string equality and explicit UTF-8 reading.
+ * Verifies that the HelloWorldAgent created a file with exact content. Simple
+ * verification using string equality and explicit UTF-8 reading.
  */
 public class HelloWorldVerifier implements SuccessVerifier {
 
-    private static final String EXPECTED = "Hello World!";
+	private static final String EXPECTED = "Hello World!";
 
-    @Override
-    public VerificationResult verify(VerificationContext context) {
-        List<Check> checks = new ArrayList<>();
-        Path workspace = context.runRoot().resolve(context.workspaceRel());
-        Path helloFile = workspace.resolve("hello.txt");
+	@Override
+	public VerificationResult verify(VerificationContext context) {
+		List<Check> checks = new ArrayList<>();
+		Path workspace = context.runRoot().resolve(context.workspaceRel());
+		Path helloFile = workspace.resolve("hello.txt");
 
-        // Debug logging for path resolution
-        System.out.println("=== VERIFICATION DEBUG ===");
-        System.out.println("context.runRoot(): " + context.runRoot());
-        System.out.println("context.workspaceRel(): " + context.workspaceRel());
-        System.out.println("resolved workspace: " + workspace);
-        System.out.println("target file: " + helloFile);
-        System.out.println("workspace exists: " + Files.exists(workspace));
-        System.out.println("workspace is directory: " + Files.isDirectory(workspace));
+		// Debug logging for path resolution
+		System.out.println("=== VERIFICATION DEBUG ===");
+		System.out.println("context.runRoot(): " + context.runRoot());
+		System.out.println("context.workspaceRel(): " + context.workspaceRel());
+		System.out.println("resolved workspace: " + workspace);
+		System.out.println("target file: " + helloFile);
+		System.out.println("workspace exists: " + Files.exists(workspace));
+		System.out.println("workspace is directory: " + Files.isDirectory(workspace));
 
-        // List files in workspace if it exists
-        if (Files.exists(workspace) && Files.isDirectory(workspace)) {
-            try {
-                System.out.println("workspace contents:");
-                Files.list(workspace).forEach(p -> System.out.println("  - " + p.getFileName()));
-            } catch (Exception e) {
-                System.out.println("  error listing workspace: " + e.getMessage());
-            }
-        }
+		// List files in workspace if it exists
+		if (Files.exists(workspace) && Files.isDirectory(workspace)) {
+			try {
+				System.out.println("workspace contents:");
+				Files.list(workspace).forEach(p -> System.out.println("  - " + p.getFileName()));
+			}
+			catch (Exception e) {
+				System.out.println("  error listing workspace: " + e.getMessage());
+			}
+		}
 
-        // Check 1: File exists
-        boolean exists = Files.exists(helloFile);
-        checks.add(new Check("exists", exists, exists ? "ok" : "missing at " + helloFile));
+		// Check 1: File exists
+		boolean exists = Files.exists(helloFile);
+		checks.add(new Check("exists", exists, exists ? "ok" : "missing at " + helloFile));
 
-        // Check 2: Content matches (if exists)
-        boolean contentMatches = false;
-        if (exists) {
-            try {
-                String content = Files.readString(helloFile, StandardCharsets.UTF_8);
-                contentMatches = EXPECTED.equals(content);
+		// Check 2: Content matches (if exists)
+		boolean contentMatches = false;
+		if (exists) {
+			try {
+				String content = Files.readString(helloFile, StandardCharsets.UTF_8);
+				contentMatches = EXPECTED.equals(content);
 
-                if (!contentMatches) {
-                    // Show escaped content with visible newlines/spaces
-                    String shown = content.replace("\n", "\\n").replace("\r", "\\r");
-                    checks.add(new Check("content", false,
-                        String.format("expected '%s' (len=%d) but got '%s' (len=%d)",
-                            EXPECTED, EXPECTED.length(), shown, content.length())));
-                } else {
-                    checks.add(new Check("content", true, "ok"));
-                }
-            } catch (Exception e) {
-                checks.add(new Check("content", false, "error reading file: " + e.getMessage()));
-            }
-        }
+				if (!contentMatches) {
+					// Show escaped content with visible newlines/spaces
+					String shown = content.replace("\n", "\\n").replace("\r", "\\r");
+					checks.add(new Check("content", false, String.format("expected '%s' (len=%d) but got '%s' (len=%d)",
+							EXPECTED, EXPECTED.length(), shown, content.length())));
+				}
+				else {
+					checks.add(new Check("content", true, "ok"));
+				}
+			}
+			catch (Exception e) {
+				checks.add(new Check("content", false, "error reading file: " + e.getMessage()));
+			}
+		}
 
-        boolean success = exists && contentMatches;
-        return new VerificationResult(
-            success,
-            success ? "All checks passed" : "Verification failed",
-            checks
-        );
-    }
+		boolean success = exists && contentMatches;
+		return new VerificationResult(success, success ? "All checks passed" : "Verification failed", checks);
+	}
+
 }

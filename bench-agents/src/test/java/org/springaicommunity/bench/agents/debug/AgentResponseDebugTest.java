@@ -15,156 +15,149 @@
  */
 package org.springaicommunity.bench.agents.debug;
 
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.util.Map;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springaicommunity.agents.claudecode.ClaudeCodeAgentModel;
 import org.springaicommunity.agents.claudecode.ClaudeCodeAgentOptions;
 import org.springaicommunity.agents.claudecode.sdk.ClaudeCodeClient;
+import org.springaicommunity.agents.model.AgentOptions;
 import org.springaicommunity.agents.model.AgentResponse;
 import org.springaicommunity.agents.model.AgentTaskRequest;
-import org.springaicommunity.agents.model.AgentOptions;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.Duration;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
-
-/**
- * Debug test to examine AgentResponse structure and metadata
- */
+/** Debug test to examine AgentResponse structure and metadata */
 @EnabledIfEnvironmentVariable(named = "ANTHROPIC_API_KEY", matches = ".+")
 class AgentResponseDebugTest {
 
-    private Path tempWorkspace;
-    private ClaudeCodeAgentModel agentModel;
+	private Path tempWorkspace;
 
-    @BeforeEach
-    void setUp() throws Exception {
-        tempWorkspace = Files.createTempDirectory("agent-response-debug-");
+	private ClaudeCodeAgentModel agentModel;
 
-        ClaudeCodeAgentOptions options = new ClaudeCodeAgentOptions();
-        options.setYolo(true);
-        options.setTimeout(Duration.ofMinutes(2));
-        options.setModel("claude-sonnet-4-20250514"); // Claude 4 Sonnet
+	@BeforeEach
+	void setUp() throws Exception {
+		tempWorkspace = Files.createTempDirectory("agent-response-debug-");
 
-        ClaudeCodeClient client = ClaudeCodeClient.create(
-            org.springaicommunity.agents.claudecode.sdk.transport.CLIOptions.builder()
-                .timeout(Duration.ofMinutes(2))
-                .permissionMode(org.springaicommunity.agents.claudecode.sdk.config.PermissionMode.BYPASS_PERMISSIONS)
-                .build(),
-            tempWorkspace
-        );
+		ClaudeCodeAgentOptions options = new ClaudeCodeAgentOptions();
+		options.setYolo(true);
+		options.setTimeout(Duration.ofMinutes(2));
+		options.setModel("claude-sonnet-4-20250514"); // Claude 4 Sonnet
 
-        agentModel = new ClaudeCodeAgentModel(client, options);
-        assumeTrue(agentModel.isAvailable(), "ClaudeCodeAgentModel not available");
-    }
+		ClaudeCodeClient client = ClaudeCodeClient
+			.create(org.springaicommunity.agents.claudecode.sdk.transport.CLIOptions.builder()
+				.timeout(Duration.ofMinutes(2))
+				.permissionMode(org.springaicommunity.agents.claudecode.sdk.config.PermissionMode.BYPASS_PERMISSIONS)
+				.build(), tempWorkspace);
 
-    @AfterEach
-    void tearDown() throws Exception {
-        if (tempWorkspace != null && Files.exists(tempWorkspace)) {
-            Files.walk(tempWorkspace)
-                .sorted((a, b) -> b.compareTo(a))
-                .forEach(path -> {
-                    try {
-                        Files.deleteIfExists(path);
-                    } catch (Exception e) {
-                        // Best effort cleanup
-                    }
-                });
-        }
-    }
+		agentModel = new ClaudeCodeAgentModel(client, options);
+		assumeTrue(agentModel.isAvailable(), "ClaudeCodeAgentModel not available");
+	}
 
-    @Test
-    void debugAgentResponseStructure() throws Exception {
-        System.out.println("=== DEBUGGING AGENT RESPONSE STRUCTURE ===");
-        System.out.println("Workspace: " + tempWorkspace);
+	@AfterEach
+	void tearDown() throws Exception {
+		if (tempWorkspace != null && Files.exists(tempWorkspace)) {
+			Files.walk(tempWorkspace).sorted((a, b) -> b.compareTo(a)).forEach(path -> {
+				try {
+					Files.deleteIfExists(path);
+				}
+				catch (Exception e) {
+					// Best effort cleanup
+				}
+			});
+		}
+	}
 
-        // Create AgentOptions
-        AgentOptions options = new AgentOptions() {
-            @Override
-            public String getWorkingDirectory() {
-                return tempWorkspace.toString();
-            }
+	@Test
+	void debugAgentResponseStructure() throws Exception {
+		System.out.println("=== DEBUGGING AGENT RESPONSE STRUCTURE ===");
+		System.out.println("Workspace: " + tempWorkspace);
 
-            @Override
-            public Duration getTimeout() {
-                return Duration.ofMinutes(2);
-            }
+		// Create AgentOptions
+		AgentOptions options = new AgentOptions() {
+			@Override
+			public String getWorkingDirectory() {
+				return tempWorkspace.toString();
+			}
 
-            @Override
-            public Map<String, String> getEnvironmentVariables() {
-                return Map.of();
-            }
+			@Override
+			public Duration getTimeout() {
+				return Duration.ofMinutes(2);
+			}
 
-            @Override
-            public String getModel() {
-                return "claude-sonnet-4-20250514";
-            }
+			@Override
+			public Map<String, String> getEnvironmentVariables() {
+				return Map.of();
+			}
 
-            @Override
-            public Map<String, Object> getExtras() {
-                return Map.of("yolo", true);
-            }
-        };
+			@Override
+			public String getModel() {
+				return "claude-sonnet-4-20250514";
+			}
 
-        // Create task request
-        AgentTaskRequest request = new AgentTaskRequest(
-            "Create a file named debug-test.txt with contents: Debug Response Test",
-            tempWorkspace,
-            options
-        );
+			@Override
+			public Map<String, Object> getExtras() {
+				return Map.of("yolo", true);
+			}
+		};
 
-        System.out.println("Calling Claude agent...");
+		// Create task request
+		AgentTaskRequest request = new AgentTaskRequest(
+				"Create a file named debug-test.txt with contents: Debug Response Test", tempWorkspace, options);
 
-        // Call the agent
-        AgentResponse response = agentModel.call(request);
+		System.out.println("Calling Claude agent...");
 
-        System.out.println("\n=== AGENT RESPONSE ANALYSIS ===");
-        System.out.println("Response class: " + response.getClass().getName());
-        System.out.println("Results count: " + response.getResults().size());
+		// Call the agent
+		AgentResponse response = agentModel.call(request);
 
-        // Analyze metadata
-        System.out.println("\n=== RESPONSE METADATA ===");
-        var metadata = response.getMetadata();
-        System.out.println("Metadata class: " + metadata.getClass().getName());
-        System.out.println("Model: " + metadata.getModel());
-        System.out.println("Duration: " + metadata.getDuration());
-        System.out.println("SessionId: " + metadata.getSessionId());
+		System.out.println("\n=== AGENT RESPONSE ANALYSIS ===");
+		System.out.println("Response class: " + response.getClass().getName());
+		System.out.println("Results count: " + response.getResults().size());
 
-        // Show all metadata fields
-        System.out.println("\n=== ALL METADATA FIELDS ===");
-        for (Map.Entry<String, Object> entry : metadata.entrySet()) {
-            System.out.println(entry.getKey() + " = " + entry.getValue());
-        }
+		// Analyze metadata
+		System.out.println("\n=== RESPONSE METADATA ===");
+		var metadata = response.getMetadata();
+		System.out.println("Metadata class: " + metadata.getClass().getName());
+		System.out.println("Model: " + metadata.getModel());
+		System.out.println("Duration: " + metadata.getDuration());
+		System.out.println("SessionId: " + metadata.getSessionId());
 
-        // Analyze results
-        System.out.println("\n=== AGENT RESULTS ===");
-        for (int i = 0; i < response.getResults().size(); i++) {
-            var result = response.getResults().get(i);
-            System.out.println("Result " + i + ":");
-            System.out.println("  Output: " + result.getOutput());
-            System.out.println("  Metadata: " + result.getMetadata());
-            System.out.println("  Metadata fields:");
-            for (Map.Entry<String, Object> entry : result.getMetadata().getProviderFields().entrySet()) {
-                System.out.println("    " + entry.getKey() + " = " + entry.getValue());
-            }
-        }
+		// Show all metadata fields
+		System.out.println("\n=== ALL METADATA FIELDS ===");
+		for (Map.Entry<String, Object> entry : metadata.entrySet()) {
+			System.out.println(entry.getKey() + " = " + entry.getValue());
+		}
 
-        // Check workspace files
-        System.out.println("\n=== WORKSPACE FILES ===");
-        Files.list(tempWorkspace).forEach(file -> {
-            try {
-                System.out.println("File: " + file.getFileName() + " (" + Files.size(file) + " bytes)");
-                if (Files.isRegularFile(file) && Files.size(file) < 1000) {
-                    String content = Files.readString(file);
-                    System.out.println("  Content: '" + content + "'");
-                }
-            } catch (Exception e) {
-                System.out.println("  Error reading: " + e.getMessage());
-            }
-        });
-    }
+		// Analyze results
+		System.out.println("\n=== AGENT RESULTS ===");
+		for (int i = 0; i < response.getResults().size(); i++) {
+			var result = response.getResults().get(i);
+			System.out.println("Result " + i + ":");
+			System.out.println("  Output: " + result.getOutput());
+			System.out.println("  Metadata: " + result.getMetadata());
+			System.out.println("  Metadata fields:");
+			for (Map.Entry<String, Object> entry : result.getMetadata().getProviderFields().entrySet()) {
+				System.out.println("    " + entry.getKey() + " = " + entry.getValue());
+			}
+		}
+
+		// Check workspace files
+		System.out.println("\n=== WORKSPACE FILES ===");
+		Files.list(tempWorkspace).forEach(file -> {
+			try {
+				System.out.println("File: " + file.getFileName() + " (" + Files.size(file) + " bytes)");
+				if (Files.isRegularFile(file) && Files.size(file) < 1000) {
+					String content = Files.readString(file);
+					System.out.println("  Content: '" + content + "'");
+				}
+			}
+			catch (Exception e) {
+				System.out.println("  Error reading: " + e.getMessage());
+			}
+		});
+	}
+
 }

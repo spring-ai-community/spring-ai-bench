@@ -24,64 +24,65 @@ import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 /**
- * Simple timestamped logging for agent execution.
- * Writes to run.log with ISO timestamps and clear markers.
+ * Simple timestamped logging for agent execution. Writes to run.log with ISO timestamps
+ * and clear markers.
  */
 public class SimpleLogCapture {
 
-    private final Path logFile;
-    private final String runId;
+	private final Path logFile;
 
-    public SimpleLogCapture(Path runRoot, UUID runId) {
-        this.runId = runId.toString();
-        this.logFile = runRoot.resolve("run.log");
+	private final String runId;
 
-        try {
-            // Ensure parent directory exists
-            Files.createDirectories(runRoot);
+	public SimpleLogCapture(Path runRoot, UUID runId) {
+		this.runId = runId.toString();
+		this.logFile = runRoot.resolve("run.log");
 
-            // Write header
-            writeHeader();
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to initialize log capture: " + e.getMessage(), e);
-        }
-    }
+		try {
+			// Ensure parent directory exists
+			Files.createDirectories(runRoot);
 
-    private void writeHeader() {
-        log("RUN_ID: " + runId);
-        log("STARTED: " + DateTimeFormatter.ISO_INSTANT.format(Instant.now()));
-    }
+			// Write header
+			writeHeader();
+		}
+		catch (IOException e) {
+			throw new RuntimeException("Failed to initialize log capture: " + e.getMessage(), e);
+		}
+	}
 
-    public void writeFooter() {
-        log("FINISHED: " + DateTimeFormatter.ISO_INSTANT.format(Instant.now()));
-    }
+	private void writeHeader() {
+		log("RUN_ID: " + runId);
+		log("STARTED: " + DateTimeFormatter.ISO_INSTANT.format(Instant.now()));
+	}
 
-    public void log(String category, String message) {
-        try {
-            String timestamp = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
-            String line = String.format("%s [%s] %s%n", timestamp, category, message);
+	public void writeFooter() {
+		log("FINISHED: " + DateTimeFormatter.ISO_INSTANT.format(Instant.now()));
+	}
 
-            Files.writeString(logFile, line,
-                StandardOpenOption.CREATE,
-                StandardOpenOption.APPEND);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to write log entry: " + e.getMessage(), e);
-        }
-    }
+	public void log(String category, String message) {
+		try {
+			String timestamp = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
+			String line = String.format("%s [%s] %s%n", timestamp, category, message);
 
-    public void log(String message) {
-        try {
-            String line = message + System.lineSeparator();
+			Files.writeString(logFile, line, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+		}
+		catch (IOException e) {
+			throw new RuntimeException("Failed to write log entry: " + e.getMessage(), e);
+		}
+	}
 
-            Files.writeString(logFile, line,
-                StandardOpenOption.CREATE,
-                StandardOpenOption.APPEND);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to write log entry: " + e.getMessage(), e);
-        }
-    }
+	public void log(String message) {
+		try {
+			String line = message + System.lineSeparator();
 
-    public Path getLogFile() {
-        return logFile;
-    }
+			Files.writeString(logFile, line, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+		}
+		catch (IOException e) {
+			throw new RuntimeException("Failed to write log entry: " + e.getMessage(), e);
+		}
+	}
+
+	public Path getLogFile() {
+		return logFile;
+	}
+
 }

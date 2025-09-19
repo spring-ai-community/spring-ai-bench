@@ -16,11 +16,11 @@
 package org.springaicommunity.bench.agents.verifier;
 
 /**
- * Individual verification check result.
- * Represents a single assertion about the agent's output.
+ * Individual verification check result. Represents a single assertion about the agent's
+ * output.
  */
-public record Check(
-    String name,    // Check identifier (e.g., "exists", "content")
-    boolean pass,   // Whether this check passed
-    String info     // Additional information about the check
-) {}
+public record Check(String name, // Check identifier (e.g., "exists", "content")
+		boolean pass, // Whether this check passed
+		String info // Additional information about the check
+) {
+}

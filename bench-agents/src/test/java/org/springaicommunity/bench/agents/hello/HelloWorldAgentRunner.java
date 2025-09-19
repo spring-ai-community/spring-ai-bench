@@ -19,12 +19,13 @@ import org.springaicommunity.bench.agents.runner.AgentModelAdapter;
 import org.springaicommunity.bench.agents.verifier.HelloWorldVerifier;
 
 /**
- * Specific agent runner for the Hello World deterministic test agent.
- * Extends the generic AgentModelAdapter with a HelloWorldAgentModel.
+ * Specific agent runner for the Hello World deterministic test agent. Extends the generic
+ * AgentModelAdapter with a HelloWorldAgentModel.
  */
 public class HelloWorldAgentRunner extends AgentModelAdapter {
 
-    public HelloWorldAgentRunner() {
-        super(new HelloWorldAgentModel(), new HelloWorldVerifier());
-    }
+	public HelloWorldAgentRunner() {
+		super(new HelloWorldAgentModel(), new HelloWorldVerifier());
+	}
+
 }

@@ -19,11 +19,10 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 
-/**
- * Test configuration for Spring Boot tests.
- */
+/** Test configuration for Spring Boot tests. */
 @SpringBootConfiguration
 @EnableAutoConfiguration
 @ComponentScan
 public class TestConfiguration {
+
 }

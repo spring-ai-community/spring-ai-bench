@@ -15,31 +15,29 @@
  */
 package org.springaicommunity.bench.agents.runner;
 
+import java.nio.file.Path;
+import java.time.Duration;
 import org.springaicommunity.agents.gemini.GeminiAgentModel;
-import org.springaicommunity.bench.agents.runner.AgentModelAdapter;
 import org.springaicommunity.bench.agents.verifier.SuccessVerifier;
 import org.springaicommunity.bench.core.run.AgentResult;
 import org.springaicommunity.bench.core.run.AgentRunner;
 import org.springaicommunity.bench.core.spec.AgentSpec;
 
-import java.nio.file.Path;
-import java.time.Duration;
-
 /**
- * Agent runner implementation for Gemini CLI agent.
- * Wraps GeminiAgentModel with the AgentModelAdapter to bridge
- * between Spring AI Bench and Spring AI Agents APIs.
+ * Agent runner implementation for Gemini CLI agent. Wraps GeminiAgentModel with the
+ * AgentModelAdapter to bridge between Spring AI Bench and Spring AI Agents APIs.
  */
 public class GeminiAgentRunner implements AgentRunner {
 
-    private final AgentModelAdapter adapter;
+	private final AgentModelAdapter adapter;
 
-    public GeminiAgentRunner(GeminiAgentModel model, SuccessVerifier verifier) {
-        this.adapter = new AgentModelAdapter(model, verifier);
-    }
+	public GeminiAgentRunner(GeminiAgentModel model, SuccessVerifier verifier) {
+		this.adapter = new AgentModelAdapter(model, verifier);
+	}
 
-    @Override
-    public AgentResult run(Path workspace, AgentSpec spec, Duration timeout) throws Exception {
-        return adapter.run(workspace, spec, timeout);
-    }
+	@Override
+	public AgentResult run(Path workspace, AgentSpec spec, Duration timeout) throws Exception {
+		return adapter.run(workspace, spec, timeout);
+	}
+
 }

@@ -15,83 +15,82 @@
  */
 package org.springaicommunity.bench.agents.runner;
 
+import java.nio.file.Path;
+import java.time.Instant;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 import org.springaicommunity.agents.model.AgentModel;
 import org.springaicommunity.agents.model.AgentResponse;
 import org.springaicommunity.bench.agents.report.IndexPageGenerator;
 import org.springaicommunity.bench.agents.report.MinimalHtmlReportGenerator;
 import org.springaicommunity.bench.agents.report.MinimalJsonReportGenerator;
 import org.springaicommunity.bench.agents.verifier.VerificationResult;
+import org.springframework.stereotype.Service;
 
-import java.nio.file.Path;
-import java.time.Instant;
-import java.util.UUID;
-
-/**
- * Service for generating benchmark reports including JSON, HTML, and index pages.
- */
+/** Service for generating benchmark reports including JSON, HTML, and index pages. */
 @Service
 public class ReportService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ReportService.class);
+	private static final Logger logger = LoggerFactory.getLogger(ReportService.class);
 
-    /**
-     * Generates all reports for a benchmark run.
-     * 
-     * @param runId the unique run identifier
-     * @param caseId the benchmark case identifier
-     * @param success whether the benchmark was successful
-     * @param startedAt the start time
-     * @param finishedAt the finish time
-     * @param durationMs the duration in milliseconds
-     * @param verificationResult the verification result
-     * @param runRoot the run root directory
-     * @param workspace the workspace directory
-     * @param agentResponse the agent response
-     * @param agentModel the agent model used
-     */
-    public void generateReports(UUID runId, String caseId, boolean success, Instant startedAt,
-                               Instant finishedAt, long durationMs, VerificationResult verificationResult,
-                               Path runRoot, Path workspace, AgentResponse agentResponse, AgentModel agentModel) {
-        try {
-            String agentProviderInfo = getAgentProviderInfo(agentModel);
-            
-            // Generate JSON report with enhanced provenance
-            MinimalJsonReportGenerator.generate(runId, caseId, success, startedAt, finishedAt,
-                durationMs, verificationResult, runRoot, workspace, agentProviderInfo);
+	/**
+	 * Generates all reports for a benchmark run.
+	 * @param runId the unique run identifier
+	 * @param caseId the benchmark case identifier
+	 * @param success whether the benchmark was successful
+	 * @param startedAt the start time
+	 * @param finishedAt the finish time
+	 * @param durationMs the duration in milliseconds
+	 * @param verificationResult the verification result
+	 * @param runRoot the run root directory
+	 * @param workspace the workspace directory
+	 * @param agentResponse the agent response
+	 * @param agentModel the agent model used
+	 */
+	public void generateReports(UUID runId, String caseId, boolean success, Instant startedAt, Instant finishedAt,
+			long durationMs, VerificationResult verificationResult, Path runRoot, Path workspace,
+			AgentResponse agentResponse, AgentModel agentModel) {
+		try {
+			String agentProviderInfo = getAgentProviderInfo(agentModel);
 
-            // Generate HTML report with agent response metadata
-            MinimalHtmlReportGenerator.generate(runId, caseId, success, startedAt, finishedAt,
-                durationMs, verificationResult, runRoot, agentResponse);
+			// Generate JSON report with enhanced provenance
+			MinimalJsonReportGenerator.generate(runId, caseId, success, startedAt, finishedAt, durationMs,
+					verificationResult, runRoot, workspace, agentProviderInfo);
 
-            // Update index page
-            Path reportsBaseDir = runRoot.getParent();
-            IndexPageGenerator.generate(reportsBaseDir);
+			// Generate HTML report with agent response metadata
+			MinimalHtmlReportGenerator.generate(runId, caseId, success, startedAt, finishedAt, durationMs,
+					verificationResult, runRoot, agentResponse);
 
-            logger.debug("Successfully generated reports for run: {}", runId);
+			// Update index page
+			Path reportsBaseDir = runRoot.getParent();
+			IndexPageGenerator.generate(reportsBaseDir);
 
-        } catch (Exception e) {
-            // Log error but don't fail the execution
-            logger.error("Failed to generate reports for run: {}", runId, e);
-        }
-    }
+			logger.debug("Successfully generated reports for run: {}", runId);
 
-    /**
-     * Determines the agent provider information based on the agent model class.
-     * 
-     * @param agentModel the agent model
-     * @return the provider identifier string
-     */
-    private String getAgentProviderInfo(AgentModel agentModel) {
-        String className = agentModel.getClass().getSimpleName();
-        if (className.contains("Claude")) {
-            return "claude-code";
-        } else if (className.contains("Gemini")) {
-            return "gemini";
-        } else {
-            return "hello-world";
-        }
-    }
+		}
+		catch (Exception e) {
+			// Log error but don't fail the execution
+			logger.error("Failed to generate reports for run: {}", runId, e);
+		}
+	}
+
+	/**
+	 * Determines the agent provider information based on the agent model class.
+	 * @param agentModel the agent model
+	 * @return the provider identifier string
+	 */
+	private String getAgentProviderInfo(AgentModel agentModel) {
+		String className = agentModel.getClass().getSimpleName();
+		if (className.contains("Claude")) {
+			return "claude-code";
+		}
+		else if (className.contains("Gemini")) {
+			return "gemini";
+		}
+		else {
+			return "hello-world";
+		}
+	}
+
 }

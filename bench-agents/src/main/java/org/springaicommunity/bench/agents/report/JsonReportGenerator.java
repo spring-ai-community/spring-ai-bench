@@ -16,70 +16,67 @@
 package org.springaicommunity.bench.agents.report;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springaicommunity.bench.core.run.BenchResult;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.springaicommunity.bench.core.run.BenchResult;
 
-/**
- * Generates JSON reports for benchmark results.
- */
+/** Generates JSON reports for benchmark results. */
 public class JsonReportGenerator {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+	private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static Path generate(BenchResult result, Path outputDir) throws Exception {
-        Path reportDir = outputDir.resolve("bench-reports").resolve(result.benchId());
-        Files.createDirectories(reportDir);
+	public static Path generate(BenchResult result, Path outputDir) throws Exception {
+		Path reportDir = outputDir.resolve("bench-reports").resolve(result.benchId());
+		Files.createDirectories(reportDir);
 
-        // Create structured report data
-        Map<String, Object> report = new LinkedHashMap<>();
+		// Create structured report data
+		Map<String, Object> report = new LinkedHashMap<>();
 
-        // Basic information
-        report.put("benchId", result.benchId());
-        report.put("success", result.passed());
-        report.put("durationMillis", result.durationMillis());
-        report.put("timestamp", Instant.now().toString());
+		// Basic information
+		report.put("benchId", result.benchId());
+		report.put("success", result.passed());
+		report.put("durationMillis", result.durationMillis());
+		report.put("timestamp", Instant.now().toString());
 
-        // Execution details
-        Map<String, Object> execution = new LinkedHashMap<>();
-        execution.put("exitCode", result.passed() ? 0 : 1);
-        execution.put("logPath", result.logPath());
-        execution.put("completed", true);
-        report.put("execution", execution);
+		// Execution details
+		Map<String, Object> execution = new LinkedHashMap<>();
+		execution.put("exitCode", result.passed() ? 0 : 1);
+		execution.put("logPath", result.logPath());
+		execution.put("completed", true);
+		report.put("execution", execution);
 
-        // Metadata
-        Map<String, Object> metadata = new LinkedHashMap<>();
-        metadata.put("generator", "Spring AI Bench");
-        metadata.put("version", "0.1.0-SNAPSHOT");
-        metadata.put("reportFormat", "1.0");
-        metadata.put("generatedAt", Instant.now().toString());
-        report.put("metadata", metadata);
+		// Metadata
+		Map<String, Object> metadata = new LinkedHashMap<>();
+		metadata.put("generator", "Spring AI Bench");
+		metadata.put("version", "0.1.0-SNAPSHOT");
+		metadata.put("reportFormat", "1.0");
+		metadata.put("generatedAt", Instant.now().toString());
+		report.put("metadata", metadata);
 
-        // Environment information
-        Map<String, Object> environment = new LinkedHashMap<>();
-        environment.put("javaVersion", System.getProperty("java.version"));
-        environment.put("osName", System.getProperty("os.name"));
-        environment.put("osVersion", System.getProperty("os.version"));
-        environment.put("architecture", System.getProperty("os.arch"));
-        report.put("environment", environment);
+		// Environment information
+		Map<String, Object> environment = new LinkedHashMap<>();
+		environment.put("javaVersion", System.getProperty("java.version"));
+		environment.put("osName", System.getProperty("os.name"));
+		environment.put("osVersion", System.getProperty("os.version"));
+		environment.put("architecture", System.getProperty("os.arch"));
+		report.put("environment", environment);
 
-        // Summary
-        Map<String, Object> summary = new LinkedHashMap<>();
-        summary.put("status", result.passed() ? "PASSED" : "FAILED");
-        summary.put("category", "integration-test");
-        summary.put("agent", "hello-world");
-        summary.put("duration", result.durationMillis() + "ms");
-        report.put("summary", summary);
+		// Summary
+		Map<String, Object> summary = new LinkedHashMap<>();
+		summary.put("status", result.passed() ? "PASSED" : "FAILED");
+		summary.put("category", "integration-test");
+		summary.put("agent", "hello-world");
+		summary.put("duration", result.durationMillis() + "ms");
+		report.put("summary", summary);
 
-        // Write JSON report
-        Path jsonFile = reportDir.resolve("report.json");
-        objectMapper.writerWithDefaultPrettyPrinter()
-            .writeValue(jsonFile.toFile(), report);
+		// Write JSON report
+		Path jsonFile = reportDir.resolve("report.json");
+		objectMapper.writerWithDefaultPrettyPrinter().writeValue(jsonFile.toFile(), report);
 
-        return jsonFile;
-    }
+		return jsonFile;
+	}
+
 }

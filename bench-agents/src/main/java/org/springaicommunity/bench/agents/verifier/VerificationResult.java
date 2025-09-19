@@ -18,11 +18,11 @@ package org.springaicommunity.bench.agents.verifier;
 import java.util.List;
 
 /**
- * Result of verification with detailed check information.
- * Contains overall success status and individual check results.
+ * Result of verification with detailed check information. Contains overall success status
+ * and individual check results.
  */
-public record VerificationResult(
-    boolean success,    // Overall verification success
-    String reason,      // Human-readable summary
-    List<Check> checks  // Individual check results
-) {}
+public record VerificationResult(boolean success, // Overall verification success
+		String reason, // Human-readable summary
+		List<Check> checks // Individual check results
+) {
+}

@@ -15,49 +15,47 @@
  */
 package org.springaicommunity.bench.agents.debug;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springaicommunity.bench.agents.verifier.HelloWorldVerifier;
 import org.springaicommunity.bench.agents.verifier.VerificationContext;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.Instant;
 
 /**
  * Debug test to understand path resolution differences between different agent setups.
  */
 class PathVerificationDebugTest {
 
-    @TempDir
-    Path tempDir;
+	@TempDir
+	Path tempDir;
 
-    @Test
-    void debugPathResolution() throws Exception {
-        // Create a test file in temp directory
-        Path testFile = tempDir.resolve("hello.txt");
-        Files.writeString(testFile, "Hello World!");
+	@Test
+	void debugPathResolution() throws Exception {
+		// Create a test file in temp directory
+		Path testFile = tempDir.resolve("hello.txt");
+		Files.writeString(testFile, "Hello World!");
 
-        System.out.println("=== SETUP ===");
-        System.out.println("tempDir: " + tempDir);
-        System.out.println("tempDir.getParent(): " + tempDir.getParent());
-        System.out.println("tempDir.getFileName(): " + tempDir.getFileName());
-        System.out.println("testFile: " + testFile);
-        System.out.println("testFile exists: " + Files.exists(testFile));
+		System.out.println("=== SETUP ===");
+		System.out.println("tempDir: " + tempDir);
+		System.out.println("tempDir.getParent(): " + tempDir.getParent());
+		System.out.println("tempDir.getFileName(): " + tempDir.getFileName());
+		System.out.println("testFile: " + testFile);
+		System.out.println("testFile exists: " + Files.exists(testFile));
 
-        // Test verification with the pattern AgentModelAdapter uses
-        VerificationContext context = new VerificationContext(
-            tempDir.getParent(),    // runRoot
-            tempDir.getFileName(),  // workspaceRel
-            Instant.now()
-        );
+		// Test verification with the pattern AgentModelAdapter uses
+		VerificationContext context = new VerificationContext(tempDir.getParent(), // runRoot
+				tempDir.getFileName(), // workspaceRel
+				Instant.now());
 
-        System.out.println("=== VERIFICATION CONTEXT ===");
-        System.out.println("context.runRoot(): " + context.runRoot());
-        System.out.println("context.workspaceRel(): " + context.workspaceRel());
+		System.out.println("=== VERIFICATION CONTEXT ===");
+		System.out.println("context.runRoot(): " + context.runRoot());
+		System.out.println("context.workspaceRel(): " + context.workspaceRel());
 
-        // Test the verifier
-        HelloWorldVerifier verifier = new HelloWorldVerifier();
-        verifier.verify(context);
-    }
+		// Test the verifier
+		HelloWorldVerifier verifier = new HelloWorldVerifier();
+		verifier.verify(context);
+	}
+
 }

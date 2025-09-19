@@ -16,103 +16,83 @@
 package org.springaicommunity.bench.agents.report;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springaicommunity.bench.agents.verifier.VerificationResult;
-
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+import org.springaicommunity.bench.agents.verifier.VerificationResult;
 
 /**
- * Generates minimal JSON reports for agent execution results.
- * Uses the new verification system data.
+ * Generates minimal JSON reports for agent execution results. Uses the new verification
+ * system data.
  */
 public class MinimalJsonReportGenerator {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+	private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static Path generate(
-            UUID runId,
-            String caseId,
-            boolean success,
-            Instant startedAt,
-            Instant finishedAt,
-            long durationMs,
-            VerificationResult verificationResult,
-            Path runRoot,
-            Path workspace,
-            String provider) throws Exception {
+	public static Path generate(UUID runId, String caseId, boolean success, Instant startedAt, Instant finishedAt,
+			long durationMs, VerificationResult verificationResult, Path runRoot, Path workspace, String provider)
+			throws Exception {
 
-        // Create structured report data
-        Map<String, Object> report = new LinkedHashMap<>();
+		// Create structured report data
+		Map<String, Object> report = new LinkedHashMap<>();
 
-        // Basic information (minimal schema)
-        report.put("runId", runId.toString());
-        report.put("caseId", caseId);
-        report.put("success", success);
-        report.put("reason", verificationResult != null ? verificationResult.reason() : "No verification");
-        report.put("startedAt", startedAt.toString());
-        report.put("finishedAt", finishedAt.toString());
-        report.put("durationMs", durationMs);
+		// Basic information (minimal schema)
+		report.put("runId", runId.toString());
+		report.put("caseId", caseId);
+		report.put("success", success);
+		report.put("reason", verificationResult != null ? verificationResult.reason() : "No verification");
+		report.put("startedAt", startedAt.toString());
+		report.put("finishedAt", finishedAt.toString());
+		report.put("durationMs", durationMs);
 
-        // Relative paths
-        report.put("logPath", "run.log");
-        report.put("workspacePath", "../" + runRoot.getParent().relativize(runRoot.getParent()).toString());
+		// Relative paths
+		report.put("logPath", "run.log");
+		report.put("workspacePath", "../" + runRoot.getParent().relativize(runRoot.getParent()).toString());
 
-        // Verification checks
-        if (verificationResult != null && !verificationResult.checks().isEmpty()) {
-            var checks = verificationResult.checks().stream()
-                .map(check -> Map.of(
-                    "name", check.name(),
-                    "pass", check.pass(),
-                    "info", check.info()
-                ))
-                .toList();
-            report.put("checks", checks);
-        }
+		// Verification checks
+		if (verificationResult != null && !verificationResult.checks().isEmpty()) {
+			var checks = verificationResult.checks()
+				.stream()
+				.map(check -> Map.of("name", check.name(), "pass", check.pass(), "info", check.info()))
+				.toList();
+			report.put("checks", checks);
+		}
 
-        // Enhanced provenance with agent information
-        Map<String, Object> provenance = new LinkedHashMap<>();
-        provenance.put("benchVersion", "0.1.0-SNAPSHOT");
-        provenance.put("agentsVersion", "0.1.0-SNAPSHOT");
-        provenance.put("generator", "Spring AI Bench");
-        provenance.put("reportFormat", "1.0");
-        provenance.put("generatedAt", Instant.now().toString());
+		// Enhanced provenance with agent information
+		Map<String, Object> provenance = new LinkedHashMap<>();
+		provenance.put("benchVersion", "0.1.0-SNAPSHOT");
+		provenance.put("agentsVersion", "0.1.0-SNAPSHOT");
+		provenance.put("generator", "Spring AI Bench");
+		provenance.put("reportFormat", "1.0");
+		provenance.put("generatedAt", Instant.now().toString());
 
-        // Agent info as nested object
-        Map<String, Object> agentInfo = new LinkedHashMap<>();
-        agentInfo.put("provider", provider);
-        agentInfo.put("workspacePath", workspace.toAbsolutePath().toString());
-        provenance.put("agent", agentInfo);
+		// Agent info as nested object
+		Map<String, Object> agentInfo = new LinkedHashMap<>();
+		agentInfo.put("provider", provider);
+		agentInfo.put("workspacePath", workspace.toAbsolutePath().toString());
+		provenance.put("agent", agentInfo);
 
-        report.put("provenance", provenance);
+		report.put("provenance", provenance);
 
-        // Write JSON report
-        Path jsonFile = runRoot.resolve("report.json");
-        objectMapper.writerWithDefaultPrettyPrinter()
-            .writeValue(jsonFile.toFile(), report);
+		// Write JSON report
+		Path jsonFile = runRoot.resolve("report.json");
+		objectMapper.writerWithDefaultPrettyPrinter().writeValue(jsonFile.toFile(), report);
 
-        return jsonFile;
-    }
+		return jsonFile;
+	}
 
-    // Backward compatibility overload
-    public static Path generate(
-            UUID runId,
-            String caseId,
-            boolean success,
-            Instant startedAt,
-            Instant finishedAt,
-            long durationMs,
-            VerificationResult verificationResult,
-            Path runRoot) throws Exception {
+	// Backward compatibility overload
+	public static Path generate(UUID runId, String caseId, boolean success, Instant startedAt, Instant finishedAt,
+			long durationMs, VerificationResult verificationResult, Path runRoot) throws Exception {
 
-        // Use default values for new parameters
-        Path workspace = runRoot.getParent().resolve("workspace-unknown");
-        String provider = "unknown";
+		// Use default values for new parameters
+		Path workspace = runRoot.getParent().resolve("workspace-unknown");
+		String provider = "unknown";
 
-        return generate(runId, caseId, success, startedAt, finishedAt, durationMs,
-                       verificationResult, runRoot, workspace, provider);
-    }
+		return generate(runId, caseId, success, startedAt, finishedAt, durationMs, verificationResult, runRoot,
+				workspace, provider);
+	}
+
 }

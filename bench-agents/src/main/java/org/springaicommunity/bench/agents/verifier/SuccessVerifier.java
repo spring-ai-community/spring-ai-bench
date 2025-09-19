@@ -16,16 +16,16 @@
 package org.springaicommunity.bench.agents.verifier;
 
 /**
- * Interface for verifying agent execution results.
- * Implementations check whether an agent successfully completed its task.
+ * Interface for verifying agent execution results. Implementations check whether an agent
+ * successfully completed its task.
  */
 public interface SuccessVerifier {
 
-    /**
-     * Verify the results of an agent execution.
-     *
-     * @param context the verification context with workspace and timing info
-     * @return verification result with success status and check details
-     */
-    VerificationResult verify(VerificationContext context);
+	/**
+	 * Verify the results of an agent execution.
+	 * @param context the verification context with workspace and timing info
+	 * @return verification result with success status and check details
+	 */
+	VerificationResult verify(VerificationContext context);
+
 }

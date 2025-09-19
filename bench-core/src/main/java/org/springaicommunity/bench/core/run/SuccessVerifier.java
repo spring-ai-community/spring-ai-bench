@@ -17,34 +17,30 @@ package org.springaicommunity.bench.core.run;
 
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.Arrays;
-
-import org.springaicommunity.bench.core.spec.SuccessSpec;
-import org.springaicommunity.bench.core.exec.ExecSpec;
 import org.springaicommunity.bench.core.exec.ExecResult;
+import org.springaicommunity.bench.core.exec.ExecSpec;
 import org.springaicommunity.bench.core.exec.sandbox.LocalSandbox;
+import org.springaicommunity.bench.core.spec.SuccessSpec;
 
 /**
- * Verifies benchmark success by running the specified command.
- * Uses LocalSandbox for proper command execution.
+ * Verifies benchmark success by running the specified command. Uses LocalSandbox for
+ * proper command execution.
  */
 class SuccessVerifier {
 
-    SuccessVerifier() { }
+	SuccessVerifier() {
+	}
 
-    boolean verify(Path workspaceDir, SuccessSpec spec, Duration timeout) throws Exception {
-        try (LocalSandbox sandbox = LocalSandbox.builder()
-                .workingDirectory(workspaceDir)
-                .build()) {
+	boolean verify(Path workspaceDir, SuccessSpec spec, Duration timeout) throws Exception {
+		try (LocalSandbox sandbox = LocalSandbox.builder().workingDirectory(workspaceDir).build()) {
 
-            // Execute the command string directly - LocalSandbox will handle platform details
-            ExecSpec execSpec = ExecSpec.builder()
-                .shellCommand(spec.cmd())
-                .timeout(timeout)
-                .build();
+			// Execute the command string directly - LocalSandbox will handle platform
+			// details
+			ExecSpec execSpec = ExecSpec.builder().shellCommand(spec.cmd()).timeout(timeout).build();
 
-            ExecResult result = sandbox.exec(execSpec);
-            return result.exitCode() == 0;
-        }
-    }
+			ExecResult result = sandbox.exec(execSpec);
+			return result.exitCode() == 0;
+		}
+	}
+
 }

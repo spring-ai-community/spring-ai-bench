@@ -1,5 +1,7 @@
 package org.springaicommunity.bench.core.spec;
 
 public class BenchSpec {
-    // A simple class to verify compilation
+
+	// A simple class to verify compilation
+
 }

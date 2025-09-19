@@ -15,164 +15,153 @@
  */
 package org.springaicommunity.bench.agents.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
 import org.junit.jupiter.api.*;
 import org.springaicommunity.bench.agents.hello.HelloWorldAgentRunner;
 import org.springaicommunity.bench.core.run.AgentResult;
 import org.springaicommunity.bench.core.spec.AgentSpec;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.Duration;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 /**
- * Integration test for the bench-agents infrastructure using HelloWorldAgentRunner.
- * This test verifies the complete pipeline including verification and reporting.
+ * Integration test for the bench-agents infrastructure using HelloWorldAgentRunner. This
+ * test verifies the complete pipeline including verification and reporting.
  */
 class BenchAgentsIntegrationTest {
 
-    private Path tempWorkspace;
-    private HelloWorldAgentRunner agentRunner;
+	private Path tempWorkspace;
 
-    @BeforeEach
-    void setUp() throws Exception {
-        tempWorkspace = Files.createTempDirectory("bench-agents-test-");
-        agentRunner = new HelloWorldAgentRunner();
-    }
+	private HelloWorldAgentRunner agentRunner;
 
-    @AfterEach
-    void tearDown() throws Exception {
-        if (tempWorkspace != null && Files.exists(tempWorkspace)) {
-            Files.walk(tempWorkspace)
-                .sorted((a, b) -> b.compareTo(a)) // Delete files before directories
-                .forEach(path -> {
-                    try {
-                        Files.deleteIfExists(path);
-                    } catch (Exception e) {
-                        // Best effort cleanup
-                    }
-                });
-        }
-    }
+	@BeforeEach
+	void setUp() throws Exception {
+		tempWorkspace = Files.createTempDirectory("bench-agents-test-");
+		agentRunner = new HelloWorldAgentRunner();
+	}
 
-    @Test
-    void benchAgents_integration_pipeline_works() throws Exception {
-        // Create AgentSpec for hello world task
-        AgentSpec spec = new AgentSpec(
-            "hello-world",
-            "Create a file named hello.txt with contents: Hello World!",
-            null, // model - will use default
-            null, // genParams
-            null, // autoApprove
-            null  // role
-        );
+	@AfterEach
+	void tearDown() throws Exception {
+		if (tempWorkspace != null && Files.exists(tempWorkspace)) {
+			Files.walk(tempWorkspace)
+				.sorted((a, b) -> b.compareTo(a)) // Delete files before directories
+				.forEach(path -> {
+					try {
+						Files.deleteIfExists(path);
+					}
+					catch (Exception e) {
+						// Best effort cleanup
+					}
+				});
+		}
+	}
 
-        // Run the agent through the full pipeline
-        AgentResult result = agentRunner.run(tempWorkspace, spec, Duration.ofMinutes(1));
+	@Test
+	void benchAgents_integration_pipeline_works() throws Exception {
+		// Create AgentSpec for hello world task
+		AgentSpec spec = new AgentSpec("hello-world", "Create a file named hello.txt with contents: Hello World!", null, // model
+																															// -
+																															// will
+																															// use
+																															// default
+				null, // genParams
+				null, // autoApprove
+				null // role
+		);
 
-        // Verify the result
-        assertThat(result.exitCode()).isEqualTo(0);
-        assertThat(result.logFile()).exists();
-        assertThat(result.durationMillis()).isGreaterThanOrEqualTo(0);
+		// Run the agent through the full pipeline
+		AgentResult result = agentRunner.run(tempWorkspace, spec, Duration.ofMinutes(1));
 
-        // Verify the hello.txt file was created with correct content
-        Path helloFile = tempWorkspace.resolve("hello.txt");
-        assertThat(helloFile).exists();
+		// Verify the result
+		assertThat(result.exitCode()).isEqualTo(0);
+		assertThat(result.logFile()).exists();
+		assertThat(result.durationMillis()).isGreaterThanOrEqualTo(0);
 
-        String content = Files.readString(helloFile);
-        assertThat(content).isEqualTo("Hello World!");
+		// Verify the hello.txt file was created with correct content
+		Path helloFile = tempWorkspace.resolve("hello.txt");
+		assertThat(helloFile).exists();
 
-        System.out.println("✅ SUCCESS: Bench-agents integration pipeline works end-to-end");
-    }
+		String content = Files.readString(helloFile);
+		assertThat(content).isEqualTo("Hello World!");
 
-    @Test
-    void benchAgents_report_generation_works() throws Exception {
-        // Create AgentSpec
-        AgentSpec spec = new AgentSpec(
-            "hello-world",
-            "Create hello.txt",
-            null, null, null, null
-        );
+		System.out.println("✅ SUCCESS: Bench-agents integration pipeline works end-to-end");
+	}
 
-        // Run the agent
-        AgentResult result = agentRunner.run(tempWorkspace, spec, Duration.ofMinutes(1));
+	@Test
+	void benchAgents_report_generation_works() throws Exception {
+		// Create AgentSpec
+		AgentSpec spec = new AgentSpec("hello-world", "Create hello.txt", null, null, null, null);
 
-        // Verify reports were generated
-        Path reportsDir = tempWorkspace.getParent().resolve("bench-reports");
-        assertThat(reportsDir).exists();
+		// Run the agent
+		AgentResult result = agentRunner.run(tempWorkspace, spec, Duration.ofMinutes(1));
 
-        // Find the most recent run directory (sorted by creation time)
-        Path runDir = Files.list(reportsDir)
-            .filter(Files::isDirectory)
-            .sorted((a, b) -> {
-                try {
-                    return Files.getLastModifiedTime(b).compareTo(Files.getLastModifiedTime(a));
-                } catch (Exception e) {
-                    return 0;
-                }
-            })
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("No run directory found"));
+		// Verify reports were generated
+		Path reportsDir = tempWorkspace.getParent().resolve("bench-reports");
+		assertThat(reportsDir).exists();
 
-        // Verify report files exist
-        Path jsonReport = runDir.resolve("report.json");
-        Path htmlReport = runDir.resolve("index.html");
-        Path logFile = runDir.resolve("run.log");
+		// Find the most recent run directory (sorted by creation time)
+		Path runDir = Files.list(reportsDir).filter(Files::isDirectory).sorted((a, b) -> {
+			try {
+				return Files.getLastModifiedTime(b).compareTo(Files.getLastModifiedTime(a));
+			}
+			catch (Exception e) {
+				return 0;
+			}
+		}).findFirst().orElseThrow(() -> new AssertionError("No run directory found"));
 
-        assertThat(jsonReport).exists();
-        assertThat(htmlReport).exists();
-        assertThat(logFile).exists();
+		// Verify report files exist
+		Path jsonReport = runDir.resolve("report.json");
+		Path htmlReport = runDir.resolve("index.html");
+		Path logFile = runDir.resolve("run.log");
 
-        // Verify JSON report contains expected fields
-        String jsonContent = Files.readString(jsonReport);
-        assertThat(jsonContent).contains("\"success\" : true");
-        assertThat(jsonContent).contains("\"caseId\" : \"hello-world\"");
-        assertThat(jsonContent).contains("\"provenance\"");
-        assertThat(jsonContent).contains("\"benchVersion\"");
+		assertThat(jsonReport).exists();
+		assertThat(htmlReport).exists();
+		assertThat(logFile).exists();
 
-        // Verify HTML report contains expected structure
-        String htmlContent = Files.readString(htmlReport);
-        assertThat(htmlContent).contains("Agent Execution Report");
-        assertThat(htmlContent).contains("SUCCESS");
-        assertThat(htmlContent).contains("Verification Checks");
+		// Verify JSON report contains expected fields
+		String jsonContent = Files.readString(jsonReport);
+		assertThat(jsonContent).contains("\"success\" : true");
+		assertThat(jsonContent).contains("\"caseId\" : \"hello-world\"");
+		assertThat(jsonContent).contains("\"provenance\"");
+		assertThat(jsonContent).contains("\"benchVersion\"");
 
-        System.out.println("✅ SUCCESS: Report generation works with proper structure");
-    }
+		// Verify HTML report contains expected structure
+		String htmlContent = Files.readString(htmlReport);
+		assertThat(htmlContent).contains("Agent Execution Report");
+		assertThat(htmlContent).contains("SUCCESS");
+		assertThat(htmlContent).contains("Verification Checks");
 
-    @Test
-    void benchAgents_verification_system_works() throws Exception {
-        // Test with a scenario that should pass verification
-        AgentSpec spec = new AgentSpec(
-            "hello-world",
-            "Create hello.txt with exact content: Hello World!",
-            null, null, null, null
-        );
+		System.out.println("✅ SUCCESS: Report generation works with proper structure");
+	}
 
-        AgentResult result = agentRunner.run(tempWorkspace, spec, Duration.ofMinutes(1));
+	@Test
+	void benchAgents_verification_system_works() throws Exception {
+		// Test with a scenario that should pass verification
+		AgentSpec spec = new AgentSpec("hello-world", "Create hello.txt with exact content: Hello World!", null, null,
+				null, null);
 
-        // Should succeed because HelloWorldAgentModel creates the correct file
-        assertThat(result.exitCode()).isEqualTo(0);
+		AgentResult result = agentRunner.run(tempWorkspace, spec, Duration.ofMinutes(1));
 
-        // Verify the verification checks passed
-        Path reportsDir = tempWorkspace.getParent().resolve("bench-reports");
-        Path runDir = Files.list(reportsDir)
-            .filter(Files::isDirectory)
-            .sorted((a, b) -> {
-                try {
-                    return Files.getLastModifiedTime(b).compareTo(Files.getLastModifiedTime(a));
-                } catch (Exception e) {
-                    return 0;
-                }
-            })
-            .findFirst()
-            .orElseThrow();
+		// Should succeed because HelloWorldAgentModel creates the correct file
+		assertThat(result.exitCode()).isEqualTo(0);
 
-        String jsonContent = Files.readString(runDir.resolve("report.json"));
-        assertThat(jsonContent).contains("\"success\" : true");
-        assertThat(jsonContent).contains("\"pass\" : true"); // Verification checks passed
+		// Verify the verification checks passed
+		Path reportsDir = tempWorkspace.getParent().resolve("bench-reports");
+		Path runDir = Files.list(reportsDir).filter(Files::isDirectory).sorted((a, b) -> {
+			try {
+				return Files.getLastModifiedTime(b).compareTo(Files.getLastModifiedTime(a));
+			}
+			catch (Exception e) {
+				return 0;
+			}
+		}).findFirst().orElseThrow();
 
-        System.out.println("✅ SUCCESS: Verification system correctly validates agent output");
-    }
+		String jsonContent = Files.readString(runDir.resolve("report.json"));
+		assertThat(jsonContent).contains("\"success\" : true");
+		assertThat(jsonContent).contains("\"pass\" : true"); // Verification checks passed
+
+		System.out.println("✅ SUCCESS: Verification system correctly validates agent output");
+	}
+
 }

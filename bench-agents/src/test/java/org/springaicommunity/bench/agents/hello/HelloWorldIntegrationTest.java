@@ -15,113 +15,107 @@
  */
 package org.springaicommunity.bench.agents.hello;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.springaicommunity.bench.core.spec.AgentSpec;
+import static org.assertj.core.api.Assertions.*;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Map;
-
-import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.springaicommunity.bench.core.spec.AgentSpec;
 
 /**
- * Integration test for HelloWorldAgentRunner that validates the full
- * integration between Spring AI Bench and Spring AI Agents APIs.
+ * Integration test for HelloWorldAgentRunner that validates the full integration between
+ * Spring AI Bench and Spring AI Agents APIs.
  */
 class HelloWorldIntegrationTest {
 
-    @TempDir
-    Path tempDir;
+	@TempDir
+	Path tempDir;
 
-    @Test
-    void testHelloWorldAgentCreatesFile() throws Exception {
-        // Create agent runner
-        var runner = new HelloWorldAgentRunner();
+	@Test
+	void testHelloWorldAgentCreatesFile() throws Exception {
+		// Create agent runner
+		var runner = new HelloWorldAgentRunner();
 
-        // Create spec
-        var spec = new AgentSpec(
-            "hello",           // kind
-            "hello-v1",        // model
-            true,              // autoApprove
-            "Create hello.txt with 'Hello World!'", // prompt
-            null,              // genParams
-            "test"             // role
-        );
+		// Create spec
+		var spec = new AgentSpec("hello", // kind
+				"hello-v1", // model
+				true, // autoApprove
+				"Create hello.txt with 'Hello World!'", // prompt
+				null, // genParams
+				"test" // role
+		);
 
-        // Run agent
-        var result = runner.run(tempDir, spec, Duration.ofSeconds(10));
+		// Run agent
+		var result = runner.run(tempDir, spec, Duration.ofSeconds(10));
 
-        // Verify results
-        assertThat(result.succeeded()).isTrue();
-        assertThat(result.exitCode()).isEqualTo(0);
-        assertThat(result.durationMillis()).isGreaterThan(0);
+		// Verify results
+		assertThat(result.succeeded()).isTrue();
+		assertThat(result.exitCode()).isEqualTo(0);
+		assertThat(result.durationMillis()).isGreaterThan(0);
 
-        // Verify file was created
-        Path helloFile = tempDir.resolve("hello.txt");
-        assertThat(Files.exists(helloFile)).isTrue();
-        assertThat(Files.readString(helloFile)).isEqualTo("Hello World!");
-    }
+		// Verify file was created
+		Path helloFile = tempDir.resolve("hello.txt");
+		assertThat(Files.exists(helloFile)).isTrue();
+		assertThat(Files.readString(helloFile)).isEqualTo("Hello World!");
+	}
 
-    @Test
-    void testHelloWorldAgentWithCustomParams() throws Exception {
-        // Create agent runner
-        var runner = new HelloWorldAgentRunner();
+	@Test
+	void testHelloWorldAgentWithCustomParams() throws Exception {
+		// Create agent runner
+		var runner = new HelloWorldAgentRunner();
 
-        // Create spec with custom parameters
-        Map<String, Object> genParams = Map.of(
-            "custom_param", "value",
-            "test_mode", true
-        );
+		// Create spec with custom parameters
+		Map<String, Object> genParams = Map.of("custom_param", "value", "test_mode", true);
 
-        var spec = new AgentSpec(
-            "hello",           // kind
-            "hello-v2",        // model
-            false,             // autoApprove
-            "Create hello.txt file", // prompt
-            genParams,         // genParams
-            "developer"        // role
-        );
+		var spec = new AgentSpec("hello", // kind
+				"hello-v2", // model
+				false, // autoApprove
+				"Create hello.txt file", // prompt
+				genParams, // genParams
+				"developer" // role
+		);
 
-        // Run agent
-        var result = runner.run(tempDir, spec, Duration.ofSeconds(5));
+		// Run agent
+		var result = runner.run(tempDir, spec, Duration.ofSeconds(5));
 
-        // Verify results - should still succeed regardless of params
-        assertThat(result.succeeded()).isTrue();
-        assertThat(result.exitCode()).isEqualTo(0);
+		// Verify results - should still succeed regardless of params
+		assertThat(result.succeeded()).isTrue();
+		assertThat(result.exitCode()).isEqualTo(0);
 
-        // Verify file was created
-        Path helloFile = tempDir.resolve("hello.txt");
-        assertThat(Files.exists(helloFile)).isTrue();
-        assertThat(Files.readString(helloFile)).isEqualTo("Hello World!");
-    }
+		// Verify file was created
+		Path helloFile = tempDir.resolve("hello.txt");
+		assertThat(Files.exists(helloFile)).isTrue();
+		assertThat(Files.readString(helloFile)).isEqualTo("Hello World!");
+	}
 
-    @Test
-    void testHelloWorldAgentWithShortTimeout() throws Exception {
-        // Create agent runner
-        var runner = new HelloWorldAgentRunner();
+	@Test
+	void testHelloWorldAgentWithShortTimeout() throws Exception {
+		// Create agent runner
+		var runner = new HelloWorldAgentRunner();
 
-        // Create spec
-        var spec = new AgentSpec(
-            "hello",           // kind
-            "hello-v1",        // model
-            true,              // autoApprove
-            "Create hello.txt with 'Hello World!'", // prompt
-            null,              // genParams
-            "test"             // role
-        );
+		// Create spec
+		var spec = new AgentSpec("hello", // kind
+				"hello-v1", // model
+				true, // autoApprove
+				"Create hello.txt with 'Hello World!'", // prompt
+				null, // genParams
+				"test" // role
+		);
 
-        // Run agent with very short timeout (but still should succeed since it's fast)
-        var result = runner.run(tempDir, spec, Duration.ofMillis(100));
+		// Run agent with very short timeout (but still should succeed since it's fast)
+		var result = runner.run(tempDir, spec, Duration.ofMillis(100));
 
-        // Should still succeed as HelloWorldAgentModel is very fast
-        assertThat(result.succeeded()).isTrue();
-        assertThat(result.exitCode()).isEqualTo(0);
+		// Should still succeed as HelloWorldAgentModel is very fast
+		assertThat(result.succeeded()).isTrue();
+		assertThat(result.exitCode()).isEqualTo(0);
 
-        // Verify file was created
-        Path helloFile = tempDir.resolve("hello.txt");
-        assertThat(Files.exists(helloFile)).isTrue();
-        assertThat(Files.readString(helloFile)).isEqualTo("Hello World!");
-    }
+		// Verify file was created
+		Path helloFile = tempDir.resolve("hello.txt");
+		assertThat(Files.exists(helloFile)).isTrue();
+		assertThat(Files.readString(helloFile)).isEqualTo("Hello World!");
+	}
+
 }

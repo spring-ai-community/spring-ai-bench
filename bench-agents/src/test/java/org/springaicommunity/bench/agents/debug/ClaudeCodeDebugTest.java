@@ -15,123 +15,120 @@
  */
 package org.springaicommunity.bench.agents.debug;
 
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springaicommunity.agents.claudecode.ClaudeCodeAgentModel;
 import org.springaicommunity.agents.claudecode.ClaudeCodeAgentOptions;
 import org.springaicommunity.agents.claudecode.sdk.ClaudeCodeClient;
+import org.springaicommunity.agents.model.AgentOptions;
 import org.springaicommunity.agents.model.AgentResponse;
 import org.springaicommunity.agents.model.AgentTaskRequest;
-import org.springaicommunity.agents.model.AgentOptions;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.Duration;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
-
-/**
- * Debug test to understand ClaudeCodeAgentModel behavior.
- */
+/** Debug test to understand ClaudeCodeAgentModel behavior. */
 @EnabledIfEnvironmentVariable(named = "ANTHROPIC_API_KEY", matches = ".+")
 class ClaudeCodeDebugTest {
 
-    private Path tempWorkspace;
-    private ClaudeCodeAgentModel agentModel;
+	private Path tempWorkspace;
 
-    @BeforeEach
-    void setUp() throws Exception {
-        tempWorkspace = Files.createTempDirectory("claude-debug-test-");
+	private ClaudeCodeAgentModel agentModel;
 
-        // Create ClaudeCodeAgentModel with debug configuration
-        ClaudeCodeAgentOptions options = new ClaudeCodeAgentOptions();
-        options.setYolo(true); // Skip permissions for testing
-        options.setTimeout(Duration.ofMinutes(2));
+	@BeforeEach
+	void setUp() throws Exception {
+		tempWorkspace = Files.createTempDirectory("claude-debug-test-");
 
-        // Create client with the specific working directory
-        ClaudeCodeClient client = ClaudeCodeClient.create(
-            org.springaicommunity.agents.claudecode.sdk.transport.CLIOptions.builder()
-                .timeout(Duration.ofMinutes(2))
-                .permissionMode(org.springaicommunity.agents.claudecode.sdk.config.PermissionMode.BYPASS_PERMISSIONS)
-                .build(),
-            tempWorkspace
-        );
+		// Create ClaudeCodeAgentModel with debug configuration
+		ClaudeCodeAgentOptions options = new ClaudeCodeAgentOptions();
+		options.setYolo(true); // Skip permissions for testing
+		options.setTimeout(Duration.ofMinutes(2));
 
-        agentModel = new ClaudeCodeAgentModel(client, options);
-        assumeTrue(agentModel.isAvailable(), "ClaudeCodeAgentModel not available");
-    }
+		// Create client with the specific working directory
+		ClaudeCodeClient client = ClaudeCodeClient
+			.create(org.springaicommunity.agents.claudecode.sdk.transport.CLIOptions.builder()
+				.timeout(Duration.ofMinutes(2))
+				.permissionMode(org.springaicommunity.agents.claudecode.sdk.config.PermissionMode.BYPASS_PERMISSIONS)
+				.build(), tempWorkspace);
 
-    @Test
-    void debugClaudeCodeExecution() throws Exception {
-        System.out.println("Workspace: " + tempWorkspace);
+		agentModel = new ClaudeCodeAgentModel(client, options);
+		assumeTrue(agentModel.isAvailable(), "ClaudeCodeAgentModel not available");
+	}
 
-        // Debug: Print environment variables
-        String apiKey = System.getenv("ANTHROPIC_API_KEY");
-        System.out.println("ANTHROPIC_API_KEY in test process: " + (apiKey != null ? "present (length=" + apiKey.length() + ")" : "null"));
-        System.out.println("Environment variables containing 'ANTHROPIC':");
-        System.getenv().entrySet().stream()
-            .filter(e -> e.getKey().contains("ANTHROPIC"))
-            .forEach(e -> System.out.println("  " + e.getKey() + " = " + (e.getValue() != null ? "[present]" : "null")));
+	@Test
+	void debugClaudeCodeExecution() throws Exception {
+		System.out.println("Workspace: " + tempWorkspace);
 
-        // Create simple AgentOptions for testing
-        AgentOptions simpleOptions = new AgentOptions() {
-            @Override
-            public String getWorkingDirectory() {
-                return tempWorkspace.toString();
-            }
+		// Debug: Print environment variables
+		String apiKey = System.getenv("ANTHROPIC_API_KEY");
+		System.out.println("ANTHROPIC_API_KEY in test process: "
+				+ (apiKey != null ? "present (length=" + apiKey.length() + ")" : "null"));
+		System.out.println("Environment variables containing 'ANTHROPIC':");
+		System.getenv()
+			.entrySet()
+			.stream()
+			.filter(e -> e.getKey().contains("ANTHROPIC"))
+			.forEach(
+					e -> System.out.println("  " + e.getKey() + " = " + (e.getValue() != null ? "[present]" : "null")));
 
-            @Override
-            public Duration getTimeout() {
-                return Duration.ofMinutes(2);
-            }
+		// Create simple AgentOptions for testing
+		AgentOptions simpleOptions = new AgentOptions() {
+			@Override
+			public String getWorkingDirectory() {
+				return tempWorkspace.toString();
+			}
 
-            @Override
-            public Map<String, String> getEnvironmentVariables() {
-                return Map.of();
-            }
+			@Override
+			public Duration getTimeout() {
+				return Duration.ofMinutes(2);
+			}
 
-            @Override
-            public String getModel() {
-                return "claude-sonnet-4-0";
-            }
+			@Override
+			public Map<String, String> getEnvironmentVariables() {
+				return Map.of();
+			}
 
-            @Override
-            public Map<String, Object> getExtras() {
-                return Map.of("yolo", true);
-            }
-        };
+			@Override
+			public String getModel() {
+				return "claude-sonnet-4-0";
+			}
 
-        // Create simple task request
-        AgentTaskRequest request = new AgentTaskRequest(
-            "Create a file named hello.txt with EXACT contents: Hello World!",
-            tempWorkspace,
-            simpleOptions
-        );
+			@Override
+			public Map<String, Object> getExtras() {
+				return Map.of("yolo", true);
+			}
+		};
 
-        System.out.println("Calling agent model...");
+		// Create simple task request
+		AgentTaskRequest request = new AgentTaskRequest(
+				"Create a file named hello.txt with EXACT contents: Hello World!", tempWorkspace, simpleOptions);
 
-        // Call the agent
-        AgentResponse response = agentModel.call(request);
+		System.out.println("Calling agent model...");
 
-        System.out.println("Response: " + response);
-        if (!response.getResults().isEmpty()) {
-            System.out.println("First result: " + response.getResults().get(0).getOutput());
-        }
+		// Call the agent
+		AgentResponse response = agentModel.call(request);
 
-        // Check if file was created
-        Path helloFile = tempWorkspace.resolve("hello.txt");
-        System.out.println("Hello file exists: " + Files.exists(helloFile));
+		System.out.println("Response: " + response);
+		if (!response.getResults().isEmpty()) {
+			System.out.println("First result: " + response.getResults().get(0).getOutput());
+		}
 
-        if (Files.exists(helloFile)) {
-            String content = Files.readString(helloFile);
-            System.out.println("Hello file content: '" + content + "'");
-        }
+		// Check if file was created
+		Path helloFile = tempWorkspace.resolve("hello.txt");
+		System.out.println("Hello file exists: " + Files.exists(helloFile));
 
-        // List all files in workspace
-        System.out.println("Files in workspace:");
-        Files.list(tempWorkspace).forEach(System.out::println);
-    }
+		if (Files.exists(helloFile)) {
+			String content = Files.readString(helloFile);
+			System.out.println("Hello file content: '" + content + "'");
+		}
+
+		// List all files in workspace
+		System.out.println("Files in workspace:");
+		Files.list(tempWorkspace).forEach(System.out::println);
+	}
+
 }

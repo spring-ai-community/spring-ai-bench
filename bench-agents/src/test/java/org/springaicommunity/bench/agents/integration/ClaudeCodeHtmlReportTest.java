@@ -15,6 +15,12 @@
  */
 package org.springaicommunity.bench.agents.integration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springaicommunity.agents.claudecode.ClaudeCodeAgentModel;
@@ -25,124 +31,114 @@ import org.springaicommunity.bench.agents.verifier.HelloWorldVerifier;
 import org.springaicommunity.bench.core.run.AgentResult;
 import org.springaicommunity.bench.core.spec.AgentSpec;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.Duration;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
-
 /**
- * Test to generate HTML report with Claude 4 Sonnet integration.
- * This test creates a file first, then runs verification to avoid timing issues.
+ * Test to generate HTML report with Claude 4 Sonnet integration. This test creates a file
+ * first, then runs verification to avoid timing issues.
  */
 @EnabledIfEnvironmentVariable(named = "ANTHROPIC_API_KEY", matches = ".+")
 class ClaudeCodeHtmlReportTest {
 
-    private Path tempWorkspace;
-    private ClaudeCodeAgentRunner agentRunner;
+	private Path tempWorkspace;
 
-    @BeforeEach
-    void setUp() throws Exception {
-        tempWorkspace = Files.createTempDirectory("claude-html-test-");
+	private ClaudeCodeAgentRunner agentRunner;
 
-        // Create ClaudeCodeAgentModel with Sonnet 4
-        ClaudeCodeAgentOptions options = new ClaudeCodeAgentOptions();
-        options.setYolo(true);
-        options.setTimeout(Duration.ofMinutes(2));
-        options.setModel("claude-sonnet-4-20250514"); // Claude 4 Sonnet
+	@BeforeEach
+	void setUp() throws Exception {
+		tempWorkspace = Files.createTempDirectory("claude-html-test-");
 
-        ClaudeCodeClient client = ClaudeCodeClient.create(
-            org.springaicommunity.agents.claudecode.sdk.transport.CLIOptions.builder()
-                .timeout(Duration.ofMinutes(2))
-                .permissionMode(org.springaicommunity.agents.claudecode.sdk.config.PermissionMode.BYPASS_PERMISSIONS)
-                .build(),
-            tempWorkspace
-        );
+		// Create ClaudeCodeAgentModel with Sonnet 4
+		ClaudeCodeAgentOptions options = new ClaudeCodeAgentOptions();
+		options.setYolo(true);
+		options.setTimeout(Duration.ofMinutes(2));
+		options.setModel("claude-sonnet-4-20250514"); // Claude 4 Sonnet
 
-        ClaudeCodeAgentModel agentModel = new ClaudeCodeAgentModel(client, options);
-        assumeTrue(agentModel.isAvailable(), "ClaudeCodeAgentModel not available");
+		ClaudeCodeClient client = ClaudeCodeClient
+			.create(org.springaicommunity.agents.claudecode.sdk.transport.CLIOptions.builder()
+				.timeout(Duration.ofMinutes(2))
+				.permissionMode(org.springaicommunity.agents.claudecode.sdk.config.PermissionMode.BYPASS_PERMISSIONS)
+				.build(), tempWorkspace);
 
-        agentRunner = new ClaudeCodeAgentRunner(agentModel, new HelloWorldVerifier());
-    }
+		ClaudeCodeAgentModel agentModel = new ClaudeCodeAgentModel(client, options);
+		assumeTrue(agentModel.isAvailable(), "ClaudeCodeAgentModel not available");
 
-    // No @AfterEach cleanup - let the test finish and show us the report location
+		agentRunner = new ClaudeCodeAgentRunner(agentModel, new HelloWorldVerifier());
+	}
 
-    @Test
-    void generateHtmlReportWithClaudeSonnet4() throws Exception {
-        System.out.println("Testing HTML report generation with Claude 4 Sonnet");
-        System.out.println("Workspace: " + tempWorkspace);
+	// No @AfterEach cleanup - let the test finish and show us the report location
 
-        // Create the expected file FIRST to avoid verification timing issues
-        Path helloFile = tempWorkspace.resolve("hello.txt");
-        Files.writeString(helloFile, "Hello World!");
-        System.out.println("Pre-created file: " + helloFile);
+	@Test
+	void generateHtmlReportWithClaudeSonnet4() throws Exception {
+		System.out.println("Testing HTML report generation with Claude 4 Sonnet");
+		System.out.println("Workspace: " + tempWorkspace);
 
-        // Create AgentSpec with correct parameter order: kind, model, autoApprove, prompt, genParams, role
-        AgentSpec spec = new AgentSpec(
-            "hello-world", // kind
-            "claude-sonnet-4-20250514", // model (Claude 4 Sonnet)
-            null, // autoApprove
-            "Create a file named hello.txt with EXACT contents: Hello World!", // prompt
-            null, // genParams
-            null  // role
-        );
+		// Create the expected file FIRST to avoid verification timing issues
+		Path helloFile = tempWorkspace.resolve("hello.txt");
+		Files.writeString(helloFile, "Hello World!");
+		System.out.println("Pre-created file: " + helloFile);
 
-        System.out.println("Running agent...");
+		// Create AgentSpec with correct parameter order: kind, model, autoApprove,
+		// prompt, genParams,
+		// role
+		AgentSpec spec = new AgentSpec("hello-world", // kind
+				"claude-sonnet-4-20250514", // model (Claude 4 Sonnet)
+				null, // autoApprove
+				"Create a file named hello.txt with EXACT contents: Hello World!", // prompt
+				null, // genParams
+				null // role
+		);
 
-        // Run the agent through the full pipeline
-        AgentResult result = agentRunner.run(tempWorkspace, spec, Duration.ofMinutes(2));
+		System.out.println("Running agent...");
 
-        System.out.println("Agent completed with exit code: " + result.exitCode());
-        System.out.println("Log file: " + result.logFile());
-        System.out.println("Duration: " + result.durationMillis() + "ms");
+		// Run the agent through the full pipeline
+		AgentResult result = agentRunner.run(tempWorkspace, spec, Duration.ofMinutes(2));
 
-        // Find the reports directory
-        Path reportsDir = tempWorkspace.getParent().resolve("bench-reports");
-        if (Files.exists(reportsDir)) {
-            Path runDir = Files.list(reportsDir)
-                .filter(Files::isDirectory)
-                .sorted((a, b) -> {
-                    try {
-                        return Files.getLastModifiedTime(b).compareTo(Files.getLastModifiedTime(a));
-                    } catch (Exception e) {
-                        return 0;
-                    }
-                })
-                .findFirst()
-                .orElse(null);
+		System.out.println("Agent completed with exit code: " + result.exitCode());
+		System.out.println("Log file: " + result.logFile());
+		System.out.println("Duration: " + result.durationMillis() + "ms");
 
-            if (runDir != null) {
-                System.out.println("\n📊 REPORTS GENERATED:");
-                System.out.println("Report directory: " + runDir);
+		// Find the reports directory
+		Path reportsDir = tempWorkspace.getParent().resolve("bench-reports");
+		if (Files.exists(reportsDir)) {
+			Path runDir = Files.list(reportsDir).filter(Files::isDirectory).sorted((a, b) -> {
+				try {
+					return Files.getLastModifiedTime(b).compareTo(Files.getLastModifiedTime(a));
+				}
+				catch (Exception e) {
+					return 0;
+				}
+			}).findFirst().orElse(null);
 
-                Path htmlReport = runDir.resolve("index.html");
-                Path jsonReport = runDir.resolve("report.json");
+			if (runDir != null) {
+				System.out.println("\n📊 REPORTS GENERATED:");
+				System.out.println("Report directory: " + runDir);
 
-                if (Files.exists(htmlReport)) {
-                    System.out.println("HTML Report: " + htmlReport);
-                    System.out.println("HTML Report size: " + Files.size(htmlReport) + " bytes");
-                }
+				Path htmlReport = runDir.resolve("index.html");
+				Path jsonReport = runDir.resolve("report.json");
 
-                if (Files.exists(jsonReport)) {
-                    System.out.println("JSON Report: " + jsonReport);
-                    System.out.println("JSON Report size: " + Files.size(jsonReport) + " bytes");
+				if (Files.exists(htmlReport)) {
+					System.out.println("HTML Report: " + htmlReport);
+					System.out.println("HTML Report size: " + Files.size(htmlReport) + " bytes");
+				}
 
-                    // Show JSON content
-                    String jsonContent = Files.readString(jsonReport);
-                    System.out.println("\n📋 JSON REPORT CONTENT:");
-                    System.out.println(jsonContent);
-                }
-            }
-        }
+				if (Files.exists(jsonReport)) {
+					System.out.println("JSON Report: " + jsonReport);
+					System.out.println("JSON Report size: " + Files.size(jsonReport) + " bytes");
 
-        // Verify the hello.txt file still exists
-        assertThat(helloFile).exists();
-        String content = Files.readString(helloFile);
-        assertThat(content).isEqualTo("Hello World!");
+					// Show JSON content
+					String jsonContent = Files.readString(jsonReport);
+					System.out.println("\n📋 JSON REPORT CONTENT:");
+					System.out.println(jsonContent);
+				}
+			}
+		}
 
-        System.out.println("\n✅ SUCCESS: HTML report generated with Claude 4 Sonnet!");
-        System.out.println("File verified: " + content);
-    }
+		// Verify the hello.txt file still exists
+		assertThat(helloFile).exists();
+		String content = Files.readString(helloFile);
+		assertThat(content).isEqualTo("Hello World!");
+
+		System.out.println("\n✅ SUCCESS: HTML report generated with Claude 4 Sonnet!");
+		System.out.println("File verified: " + content);
+	}
+
 }

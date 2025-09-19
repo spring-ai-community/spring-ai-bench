@@ -15,88 +15,87 @@
  */
 package org.springaicommunity.bench.core.exec.customizer;
 
-
 import org.springaicommunity.bench.core.exec.ExecSpec;
 
 /**
  * Hook for last-mile mutation of an ExecSpec just before execution.
+ *
  * <p>
- * Implementations MUST return a NEW immutable ExecSpec. This allows for
- * dynamic customization of execution parameters without breaking the
- * immutability contract of ExecSpec.
+ * Implementations MUST return a NEW immutable ExecSpec. This allows for dynamic
+ * customization of execution parameters without breaking the immutability contract of
+ * ExecSpec.
+ *
  * <p>
  * Common use cases include:
+ *
  * <ul>
- *   <li>Injecting tool-specific CLI flags based on MCP configuration</li>
- *   <li>Adding environment variables for authentication</li>
- *   <li>Modifying timeout based on command type</li>
- *   <li>Adding debugging flags in development environments</li>
+ * <li>Injecting tool-specific CLI flags based on MCP configuration
+ * <li>Adding environment variables for authentication
+ * <li>Modifying timeout based on command type
+ * <li>Adding debugging flags in development environments
  * </ul>
  */
 @FunctionalInterface
 public interface ExecSpecCustomizer {
 
-    /**
-     * Customize the given ExecSpec.
-     * <p>
-     * <strong>IMPORTANT:</strong> This method MUST return a new ExecSpec instance.
-     * The original spec should never be modified directly.
-     *
-     * @param original the original ExecSpec to customize
-     * @return a new, potentially modified ExecSpec
-     * @throws IllegalArgumentException if the original spec is invalid
-     */
-    ExecSpec customize(ExecSpec original);
+	/**
+	 * Customize the given ExecSpec.
+	 *
+	 * <p>
+	 * <strong>IMPORTANT:</strong> This method MUST return a new ExecSpec instance. The
+	 * original spec should never be modified directly.
+	 * @param original the original ExecSpec to customize
+	 * @return a new, potentially modified ExecSpec
+	 * @throws IllegalArgumentException if the original spec is invalid
+	 */
+	ExecSpec customize(ExecSpec original);
 
-    /**
-     * Returns a customizer that applies multiple customizers in sequence.
-     *
-     * @param customizers the customizers to chain
-     * @return a composite customizer
-     * @throws IllegalArgumentException if any customizer is null
-     */
-    static ExecSpecCustomizer chain(ExecSpecCustomizer... customizers) {
-        // Validate that no customizers are null
-        for (int i = 0; i < customizers.length; i++) {
-            if (customizers[i] == null) {
-                throw new IllegalArgumentException("Customizer at index " + i + " cannot be null");
-            }
-        }
-        
-        return (spec) -> {
-            ExecSpec result = spec;
-            for (ExecSpecCustomizer customizer : customizers) {
-                result = customizer.customize(result);
-            }
-            return result;
-        };
-    }
+	/**
+	 * Returns a customizer that applies multiple customizers in sequence.
+	 * @param customizers the customizers to chain
+	 * @return a composite customizer
+	 * @throws IllegalArgumentException if any customizer is null
+	 */
+	static ExecSpecCustomizer chain(ExecSpecCustomizer... customizers) {
+		// Validate that no customizers are null
+		for (int i = 0; i < customizers.length; i++) {
+			if (customizers[i] == null) {
+				throw new IllegalArgumentException("Customizer at index " + i + " cannot be null");
+			}
+		}
 
-    /**
-     * Returns a no-op customizer that returns the spec unchanged.
-     *
-     * @return an identity customizer
-     */
-    static ExecSpecCustomizer identity() {
-        return spec -> spec;
-    }
+		return (spec) -> {
+			ExecSpec result = spec;
+			for (ExecSpecCustomizer customizer : customizers) {
+				result = customizer.customize(result);
+			}
+			return result;
+		};
+	}
 
-    /**
-     * Returns a customizer that only applies if the predicate matches.
-     *
-     * @param predicate condition to check
-     * @param customizer customizer to apply if predicate is true
-     * @return conditional customizer
-     * @throws IllegalArgumentException if predicate or customizer is null
-     */
-    static ExecSpecCustomizer when(java.util.function.Predicate<ExecSpec> predicate,
-                                   ExecSpecCustomizer customizer) {
-        if (predicate == null) {
-            throw new IllegalArgumentException("Predicate cannot be null");
-        }
-        if (customizer == null) {
-            throw new IllegalArgumentException("Customizer cannot be null");
-        }
-        return spec -> predicate.test(spec) ? customizer.customize(spec) : spec;
-    }
+	/**
+	 * Returns a no-op customizer that returns the spec unchanged.
+	 * @return an identity customizer
+	 */
+	static ExecSpecCustomizer identity() {
+		return spec -> spec;
+	}
+
+	/**
+	 * Returns a customizer that only applies if the predicate matches.
+	 * @param predicate condition to check
+	 * @param customizer customizer to apply if predicate is true
+	 * @return conditional customizer
+	 * @throws IllegalArgumentException if predicate or customizer is null
+	 */
+	static ExecSpecCustomizer when(java.util.function.Predicate<ExecSpec> predicate, ExecSpecCustomizer customizer) {
+		if (predicate == null) {
+			throw new IllegalArgumentException("Predicate cannot be null");
+		}
+		if (customizer == null) {
+			throw new IllegalArgumentException("Customizer cannot be null");
+		}
+		return spec -> predicate.test(spec) ? customizer.customize(spec) : spec;
+	}
+
 }

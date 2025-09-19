@@ -19,11 +19,12 @@ import java.nio.file.Path;
 import java.time.Instant;
 
 /**
- * Context information for verification, containing workspace location and timing.
- * This immutable context represents the state after agent execution.
+ * Context information for verification, containing workspace location and timing. This
+ * immutable context represents the state after agent execution.
  */
-public record VerificationContext(
-    Path runRoot,        // Base directory for this run (target/bench-reports/{runId})
-    Path workspaceRel,   // Relative path to workspace under runRoot
-    Instant startedAt    // When the agent execution started
-) {}
+public record VerificationContext(Path runRoot, // Base directory for this run
+												// (target/bench-reports/{runId})
+		Path workspaceRel, // Relative path to workspace under runRoot
+		Instant startedAt // When the agent execution started
+) {
+}

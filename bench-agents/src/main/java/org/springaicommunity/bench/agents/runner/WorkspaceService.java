@@ -15,47 +15,43 @@
  */
 package org.springaicommunity.bench.agents.runner;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
-/**
- * Service for managing workspace operations including cleanup and setup.
- */
+/** Service for managing workspace operations including cleanup and setup. */
 @Service
 public class WorkspaceService {
 
-    private static final Logger logger = LoggerFactory.getLogger(WorkspaceService.class);
+	private static final Logger logger = LoggerFactory.getLogger(WorkspaceService.class);
 
-    /**
-     * Cleans and recreates a workspace directory.
-     * 
-     * @param workspace the workspace directory to clean
-     * @throws IOException if workspace operations fail
-     */
-    public void cleanWorkspace(Path workspace) throws IOException {
-        logger.debug("Cleaning workspace: {}", workspace);
-        
-        if (Files.exists(workspace)) {
-            logger.debug("Clearing existing workspace");
-            Files.walk(workspace)
-                .sorted(Comparator.reverseOrder())
-                .forEach(path -> {
-                    try {
-                        Files.deleteIfExists(path);
-                    } catch (IOException e) {
-                        logger.warn("Failed to delete path: {}", path, e);
-                        // Log but don't fail - best effort cleanup
-                    }
-                });
-        }
-        
-        Files.createDirectories(workspace);
-        logger.debug("Created clean workspace: {}", workspace);
-    }
+	/**
+	 * Cleans and recreates a workspace directory.
+	 * @param workspace the workspace directory to clean
+	 * @throws IOException if workspace operations fail
+	 */
+	public void cleanWorkspace(Path workspace) throws IOException {
+		logger.debug("Cleaning workspace: {}", workspace);
+
+		if (Files.exists(workspace)) {
+			logger.debug("Clearing existing workspace");
+			Files.walk(workspace).sorted(Comparator.reverseOrder()).forEach(path -> {
+				try {
+					Files.deleteIfExists(path);
+				}
+				catch (IOException e) {
+					logger.warn("Failed to delete path: {}", path, e);
+					// Log but don't fail - best effort cleanup
+				}
+			});
+		}
+
+		Files.createDirectories(workspace);
+		logger.debug("Created clean workspace: {}", workspace);
+	}
+
 }

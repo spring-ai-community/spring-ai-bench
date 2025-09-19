@@ -15,38 +15,37 @@
  */
 package org.springaicommunity.bench.agents.runner;
 
+import org.springaicommunity.agents.claudecode.ClaudeCodeAgentModel;
+import org.springaicommunity.agents.gemini.GeminiAgentModel;
+import org.springaicommunity.bench.agents.verifier.SuccessVerifier;
+import org.springaicommunity.bench.core.run.AgentRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springaicommunity.agents.claudecode.ClaudeCodeAgentModel;
-import org.springaicommunity.agents.gemini.GeminiAgentModel;
-import org.springaicommunity.bench.agents.runner.ClaudeCodeAgentRunner;
-import org.springaicommunity.bench.agents.runner.GeminiAgentRunner;
-import org.springaicommunity.bench.agents.verifier.SuccessVerifier;
-import org.springaicommunity.bench.core.run.AgentRunner;
 
 /**
- * Auto-configuration for agent providers.
- * Conditionally creates agent runners based on available dependencies and configuration.
+ * Auto-configuration for agent providers. Conditionally creates agent runners based on
+ * available dependencies and configuration.
  */
 @Configuration
 public class AgentProviderConfig {
 
-    @Bean
-    @ConditionalOnClass(ClaudeCodeAgentModel.class)
-    @ConditionalOnMissingBean(AgentRunner.class)
-    @ConditionalOnProperty(name = "spring.ai.bench.agent.provider", havingValue = "claude-code")
-    public AgentRunner claudeRunner(ClaudeCodeAgentModel model, SuccessVerifier verifier) {
-        return new ClaudeCodeAgentRunner(model, verifier);
-    }
+	@Bean
+	@ConditionalOnClass(ClaudeCodeAgentModel.class)
+	@ConditionalOnMissingBean(AgentRunner.class)
+	@ConditionalOnProperty(name = "spring.ai.bench.agent.provider", havingValue = "claude-code")
+	public AgentRunner claudeRunner(ClaudeCodeAgentModel model, SuccessVerifier verifier) {
+		return new ClaudeCodeAgentRunner(model, verifier);
+	}
 
-    @Bean
-    @ConditionalOnClass(GeminiAgentModel.class)
-    @ConditionalOnMissingBean(AgentRunner.class)
-    @ConditionalOnProperty(name = "spring.ai.bench.agent.provider", havingValue = "gemini")
-    public AgentRunner geminiRunner(GeminiAgentModel model, SuccessVerifier verifier) {
-        return new GeminiAgentRunner(model, verifier);
-    }
+	@Bean
+	@ConditionalOnClass(GeminiAgentModel.class)
+	@ConditionalOnMissingBean(AgentRunner.class)
+	@ConditionalOnProperty(name = "spring.ai.bench.agent.provider", havingValue = "gemini")
+	public AgentRunner geminiRunner(GeminiAgentModel model, SuccessVerifier verifier) {
+		return new GeminiAgentRunner(model, verifier);
+	}
+
 }

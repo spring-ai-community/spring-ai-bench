@@ -15,11 +15,6 @@
  */
 package org.springaicommunity.bench.core.exec.sandbox;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springaicommunity.bench.core.exec.*;
-import org.springaicommunity.bench.core.exec.customizer.ExecSpecCustomizer;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.*;
@@ -27,225 +22,229 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springaicommunity.bench.core.exec.*;
+import org.springaicommunity.bench.core.exec.customizer.ExecSpecCustomizer;
 import org.zeroturnaround.exec.ProcessExecutor;
 import org.zeroturnaround.exec.ProcessResult;
 
 /**
- * Sandbox implementation that executes commands in local processes within an isolated directory.
+ * Sandbox implementation that executes commands in local processes within an isolated
+ * directory.
+ *
  * <p>
- * Supports {@link ExecSpecCustomizer}s for last-mile command and environment customization.
- * Each execution applies all customizers in sequence before launching the process.
+ * Supports {@link ExecSpecCustomizer}s for last-mile command and environment
+ * customization. Each execution applies all customizers in sequence before launching the
+ * process.
+ *
  * <p>
  * <strong>Security Note:</strong> This implementation provides directory isolation only.
  * Commands execute with the same privileges as the JVM process.
  */
 public final class LocalSandbox implements Sandbox {
 
-    private static final Logger logger = LoggerFactory.getLogger(LocalSandbox.class);
+	private static final Logger logger = LoggerFactory.getLogger(LocalSandbox.class);
 
-    private final Path workingDirectory;
-    private final List<ExecSpecCustomizer> customizers;
-    private volatile boolean closed = false;
+	private final Path workingDirectory;
 
-    private LocalSandbox(Path workingDirectory, List<ExecSpecCustomizer> customizers) throws IOException {
-        this.workingDirectory = workingDirectory;
-        this.customizers = List.copyOf(customizers);
-        Files.createDirectories(workingDirectory);
-        logger.debug("Created LocalSandbox with working directory: {}", workingDirectory);
-    }
+	private final List<ExecSpecCustomizer> customizers;
 
-    /**
-     * Returns a new Builder for creating a LocalSandbox instance.
-     *
-     * @return a new {@link Builder}
-     */
-    public static Builder builder() {
-        return new Builder();
-    }
+	private volatile boolean closed = false;
 
-    @Override
-    public Path workDir() {
-        return workingDirectory;
-    }
+	private LocalSandbox(Path workingDirectory, List<ExecSpecCustomizer> customizers) throws IOException {
+		this.workingDirectory = workingDirectory;
+		this.customizers = List.copyOf(customizers);
+		Files.createDirectories(workingDirectory);
+		logger.debug("Created LocalSandbox with working directory: {}", workingDirectory);
+	}
 
-    @Override
-    public ExecResult exec(ExecSpec spec) throws IOException, InterruptedException, TimeoutException {
-        if (closed) {
-            throw new IllegalStateException("Sandbox has been closed");
-        }
+	/**
+	 * Returns a new Builder for creating a LocalSandbox instance.
+	 * @return a new {@link Builder}
+	 */
+	public static Builder builder() {
+		return new Builder();
+	}
 
-        // Apply all customizers in sequence
-        ExecSpec customizedSpec = spec;
-        for (ExecSpecCustomizer customizer : customizers) {
-            customizedSpec = customizer.customize(customizedSpec);
-        }
+	@Override
+	public Path workDir() {
+		return workingDirectory;
+	}
 
-        if (customizedSpec.command().isEmpty()) {
-            throw new IllegalArgumentException("Command cannot be empty after customization");
-        }
+	@Override
+	public ExecResult exec(ExecSpec spec) throws IOException, InterruptedException, TimeoutException {
+		if (closed) {
+			throw new IllegalStateException("Sandbox has been closed");
+		}
 
-        // Handle shell commands by wrapping them appropriately for the platform
-        List<String> actualCommand = customizedSpec.command();
-        if (actualCommand.size() == 2 && "__SHELL_COMMAND__".equals(actualCommand.get(0))) {
-            actualCommand = wrapShellCommand(actualCommand.get(1));
-        }
+		// Apply all customizers in sequence
+		ExecSpec customizedSpec = spec;
+		for (ExecSpecCustomizer customizer : customizers) {
+			customizedSpec = customizer.customize(customizedSpec);
+		}
 
-        logger.debug("Executing customized command: {} in {}",
-                actualCommand, workingDirectory);
+		if (customizedSpec.command().isEmpty()) {
+			throw new IllegalArgumentException("Command cannot be empty after customization");
+		}
 
-        // Build process environment (defensive copy to avoid mutation)
-        Map<String, String> processEnv = new HashMap<>(customizedSpec.env());
+		// Handle shell commands by wrapping them appropriately for the platform
+		List<String> actualCommand = customizedSpec.command();
+		if (actualCommand.size() == 2 && "__SHELL_COMMAND__".equals(actualCommand.get(0))) {
+			actualCommand = wrapShellCommand(actualCommand.get(1));
+		}
 
-        // Add MCP tools environment variable if present
-        if (customizedSpec.mcp() != null && !customizedSpec.mcp().servers().isEmpty()) {
-            processEnv.put("MCP_TOOLS", String.join(",", customizedSpec.mcp().servers()));
-            logger.debug("Added MCP_TOOLS environment variable: {}", processEnv.get("MCP_TOOLS"));
-        }
+		logger.debug("Executing customized command: {} in {}", actualCommand, workingDirectory);
 
-        // Execute process using zt-exec
-        ProcessExecutor executor = new ProcessExecutor()
-                .command(actualCommand)
-                .directory(workingDirectory.toFile())
-                .environment(processEnv)
-                .readOutput(true)
-                .redirectErrorStream(true); // Merge stderr into stdout for chronological ordering
+		// Build process environment (defensive copy to avoid mutation)
+		Map<String, String> processEnv = new HashMap<>(customizedSpec.env());
 
-        // Add timeout if specified
-        if (customizedSpec.timeout() != null) {
-            executor = executor.timeout(customizedSpec.timeout().toMillis(), TimeUnit.MILLISECONDS);
-        }
+		// Add MCP tools environment variable if present
+		if (customizedSpec.mcp() != null && !customizedSpec.mcp().servers().isEmpty()) {
+			processEnv.put("MCP_TOOLS", String.join(",", customizedSpec.mcp().servers()));
+			logger.debug("Added MCP_TOOLS environment variable: {}", processEnv.get("MCP_TOOLS"));
+		}
 
-        long startTime = System.nanoTime();
-        try {
-            ProcessResult result = executor.execute();
-            Duration executionDuration = Duration.ofNanos(System.nanoTime() - startTime);
+		// Execute process using zt-exec
+		ProcessExecutor executor = new ProcessExecutor().command(actualCommand)
+			.directory(workingDirectory.toFile())
+			.environment(processEnv)
+			.readOutput(true)
+			.redirectErrorStream(true); // Merge stderr into stdout for chronological
+										// ordering
 
-            return new ExecResult(
-                    result.getExitValue(),
-                    result.outputUTF8(),
-                    executionDuration
-            );
-        } catch (java.util.concurrent.TimeoutException e) {
-            String timeoutDuration = customizedSpec.timeout() != null ? customizedSpec.timeout().toString() : "PT0S";
-            throw new TimeoutException("Process timed out after " + timeoutDuration);
-        }
+		// Add timeout if specified
+		if (customizedSpec.timeout() != null) {
+			executor = executor.timeout(customizedSpec.timeout().toMillis(), TimeUnit.MILLISECONDS);
+		}
 
-    }
+		long startTime = System.nanoTime();
+		try {
+			ProcessResult result = executor.execute();
+			Duration executionDuration = Duration.ofNanos(System.nanoTime() - startTime);
 
-    @Override
-    public void close() {
-        if (closed) {
-            return;
-        }
-        closed = true;
-        // Only delete directories that start with our temp prefix (that we created)
-        if (workingDirectory.getFileName().toString().startsWith("sai-bench-")) {
-            logger.debug("Closing sandbox and deleting temporary directory: {}", workingDirectory);
-            try {
-                // Recursively delete the directory and its contents
-                if (Files.exists(workingDirectory)) {
-                Files.walkFileTree(workingDirectory, new SimpleFileVisitor<Path>() {
-                    @Override
-                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                        Files.delete(file);
-                        return FileVisitResult.CONTINUE;
-                    }
+			return new ExecResult(result.getExitValue(), result.outputUTF8(), executionDuration);
+		}
+		catch (java.util.concurrent.TimeoutException e) {
+			String timeoutDuration = customizedSpec.timeout() != null ? customizedSpec.timeout().toString() : "PT0S";
+			throw new TimeoutException("Process timed out after " + timeoutDuration);
+		}
+	}
 
-                    @Override
-                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                        Files.delete(dir);
-                        return FileVisitResult.CONTINUE;
-                    }
-                });
-                }
-            } catch (IOException e) {
-                // Log the error but don't rethrow, as close() shouldn't fail loudly.
-                logger.warn("Could not completely delete sandbox directory: {}", workingDirectory, e);
-            }
-        } else {
-            logger.debug("Closing sandbox, keeping external directory: {}", workingDirectory);
-        }
-    }
+	@Override
+	public void close() {
+		if (closed) {
+			return;
+		}
+		closed = true;
+		// Only delete directories that start with our temp prefix (that we created)
+		if (workingDirectory.getFileName().toString().startsWith("sai-bench-")) {
+			logger.debug("Closing sandbox and deleting temporary directory: {}", workingDirectory);
+			try {
+				// Recursively delete the directory and its contents
+				if (Files.exists(workingDirectory)) {
+					Files.walkFileTree(workingDirectory, new SimpleFileVisitor<Path>() {
+						@Override
+						public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+							Files.delete(file);
+							return FileVisitResult.CONTINUE;
+						}
 
-    @Override
-    public boolean isClosed() {
-        return closed;
-    }
+						@Override
+						public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+							Files.delete(dir);
+							return FileVisitResult.CONTINUE;
+						}
+					});
+				}
+			}
+			catch (IOException e) {
+				// Log the error but don't rethrow, as close() shouldn't fail loudly.
+				logger.warn("Could not completely delete sandbox directory: {}", workingDirectory, e);
+			}
+		}
+		else {
+			logger.debug("Closing sandbox, keeping external directory: {}", workingDirectory);
+		}
+	}
 
-    /**
-     * Wrap a shell command string in the appropriate shell for the current platform.
-     */
-    private static List<String> wrapShellCommand(String shellCommand) {
-        String os = System.getProperty("os.name").toLowerCase();
-        if (os.contains("win")) {
-            // Windows: use cmd /c
-            return List.of("cmd", "/c", shellCommand);
-        } else {
-            // Unix-like: use bash -c (or sh -c as fallback)
-            return List.of("bash", "-c", shellCommand);
-        }
-    }
+	@Override
+	public boolean isClosed() {
+		return closed;
+	}
 
-    /**
-     * Builder for {@link LocalSandbox}.
-     */
-    public static final class Builder {
+	/** Wrap a shell command string in the appropriate shell for the current platform. */
+	private static List<String> wrapShellCommand(String shellCommand) {
+		String os = System.getProperty("os.name").toLowerCase();
+		if (os.contains("win")) {
+			// Windows: use cmd /c
+			return List.of("cmd", "/c", shellCommand);
+		}
+		else {
+			// Unix-like: use bash -c (or sh -c as fallback)
+			return List.of("bash", "-c", shellCommand);
+		}
+	}
 
-        private Path workingDirectory;
-        private final List<ExecSpecCustomizer> customizers = new ArrayList<>();
+	/** Builder for {@link LocalSandbox}. */
+	public static final class Builder {
 
-        private Builder() {
-        }
+		private Path workingDirectory;
 
-        /**
-         * Sets a specific working directory for the sandbox.
-         * <p>
-         * If not set, a new temporary directory will be created.
-         *
-         * @param workingDirectory the directory to use.
-         * @return this builder.
-         */
-        public Builder workingDirectory(Path workingDirectory) {
-            this.workingDirectory = workingDirectory;
-            return this;
-        }
+		private final List<ExecSpecCustomizer> customizers = new ArrayList<>();
 
-        /**
-         * Adds a list of customizers to be applied to every {@link ExecSpec}.
-         *
-         * @param customizers the customizers to add.
-         * @return this builder.
-         */
-        public Builder customizers(List<ExecSpecCustomizer> customizers) {
-            this.customizers.addAll(customizers);
-            return this;
-        }
+		private Builder() {
+		}
 
-        /**
-         * Adds a single customizer to be applied to every {@link ExecSpec}.
-         *
-         * @param customizer the customizer to add.
-         * @return this builder.
-         */
-        public Builder customizer(ExecSpecCustomizer customizer) {
-            this.customizers.add(customizer);
-            return this;
-        }
+		/**
+		 * Sets a specific working directory for the sandbox.
+		 *
+		 * <p>
+		 * If not set, a new temporary directory will be created.
+		 * @param workingDirectory the directory to use.
+		 * @return this builder.
+		 */
+		public Builder workingDirectory(Path workingDirectory) {
+			this.workingDirectory = workingDirectory;
+			return this;
+		}
 
-        /**
-         * Builds the {@link LocalSandbox} instance.
-         *
-         * @return a new {@link LocalSandbox}.
-         * @throws UncheckedIOException if the working directory cannot be created.
-         */
-        public LocalSandbox build() {
-            try {
-                Path dir = (this.workingDirectory != null) ? this.workingDirectory : Files.createTempDirectory("sai-bench-");
-                return new LocalSandbox(dir, customizers);
-            } catch (IOException e) {
-                throw new UncheckedIOException("Failed to create working directory for sandbox", e);
-            }
-        }
-    }
+		/**
+		 * Adds a list of customizers to be applied to every {@link ExecSpec}.
+		 * @param customizers the customizers to add.
+		 * @return this builder.
+		 */
+		public Builder customizers(List<ExecSpecCustomizer> customizers) {
+			this.customizers.addAll(customizers);
+			return this;
+		}
+
+		/**
+		 * Adds a single customizer to be applied to every {@link ExecSpec}.
+		 * @param customizer the customizer to add.
+		 * @return this builder.
+		 */
+		public Builder customizer(ExecSpecCustomizer customizer) {
+			this.customizers.add(customizer);
+			return this;
+		}
+
+		/**
+		 * Builds the {@link LocalSandbox} instance.
+		 * @return a new {@link LocalSandbox}.
+		 * @throws UncheckedIOException if the working directory cannot be created.
+		 */
+		public LocalSandbox build() {
+			try {
+				Path dir = (this.workingDirectory != null) ? this.workingDirectory
+						: Files.createTempDirectory("sai-bench-");
+				return new LocalSandbox(dir, customizers);
+			}
+			catch (IOException e) {
+				throw new UncheckedIOException("Failed to create working directory for sandbox", e);
+			}
+		}
+
+	}
+
 }

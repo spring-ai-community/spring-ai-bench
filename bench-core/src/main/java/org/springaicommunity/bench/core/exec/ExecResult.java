@@ -17,82 +17,72 @@ package org.springaicommunity.bench.core.exec;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.springaicommunity.bench.core.exec.sandbox.Sandbox;
-
 import java.time.Duration;
 import java.util.Objects;
+import org.springaicommunity.bench.core.exec.sandbox.Sandbox;
 
 /**
  * Result of executing a command via a {@link Sandbox}.
+ *
  * <p>
- * Designed specifically for AI agent evaluation where the merged log output
- * (stdout + stderr interleaved) is analyzed by LLMs in a single pass.
- * The temporal ordering of output streams is preserved to maintain context
- * for AI analysis.
+ * Designed specifically for AI agent evaluation where the merged log output (stdout +
+ * stderr interleaved) is analyzed by LLMs in a single pass. The temporal ordering of
+ * output streams is preserved to maintain context for AI analysis.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public record ExecResult(
-        @JsonProperty("exitCode") int exitCode,
-        @JsonProperty("mergedLog") String mergedLog,
-        @JsonProperty("duration") Duration duration
-) {
-    public ExecResult {
-        Objects.requireNonNull(mergedLog, "mergedLog cannot be null");
-        Objects.requireNonNull(duration, "duration cannot be null");
-    }
+public record ExecResult(@JsonProperty("exitCode") int exitCode, @JsonProperty("mergedLog") String mergedLog,
+		@JsonProperty("duration") Duration duration) {
+	public ExecResult {
+		Objects.requireNonNull(mergedLog, "mergedLog cannot be null");
+		Objects.requireNonNull(duration, "duration cannot be null");
+	}
 
-    /**
-     * Indicates whether the command executed successfully.
-     * @return true if exit code is 0, false otherwise
-     */
-    public boolean success() {
-        return exitCode == 0;
-    }
+	/**
+	 * Indicates whether the command executed successfully.
+	 * @return true if exit code is 0, false otherwise
+	 */
+	public boolean success() {
+		return exitCode == 0;
+	}
 
-    /**
-     * Indicates whether the command failed.
-     * @return true if exit code is non-zero, false otherwise
-     */
-    public boolean failed() {
-        return !success();
-    }
+	/**
+	 * Indicates whether the command failed.
+	 * @return true if exit code is non-zero, false otherwise
+	 */
+	public boolean failed() {
+		return !success();
+	}
 
-    /**
-     * Checks if the execution produced any output.
-     * @return true if mergedLog is not empty, false otherwise
-     */
-    public boolean hasOutput() {
-        return !mergedLog.isEmpty();
-    }
+	/**
+	 * Checks if the execution produced any output.
+	 * @return true if mergedLog is not empty, false otherwise
+	 */
+	public boolean hasOutput() {
+		return !mergedLog.isEmpty();
+	}
 
-    /**
-     * Gets the length of the merged log output.
-     * Useful for metrics and determining if output was truncated.
-     * @return length of mergedLog in characters
-     */
-    public int outputLength() {
-        return mergedLog.length();
-    }
+	/**
+	 * Gets the length of the merged log output. Useful for metrics and determining if
+	 * output was truncated.
+	 * @return length of mergedLog in characters
+	 */
+	public int outputLength() {
+		return mergedLog.length();
+	}
 
+	/**
+	 * Creates a summary string suitable for logging or display. Does not include the full
+	 * output to avoid log spam.
+	 * @return concise summary of the execution result
+	 */
+	public String summary() {
+		return String.format("ExecResult{exitCode=%d, success=%s, duration=%s, outputLength=%d}", exitCode, success(),
+				duration, outputLength());
+	}
 
-
-    /**
-     * Creates a summary string suitable for logging or display.
-     * Does not include the full output to avoid log spam.
-     *
-     * @return concise summary of the execution result
-     */
-    public String summary() {
-        return String.format("ExecResult{exitCode=%d, success=%s, duration=%s, outputLength=%d}",
-                exitCode, success(), duration, outputLength());
-    }
-
-    @Override
-    public String toString() {
-        // For debugging - includes full output but marks it clearly
-        return String.format(
-                "ExecResult{exitCode=%d, duration=%s, mergedLog='%s'}",
-                exitCode, duration, mergedLog
-        );
-    }
+	@Override
+	public String toString() {
+		// For debugging - includes full output but marks it clearly
+		return String.format("ExecResult{exitCode=%d, duration=%s, mergedLog='%s'}", exitCode, duration, mergedLog);
+	}
 }

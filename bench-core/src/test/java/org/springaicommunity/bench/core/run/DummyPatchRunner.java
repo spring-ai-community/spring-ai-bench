@@ -15,43 +15,42 @@
  */
 package org.springaicommunity.bench.core.run;
 
-import java.time.Duration;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.List;
-
-import org.springaicommunity.bench.core.spec.AgentSpec;
-import org.springaicommunity.bench.core.exec.ExecSpec;
 import org.springaicommunity.bench.core.exec.ExecResult;
+import org.springaicommunity.bench.core.exec.ExecSpec;
 import org.springaicommunity.bench.core.exec.sandbox.LocalSandbox;
+import org.springaicommunity.bench.core.spec.AgentSpec;
 
 /**
- * Dummy agent runner that applies a simple fix to the Calculator sqrt bug.
- * Uses LocalSandbox for proper command execution.
+ * Dummy agent runner that applies a simple fix to the Calculator sqrt bug. Uses
+ * LocalSandbox for proper command execution.
  */
 class DummyPatchRunner implements AgentRunner {
 
-    DummyPatchRunner() { }
+	DummyPatchRunner() {
+	}
 
-    @Override
-    public AgentResult run(Path workspaceDir, AgentSpec spec, Duration timeout) throws Exception {
-        long start = System.currentTimeMillis();
+	@Override
+	public AgentResult run(Path workspaceDir, AgentSpec spec, Duration timeout) throws Exception {
+		long start = System.currentTimeMillis();
 
-        try (LocalSandbox sandbox = LocalSandbox.builder()
-                .workingDirectory(workspaceDir)
-                .build()) {
+		try (LocalSandbox sandbox = LocalSandbox.builder().workingDirectory(workspaceDir).build()) {
 
-            // Apply the fix using sed
-            ExecSpec sedSpec = ExecSpec.builder()
-                .command(List.of("sed", "-i",
-                    "s/return Math.sqrt(number);/if (number < 0) { throw new IllegalArgumentException(\"Cannot calculate square root of negative number\"); } return Math.sqrt(number);/",
-                    "src/main/java/org/springaicommunity/bench/example/calculator/Calculator.java"))
-                .timeout(timeout)
-                .build();
+			// Apply the fix using sed
+			ExecSpec sedSpec = ExecSpec.builder()
+				.command(List.of("sed", "-i",
+						"s/return Math.sqrt(number);/if (number < 0) { throw new IllegalArgumentException(\"Cannot calculate square root of negative number\"); } return Math.sqrt(number);/",
+						"src/main/java/org/springaicommunity/bench/example/calculator/Calculator.java"))
+				.timeout(timeout)
+				.build();
 
-            ExecResult result = sandbox.exec(sedSpec);
-            long duration = System.currentTimeMillis() - start;
+			ExecResult result = sandbox.exec(sedSpec);
+			long duration = System.currentTimeMillis() - start;
 
-            return new AgentResult(result.exitCode(), null, duration);
-        }
-    }
+			return new AgentResult(result.exitCode(), null, duration);
+		}
+	}
+
 }

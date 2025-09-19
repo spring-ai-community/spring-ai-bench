@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springaicommunity.bench.agents.hello;
+package org.springaicommunity.bench.agents.verifier;
 
-import org.springaicommunity.bench.agents.verifier.*;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;

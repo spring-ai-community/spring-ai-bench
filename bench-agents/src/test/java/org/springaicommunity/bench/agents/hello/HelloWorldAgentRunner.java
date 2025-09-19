@@ -15,7 +15,8 @@
  */
 package org.springaicommunity.bench.agents.hello;
 
-import org.springaicommunity.bench.agents.adapter.AgentModelAdapter;
+import org.springaicommunity.bench.agents.runner.AgentModelAdapter;
+import org.springaicommunity.bench.agents.verifier.HelloWorldVerifier;
 
 /**
  * Specific agent runner for the Hello World deterministic test agent.

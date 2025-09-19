@@ -17,7 +17,7 @@ package org.springaicommunity.bench.agents.debug;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.springaicommunity.bench.agents.hello.HelloWorldVerifier;
+import org.springaicommunity.bench.agents.verifier.HelloWorldVerifier;
 import org.springaicommunity.bench.agents.verifier.VerificationContext;
 
 import java.nio.file.Files;

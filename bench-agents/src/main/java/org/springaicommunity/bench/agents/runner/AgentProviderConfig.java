@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springaicommunity.bench.agents.config;
+package org.springaicommunity.bench.agents.runner;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -22,9 +22,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springaicommunity.agents.claudecode.ClaudeCodeAgentModel;
 import org.springaicommunity.agents.gemini.GeminiAgentModel;
-import org.springaicommunity.bench.agents.claudecode.ClaudeCodeAgentRunner;
-import org.springaicommunity.bench.agents.gemini.GeminiAgentRunner;
-import org.springaicommunity.bench.agents.hello.HelloWorldVerifier;
+import org.springaicommunity.bench.agents.runner.ClaudeCodeAgentRunner;
+import org.springaicommunity.bench.agents.runner.GeminiAgentRunner;
+import org.springaicommunity.bench.agents.verifier.SuccessVerifier;
 import org.springaicommunity.bench.core.run.AgentRunner;
 
 /**
@@ -38,7 +38,7 @@ public class AgentProviderConfig {
     @ConditionalOnClass(ClaudeCodeAgentModel.class)
     @ConditionalOnMissingBean(AgentRunner.class)
     @ConditionalOnProperty(name = "spring.ai.bench.agent.provider", havingValue = "claude-code")
-    public AgentRunner claudeRunner(ClaudeCodeAgentModel model, HelloWorldVerifier verifier) {
+    public AgentRunner claudeRunner(ClaudeCodeAgentModel model, SuccessVerifier verifier) {
         return new ClaudeCodeAgentRunner(model, verifier);
     }
 
@@ -46,7 +46,7 @@ public class AgentProviderConfig {
     @ConditionalOnClass(GeminiAgentModel.class)
     @ConditionalOnMissingBean(AgentRunner.class)
     @ConditionalOnProperty(name = "spring.ai.bench.agent.provider", havingValue = "gemini")
-    public AgentRunner geminiRunner(GeminiAgentModel model, HelloWorldVerifier verifier) {
+    public AgentRunner geminiRunner(GeminiAgentModel model, SuccessVerifier verifier) {
         return new GeminiAgentRunner(model, verifier);
     }
 }

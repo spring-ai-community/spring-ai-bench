@@ -20,8 +20,8 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springaicommunity.agents.claudecode.ClaudeCodeAgentModel;
 import org.springaicommunity.agents.claudecode.ClaudeCodeAgentOptions;
 import org.springaicommunity.agents.claudecode.sdk.ClaudeCodeClient;
-import org.springaicommunity.bench.agents.claudecode.ClaudeCodeAgentRunner;
-import org.springaicommunity.bench.agents.hello.HelloWorldVerifier;
+import org.springaicommunity.bench.agents.runner.ClaudeCodeAgentRunner;
+import org.springaicommunity.bench.agents.verifier.HelloWorldVerifier;
 import org.springaicommunity.bench.core.run.AgentResult;
 import org.springaicommunity.bench.core.spec.AgentSpec;
 

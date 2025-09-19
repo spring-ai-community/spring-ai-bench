@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springaicommunity.bench.agents.adapter;
+package org.springaicommunity.bench.agents.runner;
 
-import org.springaicommunity.bench.agents.logging.SimpleLogCapture;
+import org.springaicommunity.bench.agents.support.SimpleLogCapture;
 import org.springaicommunity.bench.agents.report.IndexPageGenerator;
 import org.springaicommunity.bench.agents.report.MinimalHtmlReportGenerator;
 import org.springaicommunity.bench.agents.report.MinimalJsonReportGenerator;

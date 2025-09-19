@@ -17,8 +17,8 @@ package org.springaicommunity.bench.agents.integration;
 
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import org.springaicommunity.bench.agents.claudecode.ClaudeCodeAgentRunner;
-import org.springaicommunity.bench.agents.hello.HelloWorldVerifier;
+import org.springaicommunity.bench.agents.runner.ClaudeCodeAgentRunner;
+import org.springaicommunity.bench.agents.verifier.HelloWorldVerifier;
 import org.springaicommunity.bench.core.run.AgentResult;
 import org.springaicommunity.bench.core.spec.AgentSpec;
 import org.springaicommunity.agents.claudecode.ClaudeCodeAgentModel;

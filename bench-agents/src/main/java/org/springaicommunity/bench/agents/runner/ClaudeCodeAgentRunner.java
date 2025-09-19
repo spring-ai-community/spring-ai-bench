@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springaicommunity.bench.agents.gemini;
+package org.springaicommunity.bench.agents.runner;
 
-import org.springaicommunity.agents.gemini.GeminiAgentModel;
-import org.springaicommunity.bench.agents.adapter.AgentModelAdapter;
-import org.springaicommunity.bench.agents.hello.HelloWorldVerifier;
+import org.springaicommunity.agents.claudecode.ClaudeCodeAgentModel;
+import org.springaicommunity.bench.agents.runner.AgentModelAdapter;
+import org.springaicommunity.bench.agents.verifier.SuccessVerifier;
 import org.springaicommunity.bench.core.run.AgentResult;
 import org.springaicommunity.bench.core.run.AgentRunner;
 import org.springaicommunity.bench.core.spec.AgentSpec;
@@ -26,15 +26,15 @@ import java.nio.file.Path;
 import java.time.Duration;
 
 /**
- * Agent runner implementation for Gemini CLI agent.
- * Wraps GeminiAgentModel with the AgentModelAdapter to bridge
+ * Agent runner implementation for Claude Code CLI agent.
+ * Wraps ClaudeCodeAgentModel with the AgentModelAdapter to bridge
  * between Spring AI Bench and Spring AI Agents APIs.
  */
-public class GeminiAgentRunner implements AgentRunner {
+public class ClaudeCodeAgentRunner implements AgentRunner {
 
     private final AgentModelAdapter adapter;
 
-    public GeminiAgentRunner(GeminiAgentModel model, HelloWorldVerifier verifier) {
+    public ClaudeCodeAgentRunner(ClaudeCodeAgentModel model, SuccessVerifier verifier) {
         this.adapter = new AgentModelAdapter(model, verifier);
     }
 

@@ -93,11 +93,35 @@ Live agent tests use the `agents-live` Spring profile which enables:
 ### Key Components
 
 - **AgentRunners**: Wrapper implementations that bridge Spring AI Bench and Spring AI Agents APIs
+- **AgentModelAdapter**: Enhanced adapter with service extraction and workspace-specific configuration
+- **WorkspaceService**: Handles workspace cleanup and management operations
+- **ReportService**: Generates HTML and JSON reports with comprehensive metadata
 - **Auto-Configuration**: Spring Boot auto-configuration for conditional bean creation
 - **CLI Utils**: Utilities for CLI version detection using zt-exec
-- **Enhanced Reporting**: JSON and HTML reports with comprehensive agent provenance
 
 ## Technical Details
+
+### AgentSpec Builder Pattern
+
+The module now supports a fluent builder API for creating agent specifications:
+
+```java
+AgentSpec spec = AgentSpec.builder()
+    .kind("hello-world")
+    .model("claude-3-5-sonnet")
+    .prompt("Create a file named hello.txt with contents: Hello World!")
+    .autoApprove(true)
+    .build();
+```
+
+### Service Architecture
+
+The module follows Spring best practices with service extraction:
+
+- **WorkspaceService**: Handles workspace lifecycle management and cleanup
+- **ReportService**: Centralized report generation with HTML and JSON outputs
+- **AgentModelAdapter**: Simplified adapter focused on orchestration
+- **Factory Methods**: Workspace-specific agent model configuration
 
 ### Process Execution
 
@@ -141,11 +165,18 @@ Reports include comprehensive provenance metadata:
 ```
 bench-agents/
 ├── src/main/java/
-│   ├── config/           # Spring auto-configuration
-│   ├── claudecode/       # Claude Code runner
-│   ├── gemini/          # Gemini runner
-│   ├── util/            # CLI utilities
-│   └── adapter/         # Enhanced AgentModelAdapter
+│   ├── runner/          # Agent runners, services, and configuration
+│   │   ├── AgentModelAdapter.java    # Enhanced adapter with service extraction
+│   │   ├── ClaudeCodeAgentRunner.java
+│   │   ├── GeminiAgentRunner.java
+│   │   ├── AgentProviderConfig.java  # Spring auto-configuration
+│   │   ├── WorkspaceService.java     # Workspace management
+│   │   └── ReportService.java        # Report generation
+│   ├── support/         # Utilities and shared support classes
+│   │   ├── CliUtils.java
+│   │   └── SimpleLogCapture.java
+│   ├── report/          # HTML and JSON report generators
+│   └── verifier/        # Success verification system
 ├── src/main/resources/
 │   ├── META-INF/spring/ # Auto-configuration registration
 │   └── application.properties

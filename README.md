@@ -231,6 +231,10 @@ Total: **174 tests** with 100% pass rate
 - ✅ **Improved timeout handling** - Automatic process destruction and better error messages
 - ✅ **Enhanced platform compatibility** - Windows/Unix shell command abstraction
 - ✅ **Simplified test suite** - Removed complex mocks, focus on integration testing
+- ✅ **Package reorganization** - Consolidated single-class packages into cohesive modules
+- ✅ **Service extraction** - WorkspaceService and ReportService for better separation of concerns
+- ✅ **Spring Java Format** - Proper Spring code formatting and conventions
+- ✅ **AgentSpec builder pattern** - Fluent API for better test readability
 
 ---
 
@@ -268,7 +272,9 @@ We welcome contributions! Please:
 
 - Write tests for new features
 - Update documentation for API changes
+- Follow Spring Java Format conventions: `./mvnw spring-javaformat:apply`
 - Ensure all tests pass: `./mvnw clean test`
+- Verify formatting: `./mvnw spring-javaformat:validate`
 
 ## Support
 

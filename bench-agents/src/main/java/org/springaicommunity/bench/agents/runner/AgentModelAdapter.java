@@ -16,8 +16,6 @@
 package org.springaicommunity.bench.agents.runner;
 
 import org.springaicommunity.bench.agents.support.SimpleLogCapture;
-import org.springaicommunity.bench.agents.service.WorkspaceService;
-import org.springaicommunity.bench.agents.service.ReportService;
 import org.springaicommunity.bench.agents.verifier.*;
 import org.springaicommunity.bench.core.run.AgentRunner;
 import org.springaicommunity.bench.core.run.AgentResult;

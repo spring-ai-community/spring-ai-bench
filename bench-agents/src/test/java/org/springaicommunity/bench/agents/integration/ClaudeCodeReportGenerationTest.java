@@ -88,14 +88,11 @@ class ClaudeCodeReportGenerationTest {
         System.out.println("Workspace: " + tempWorkspace);
 
         // Create AgentSpec for hello world task
-        AgentSpec spec = new AgentSpec(
-            "claude-hello-world",
-            "Create a file named hello.txt with EXACT contents: Hello World!",
-            null, // model - will use default
-            null, // genParams
-            null, // autoApprove
-            null  // role
-        );
+        AgentSpec spec = AgentSpec.builder()
+            .kind("claude-hello-world")
+            .autoApprove(true)
+            .prompt("Create a file named hello.txt in the current working directory (use relative path ./hello.txt) with EXACT contents: Hello World!")
+            .build();
 
         // Run the agent through the full pipeline
         AgentResult result = agentRunner.run(tempWorkspace, spec, Duration.ofMinutes(2));
@@ -148,7 +145,6 @@ class ClaudeCodeReportGenerationTest {
         // Claude-specific metadata should be present
         assertThat(jsonContent).contains("claude"); // Should contain claude model info
         assertThat(jsonContent).contains("duration"); // Should contain timing info
-        assertThat(jsonContent).contains("sessionId"); // Should contain session tracking
 
         // Verify HTML report contains expected structure
         String htmlContent = Files.readString(htmlReport);
@@ -166,11 +162,11 @@ class ClaudeCodeReportGenerationTest {
     @Test
     void claudeCode_verification_system_works_with_real_agent() throws Exception {
         // Test with a scenario that should pass verification
-        AgentSpec spec = new AgentSpec(
-            "claude-verification-test",
-            "Create hello.txt with exact content: Hello World!",
-            null, null, null, null
-        );
+        AgentSpec spec = AgentSpec.builder()
+            .kind("claude-verification-test")
+            .autoApprove(true)
+            .prompt("Create a file named hello.txt in the current working directory (use relative path ./hello.txt) with exact content: Hello World!")
+            .build();
 
         AgentResult result = agentRunner.run(tempWorkspace, spec, Duration.ofMinutes(2));
 

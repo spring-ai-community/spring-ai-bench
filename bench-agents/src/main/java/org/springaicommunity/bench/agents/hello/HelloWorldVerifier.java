@@ -37,9 +37,28 @@ public class HelloWorldVerifier implements SuccessVerifier {
         Path workspace = context.runRoot().resolve(context.workspaceRel());
         Path helloFile = workspace.resolve("hello.txt");
 
+        // Debug logging for path resolution
+        System.out.println("=== VERIFICATION DEBUG ===");
+        System.out.println("context.runRoot(): " + context.runRoot());
+        System.out.println("context.workspaceRel(): " + context.workspaceRel());
+        System.out.println("resolved workspace: " + workspace);
+        System.out.println("target file: " + helloFile);
+        System.out.println("workspace exists: " + Files.exists(workspace));
+        System.out.println("workspace is directory: " + Files.isDirectory(workspace));
+
+        // List files in workspace if it exists
+        if (Files.exists(workspace) && Files.isDirectory(workspace)) {
+            try {
+                System.out.println("workspace contents:");
+                Files.list(workspace).forEach(p -> System.out.println("  - " + p.getFileName()));
+            } catch (Exception e) {
+                System.out.println("  error listing workspace: " + e.getMessage());
+            }
+        }
+
         // Check 1: File exists
         boolean exists = Files.exists(helloFile);
-        checks.add(new Check("exists", exists, exists ? "ok" : "missing"));
+        checks.add(new Check("exists", exists, exists ? "ok" : "missing at " + helloFile));
 
         // Check 2: Content matches (if exists)
         boolean contentMatches = false;

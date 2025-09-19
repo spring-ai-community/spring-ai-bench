@@ -1,9 +1,6 @@
 package org.springaicommunity.bench.core.run;
 
 import org.kohsuke.github.GitHub;
-import org.springframework.cloud.deployer.spi.local.LocalDeployerProperties;
-import org.springframework.cloud.deployer.spi.local.LocalTaskLauncher;
-import org.springframework.cloud.deployer.spi.task.TaskLauncher;
 import org.springaicommunity.bench.core.repo.RepoWorkspaceManager;
 import org.springaicommunity.bench.core.repo.Workspace;
 import org.springaicommunity.bench.core.spec.BenchCase;
@@ -14,11 +11,9 @@ import java.time.Instant;
 public class BenchHarness {
 
     private final RepoWorkspaceManager repoMgr;
-    private final TaskLauncher        taskLauncher;
 
     public BenchHarness(GitHub gh) {
-        this.repoMgr      = new RepoWorkspaceManager(gh);
-        this.taskLauncher = new LocalTaskLauncher(new LocalDeployerProperties());      // process runner
+        this.repoMgr = new RepoWorkspaceManager(gh);
     }
 
     /** Day-3: clone → dummy agent patch → gradle test. */

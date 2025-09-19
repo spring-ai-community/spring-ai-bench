@@ -28,7 +28,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -46,6 +49,13 @@ class ClaudeCodeIntegrationSuccessTest {
     @BeforeEach
     void setUp() throws Exception {
         tempWorkspace = Files.createTempDirectory("claude-success-test-");
+        System.out.println("Testing Claude Code integration in workspace: " + tempWorkspace);
+
+        // Setup clean Claude authentication state for API key usage
+        setupCleanClaudeAuth();
+
+        // Create project-level Claude settings to avoid interactive API key prompts
+        createProjectClaudeSettings(tempWorkspace);
 
         // Create ClaudeCodeAgentModel
         ClaudeCodeAgentOptions options = new ClaudeCodeAgentOptions();
@@ -66,6 +76,13 @@ class ClaudeCodeIntegrationSuccessTest {
 
     @AfterEach
     void tearDown() throws Exception {
+        // Temporarily disable cleanup for debugging
+        System.out.println("🚨 CLEANUP DISABLED - Workspace preserved for manual testing: " + tempWorkspace);
+        System.out.println("You can now cd to the workspace and test Claude CLI manually:");
+        System.out.println("  cd " + tempWorkspace);
+        System.out.println("  claude");
+
+        /*
         if (tempWorkspace != null && Files.exists(tempWorkspace)) {
             Files.walk(tempWorkspace)
                 .sorted((a, b) -> b.compareTo(a))
@@ -77,6 +94,7 @@ class ClaudeCodeIntegrationSuccessTest {
                     }
                 });
         }
+        */
     }
 
     @Test
@@ -146,5 +164,87 @@ class ClaudeCodeIntegrationSuccessTest {
         System.out.println("Duration: " + response.getMetadata().getDuration());
         System.out.println("File created: " + testFile);
         System.out.println("File content: '" + content + "'");
+    }
+
+    /**
+     * Creates project-level Claude settings to avoid interactive API key prompts.
+     */
+    private void createProjectClaudeSettings(Path workspace) throws IOException {
+        System.out.println("Creating project-level Claude settings for workspace: " + workspace);
+
+        // Get API key from environment
+        String apiKey = System.getenv("ANTHROPIC_API_KEY");
+        if (apiKey == null || apiKey.trim().isEmpty()) {
+            System.out.println("No ANTHROPIC_API_KEY found, skipping project settings creation");
+            return;
+        }
+
+        System.out.println("API key found, length: " + apiKey.length());
+
+        // Create .claude directory in the workspace
+        Path claudeDir = workspace.resolve(".claude");
+        Files.createDirectories(claudeDir);
+        System.out.println("Created .claude directory: " + claudeDir);
+
+        // Create settings configuration with API key pre-approval
+        Map<String, Object> settings = new HashMap<>();
+
+        // Extract last 20 characters for approval (Claude CLI requirement)
+        String last20Chars = apiKey.substring(Math.max(0, apiKey.length() - 20));
+        Map<String, Object> customApiKeyResponses = new HashMap<>();
+        customApiKeyResponses.put("approved", List.of(last20Chars));
+        customApiKeyResponses.put("rejected", List.of());
+
+        Map<String, Object> env = new HashMap<>();
+        env.put("ANTHROPIC_API_KEY", apiKey);
+
+        settings.put("hasCompletedOnboarding", true);
+        settings.put("customApiKeyResponses", customApiKeyResponses);
+        settings.put("env", env);
+
+        System.out.println("API key last 20 chars approved: " + last20Chars);
+
+        // Write settings.json file
+        Path settingsFile = claudeDir.resolve("settings.json");
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.writerWithDefaultPrettyPrinter().writeValue(settingsFile.toFile(), settings);
+
+        System.out.println("Created Claude settings file: " + settingsFile);
+        System.out.println("Settings file size: " + Files.size(settingsFile) + " bytes");
+        System.out.println("Settings content: " + Files.readString(settingsFile));
+    }
+
+    /**
+     * Sets up clean Claude authentication state by logging out to ensure API key usage.
+     */
+    private void setupCleanClaudeAuth() throws Exception {
+        System.out.println("Setting up clean Claude authentication state");
+
+        try {
+            // Logout from any existing Claude session to ensure clean state
+            ProcessBuilder logoutPb = new ProcessBuilder("claude", "/logout");
+            logoutPb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+            logoutPb.redirectError(ProcessBuilder.Redirect.DISCARD);
+            Process logoutProcess = logoutPb.start();
+
+            // Wait for logout with timeout to avoid hanging
+            boolean finished = logoutProcess.waitFor(10, java.util.concurrent.TimeUnit.SECONDS);
+
+            if (finished) {
+                int logoutCode = logoutProcess.exitValue();
+                if (logoutCode == 0) {
+                    System.out.println("Successfully logged out from Claude");
+                } else {
+                    System.out.println("Claude logout returned code: " + logoutCode + " (may already be logged out)");
+                }
+            } else {
+                System.out.println("Claude logout timed out (may already be logged out)");
+                logoutProcess.destroyForcibly();
+            }
+
+        } catch (Exception e) {
+            System.out.println("Failed to logout from Claude (may not be logged in): " + e.getMessage());
+            // Continue anyway - this just ensures clean state
+        }
     }
 }

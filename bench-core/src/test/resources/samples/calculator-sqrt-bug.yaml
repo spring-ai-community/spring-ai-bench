@@ -1,0 +1,21 @@
+id: calculator-sqrt-bug
+category: coding
+version: 0.5
+
+repo:
+  owner: rd-1-2022
+  name: simple-calculator
+  ref: 93da3b1847ed67f3bc7d8a84e1e6afd737f1a555
+
+agent:
+  kind: claude-code
+  model: claude-4-sonnet
+  autoApprove: true
+  prompt: |
+    Fix the failing JUnit tests in this project.
+    Run "./mvnw test" until all tests pass, then commit.
+
+success:
+  cmd: mvn test
+
+timeoutSec: 600

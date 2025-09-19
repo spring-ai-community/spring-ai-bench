@@ -97,35 +97,79 @@ cd spring-ai-bench
 ### Building from Source
 
 ```bash
-# Full build with tests
+# Clone the repository
+git clone https://github.com/spring-ai-community/spring-ai-bench.git
+cd spring-ai-bench
+
+# Full build with tests (requires API keys for agent tests)
 ./mvnw clean install
 
 # Quick build (skip tests)
 ./mvnw clean install -DskipTests
 
-# Run specific test categories
-./mvnw test -Dtest=*IntegrationTest
-./mvnw test -Dtest=BenchHarnessE2ETest
+# Compile only (fastest)
+./mvnw clean compile
 ```
 
 ### Running Tests
 
+#### Core Tests (No API Keys Required)
 ```bash
-# All tests
+# All core tests (infrastructure, sandboxes, framework)
 ./mvnw test
 
-# Integration tests only
-./mvnw test -Dtest=*IntegrationTest
+# Specific test categories
+./mvnw test -Dtest=*IntegrationTest    # All integration tests
+./mvnw test -Dtest=BenchHarnessE2ETest # End-to-end benchmark test
+./mvnw test -Dtest=LocalSandboxIntegrationTest # Local execution tests
+./mvnw test -Dtest=DockerSandboxTest   # Docker container tests
+```
 
-# Specific sandbox tests
-./mvnw test -Dtest=LocalSandboxIntegrationTest
-./mvnw test -Dtest=DockerSandboxTest
+#### Agent Integration Tests (Requires API Keys)
 
-# Agent integration tests (requires API keys)
-ANTHROPIC_API_KEY=your_key GEMINI_API_KEY=your_key ./mvnw test -Pagents-live
-# Or run specific agent tests:
+**Prerequisites:**
+- `ANTHROPIC_API_KEY` - For Claude Code agent testing
+- `GEMINI_API_KEY` - For Gemini agent testing
+
+**Run All Agent Tests:**
+```bash
+# Set your API keys and run all agent integration tests
+export ANTHROPIC_API_KEY=your_claude_key
+export GEMINI_API_KEY=your_gemini_key
+./mvnw test -Pagents-live
+```
+
+**Run Specific Agent Tests:**
+```bash
+# Claude Code agent only
 ANTHROPIC_API_KEY=your_key ./mvnw test -Dtest=ClaudeIntegrationTest
+
+# Gemini agent only
 GEMINI_API_KEY=your_key ./mvnw test -Dtest=GeminiIntegrationTest
+
+# HelloWorld mock agent (no API key needed)
+./mvnw test -Dtest=HelloWorldIntegrationTest
+```
+
+#### Test Profiles
+
+- **Default profile**: Runs core infrastructure tests (no API keys required)
+- **`agents-live` profile**: Runs live agent integration tests (requires API keys)
+  ```bash
+  ./mvnw test -Pagents-live
+  ```
+
+#### Verification Commands
+
+```bash
+# Verify everything builds and core tests pass
+./mvnw clean verify
+
+# Quick smoke test
+./mvnw test -Dtest=BenchHarnessSmokeTest
+
+# Full verification including agent tests (requires API keys)
+ANTHROPIC_API_KEY=your_key GEMINI_API_KEY=your_key ./mvnw clean verify -Pagents-live
 ```
 
 ## Configuration

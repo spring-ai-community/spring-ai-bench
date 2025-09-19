@@ -32,41 +32,53 @@ public class SimpleLogCapture {
     private final Path logFile;
     private final String runId;
 
-    public SimpleLogCapture(Path runRoot, UUID runId) throws IOException {
+    public SimpleLogCapture(Path runRoot, UUID runId) {
         this.runId = runId.toString();
         this.logFile = runRoot.resolve("run.log");
 
-        // Ensure parent directory exists
-        Files.createDirectories(runRoot);
+        try {
+            // Ensure parent directory exists
+            Files.createDirectories(runRoot);
 
-        // Write header
-        writeHeader();
+            // Write header
+            writeHeader();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to initialize log capture: " + e.getMessage(), e);
+        }
     }
 
-    private void writeHeader() throws IOException {
+    private void writeHeader() {
         log("RUN_ID: " + runId);
         log("STARTED: " + DateTimeFormatter.ISO_INSTANT.format(Instant.now()));
     }
 
-    public void writeFooter() throws IOException {
+    public void writeFooter() {
         log("FINISHED: " + DateTimeFormatter.ISO_INSTANT.format(Instant.now()));
     }
 
-    public void log(String category, String message) throws IOException {
-        String timestamp = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
-        String line = String.format("%s [%s] %s%n", timestamp, category, message);
+    public void log(String category, String message) {
+        try {
+            String timestamp = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
+            String line = String.format("%s [%s] %s%n", timestamp, category, message);
 
-        Files.writeString(logFile, line,
-            StandardOpenOption.CREATE,
-            StandardOpenOption.APPEND);
+            Files.writeString(logFile, line,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to write log entry: " + e.getMessage(), e);
+        }
     }
 
-    public void log(String message) throws IOException {
-        String line = message + System.lineSeparator();
+    public void log(String message) {
+        try {
+            String line = message + System.lineSeparator();
 
-        Files.writeString(logFile, line,
-            StandardOpenOption.CREATE,
-            StandardOpenOption.APPEND);
+            Files.writeString(logFile, line,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to write log entry: " + e.getMessage(), e);
+        }
     }
 
     public Path getLogFile() {

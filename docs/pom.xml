@@ -50,8 +50,8 @@
                 <configuration>
                     <options>
                         <option>--to-dir=target/antora/site</option>
-                        <option>--stacktrace</option>
                         <option>--fetch</option>
+                        <option>--quiet</option>
                     </options>
                     <playbook>src/main/antora/antora-playbook.yml</playbook>
                     <packages>
@@ -63,6 +63,10 @@
                         <package>@springio/asciidoctor-extensions@1.0.0-alpha.12</package>
                         <package>@djencks/asciidoctor-mathjax@0.0.9</package>
                     </packages>
+                    <environmentVariables>
+                        <NPM_CONFIG_LOGLEVEL>error</NPM_CONFIG_LOGLEVEL>
+                        <NPM_CONFIG_PROGRESS>false</NPM_CONFIG_PROGRESS>
+                    </environmentVariables>
                 </configuration>
             </plugin>
             <plugin>

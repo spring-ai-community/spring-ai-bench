@@ -35,7 +35,10 @@ jobs:
           cache: 'maven'
 
       - name: Build documentation
-        run: ./mvnw clean antora:antora -pl docs
+        run: ./mvnw clean antora:antora -pl docs --quiet --batch-mode
+        env:
+          NPM_CONFIG_LOGLEVEL: error
+          NPM_CONFIG_PROGRESS: false
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

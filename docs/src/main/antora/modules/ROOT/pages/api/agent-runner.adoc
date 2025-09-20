@@ -1,0 +1,25 @@
+= AgentRunner API
+:page-title: AgentRunner API
+:toc: left
+:tabsize: 2
+:sectnums:
+
+The core interface for agent execution in Spring AI Bench.
+
+== Overview
+
+The `AgentRunner` interface defines the contract for executing agents.
+
+_This page is under development._
+
+== Coming Soon
+
+* Interface documentation
+* Implementation examples
+* Best practices
+* Error handling
+
+== Next Steps
+
+* xref:api/agent-spec.adoc[AgentSpec API] - Agent configuration
+* xref:api/verification.adoc[Verification System] - Result verification

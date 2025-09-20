@@ -1,0 +1,25 @@
+= Verification System
+:page-title: Verification System
+:toc: left
+:tabsize: 2
+:sectnums:
+
+Success criteria and result verification for benchmarks.
+
+== Overview
+
+The verification system determines whether agent execution was successful.
+
+_This page is under development._
+
+== Coming Soon
+
+* SuccessVerifier interface
+* Verification criteria
+* Custom verification
+* Debugging verification failures
+
+== Next Steps
+
+* xref:api/agent-spec.adoc[AgentSpec API] - Agent configuration
+* xref:api/agent-runner.adoc[AgentRunner API] - Agent execution

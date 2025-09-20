@@ -1,0 +1,282 @@
+= Claude Code Agent
+:page-title: Claude Code Agent
+:toc: left
+:tabsize: 2
+:sectnums:
+
+Claude Code is Anthropic's autonomous coding agent that can understand codebases, write code, and execute commands.
+
+== Overview
+
+The Claude Code agent integration provides:
+
+* **Autonomous Development** - End-to-end task completion without human intervention
+* **Command Execution** - Full shell access with tool usage
+* **Codebase Understanding** - Deep comprehension of complex projects
+* **MCP Tool Support** - Model Context Protocol integration
+
+== Prerequisites
+
+=== Install Claude CLI
+
+[source,bash]
+----
+# Install via npm
+npm install -g @anthropic-ai/claude-cli
+
+# Verify installation
+claude --version
+----
+
+=== API Key Setup
+
+[source,bash]
+----
+# Set your Anthropic API key
+export ANTHROPIC_API_KEY=your-anthropic-api-key
+
+# Verify authentication
+claude auth status
+----
+
+== Configuration
+
+=== Basic Agent Specification
+
+[source,yaml]
+----
+agent:
+  kind: claude-code
+  model: claude-3-5-sonnet
+  autoApprove: true
+  prompt: |
+    Fix the failing JUnit tests in this project.
+    Run "./mvnw test" until all tests pass.
+----
+
+=== Advanced Configuration
+
+[source,yaml]
+----
+agent:
+  kind: claude-code
+  model: claude-3-5-sonnet
+  autoApprove: true
+  genParams:
+    max_tokens: 4096
+    temperature: 0.1
+  extras:
+    yolo: true          # Skip permission prompts
+    max_steps: 10       # Limit number of actions
+    tools: ["bash", "editor", "git"]
+  prompt: |
+    This Java Spring Boot application has a security vulnerability.
+
+    Tasks:
+    1. Identify the security issue
+    2. Fix the vulnerability
+    3. Add appropriate tests
+    4. Ensure all existing tests still pass
+    5. Document the fix in CHANGELOG.md
+----
+
+== Features
+
+=== Autonomous Task Execution
+
+Claude Code can execute multi-step workflows:
+
+* **Code Analysis** - Understand existing codebases
+* **File Editing** - Create, modify, and delete files
+* **Command Execution** - Run build tools, tests, and utilities
+* **Git Operations** - Commit changes and manage branches
+
+=== Tool Integration
+
+Supported tools include:
+
+* **Bash** - Execute shell commands
+* **Editor** - Edit files with syntax awareness
+* **Git** - Version control operations
+* **Language-specific tools** - Maven, Gradle, npm, etc.
+
+=== Error Handling
+
+Claude Code automatically handles:
+
+* **Build Failures** - Diagnose and fix compilation errors
+* **Test Failures** - Analyze failing tests and implement fixes
+* **Runtime Errors** - Debug and resolve runtime issues
+* **Dependency Conflicts** - Resolve version conflicts and missing dependencies
+
+== Integration with Spring AI Bench
+
+=== ClaudeCodeAgentRunner
+
+The `ClaudeCodeAgentRunner` provides seamless integration:
+
+[source,java]
+----
+public class ClaudeCodeAgentRunner implements AgentRunner {
+
+    private final ClaudeCodeAgentModel agentModel;
+    private final SuccessVerifier verifier;
+
+    @Override
+    public AgentResult run(Path workspace, AgentSpec spec, Duration timeout)
+            throws Exception {
+        // Configure agent for workspace
+        ClaudeCodeAgentModel workspaceModel =
+            ClaudeCodeAgentModel.createWithWorkspaceSetup(workspace, timeout);
+
+        // Execute agent task
+        AgentResponse response = workspaceModel.call(
+            new AgentTaskRequest(spec.prompt(), workspace, options)
+        );
+
+        // Verify results
+        return verifyAndReport(response, workspace, spec);
+    }
+}
+----
+
+=== Workspace-Specific Configuration
+
+The agent automatically configures itself for each workspace:
+
+* **Working Directory** - Set to benchmark workspace
+* **Tool Configuration** - Enable appropriate tools for the project
+* **Timeout Management** - Respect benchmark time limits
+* **Resource Isolation** - Prevent interference between benchmarks
+
+=== Logging and Monitoring
+
+Comprehensive logging captures:
+
+[source]
+----
+[INFO] CLAUDE - Initializing Claude Code agent
+[INFO] CLAUDE - Model: claude-3-5-sonnet
+[INFO] CLAUDE - Workspace: /tmp/bench-workspace-123
+[INFO] CLAUDE - Tools enabled: [bash, editor, git]
+[INFO] CLAUDE - Executing task: Fix failing tests
+[INFO] CLAUDE - Step 1: Analyzing test failures
+[INFO] CLAUDE - Step 2: Identifying root cause
+[INFO] CLAUDE - Step 3: Implementing fix
+[INFO] CLAUDE - Step 4: Running tests
+[INFO] CLAUDE - Task completed successfully
+----
+
+== Best Practices
+
+=== Prompt Engineering
+
+Write clear, specific prompts:
+
+[source,yaml]
+----
+# Good prompt
+prompt: |
+  This Spring Boot application has failing integration tests.
+
+  Requirements:
+  1. Fix the failing tests in UserControllerTest
+  2. Ensure all tests pass with "./mvnw test"
+  3. Do not modify the test logic, only fix the implementation
+  4. Follow Spring Boot best practices
+
+  The application uses:
+  - Spring Boot 3.x
+  - JPA with H2 database
+  - Spring Security
+----
+
+[source,yaml]
+----
+# Poor prompt
+prompt: "Fix the tests"
+----
+
+=== Security Considerations
+
+* **API Key Protection** - Never commit API keys to repositories
+* **Workspace Isolation** - Use isolated workspaces for each benchmark
+* **Tool Restrictions** - Limit tool access based on benchmark requirements
+* **Network Controls** - Consider network isolation for security-sensitive benchmarks
+
+=== Performance Optimization
+
+* **Model Selection** - Use appropriate model for task complexity
+* **Timeout Configuration** - Set realistic timeouts for complex tasks
+* **Step Limits** - Prevent infinite loops with max step limits
+* **Resource Monitoring** - Monitor CPU and memory usage
+
+== Troubleshooting
+
+=== Common Issues
+
+==== Authentication Errors
+
+[source,bash]
+----
+# Check API key
+echo $ANTHROPIC_API_KEY
+
+# Verify authentication
+claude auth status
+
+# Re-authenticate if needed
+claude auth login
+----
+
+==== CLI Version Issues
+
+[source,bash]
+----
+# Update Claude CLI
+npm update -g @anthropic-ai/claude-cli
+
+# Check compatibility
+claude --version
+----
+
+==== Workspace Permissions
+
+[source,bash]
+----
+# Check workspace permissions
+ls -la /tmp/bench-workspace-*
+
+# Fix permissions if needed
+chmod -R 755 /tmp/bench-workspace-*
+----
+
+=== Debug Mode
+
+Enable detailed debugging:
+
+[source,bash]
+----
+# Run with debug output
+export CLAUDE_DEBUG=true
+./mvnw test -Dtest=ClaudeCodeIntegrationTest
+----
+
+=== Log Analysis
+
+Check Claude-specific logs:
+
+[source,bash]
+----
+# Find Claude logs
+grep -i claude /tmp/bench-reports/{run-id}/run.log
+
+# Check for errors
+grep -i error /tmp/bench-reports/{run-id}/run.log | grep -i claude
+----
+
+== Next Steps
+
+* xref:agents/gemini.adoc[Gemini Agent] - Alternative agent option
+* xref:agents/custom-agents.adoc[Custom Agents] - Build your own agent integration
+* xref:benchmarks/writing-benchmarks.adoc[Writing Benchmarks] - Create Claude Code-specific benchmarks

@@ -1,0 +1,25 @@
+= Cloud Sandbox
+:page-title: Cloud Sandbox
+:toc: left
+:tabsize: 2
+:sectnums:
+
+Distributed execution environment for large-scale benchmarking.
+
+== Overview
+
+The Cloud Sandbox enables distributed execution across cloud infrastructure.
+
+_This page is under development._
+
+== Coming Soon
+
+* Cloud provider integrations
+* Distributed execution
+* Scalability features
+* Cost optimization
+
+== Next Steps
+
+* xref:sandboxes/docker.adoc[Docker Sandbox] - Container-based execution
+* xref:architecture.adoc[Architecture] - System design

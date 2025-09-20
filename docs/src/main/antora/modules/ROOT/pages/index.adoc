@@ -1,0 +1,107 @@
+= Spring AI Bench
+:page-title: Spring AI Bench
+:toc: left
+:tabsize: 2
+:sectnums:
+
+Spring AI Bench is an **open benchmarking suite for Java-centric AI developer agents**.
+
+== Motivation
+
+After spending hundreds of hours working with popular AI tools for software development, I've been extremely impressed by their capabilities. This is a transformative technology that continues to improve at a rapid pace.
+
+But one question has always gnawed at me: **how do we quantify this experience?**
+
+In presentations and product demos, you often hear confident claims about new AI stacks or workflows. What's usually missing is a **quantifiable way** to verify whether those claims hold up.
+
+Looking deeper, most academic work has tried to answer this with benchmarks. The most prominent in software engineering are the https://www.swebench.com/original.html[SWE-bench benchmarks]. They are widely cited in research papers and marketing material from AI startups, with leaderboards maintained https://www.swebench.com/[here].
+
+The more I studied these benchmarks, the more I realized their approach is questionable — and I'm not alone (https://www.runloop.ai/blog/swe-bench-deep-dive-unmasking-the-limitations-of-a-popular-benchmark[Runloop blog]). Fundamentally, SWE-bench and similar datasets operate in a way that is **not analogous to real software development**. They overwhelmingly use Python, while Java — the dominant enterprise language — is barely represented.
+
+As someone who wants to understand how AI tools will truly help solve engineering problems, I also believe benchmarks should be **runnable on your own codebases** to evaluate practical effectiveness. Current benchmarks fall short on this dimension.
+
+That's why I created **Spring AI Bench**: an **open benchmarking suite for Java-centric AI developer agents**.
+
+It fills a critical gap: today's benchmarks are Python-biased and built on outdated agent loops that misrepresent developer work. Spring AI Bench instead measures what matters for **enterprise Java development** — issue triage, PR review, integration testing, test coverage, dependency upgrades, compliance, and more.
+
+== The Case for Spring AI Bench
+
+- Benchmarks such as "classic" SWE-bench rely on **outdated agent loops** (edit → apply patch → run tests). This gave the illusion of "agency," but in reality it optimized trial-and-error patching, not developer workflows.
+
+- Results that look decent in **Python** collapse when tested in **Java**:
+  * **SWE-PolyBench (AWS, 2025):** Across agents, **Python ~20–24%** vs **Java ~11–16%** (TypeScript often just **5–13%**).
+  * **SWE-bench-Java (2024):** Early public runs with the SWE-agent scaffold resolved only **6–10% of verified Java issues** (e.g. GPT-4o 6.6%, DeepSeek-V2 9.9% on 91 verified tasks).
+    Meanwhile, the Python-only SWE-bench Verified benchmark has steadily improved, reaching **74.5% with Anthropic's Opus 4.1 (Aug 2025)**.
+  * **SWE-bench-Live (2025):** On new, contamination-resistant issues, even the best agent+model combos top out around **17–19%**, versus >60% on the static Verified split — strong evidence of overfitting.
+
+**In short:** Verified Python benchmarks reach ~75%, while Verified Java benchmarks remain in the **single-digit to low-teens**. That's an **order-of-magnitude gap**.
+
+Enterprise Java teams deserve a benchmark that reflects **real software development tasks and workflows** — and one that can be applied directly to **your own Java projects and codebases**. That's the goal of Spring AI Bench.
+
+== What Spring AI Bench Does
+
+Spring AI Bench asks a bigger question:
+
+**Can AI act as a true Java developer agent?**
+
+- Not just fixing bugs,
+- But analyzing and labeling issues,
+- Reviewing pull requests,
+- Running integration tests,
+- Raising coverage,
+- Cleaning up static analysis issues,
+- Migrating APIs,
+- Upgrading dependencies,
+- Keeping builds compliant.
+
+That's the standard enterprise developers hold themselves to — and the standard we should evaluate AI against.
+
+== Quick Start
+
+[source,bash]
+----
+# Clone and run a quick test
+git clone https://github.com/spring-ai-community/spring-ai-bench.git
+cd spring-ai-bench
+./mvnw test -Dtest=BenchHarnessE2ETest
+----
+
+== Architecture Overview
+
+[source]
+----
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Agent Types   │    │  Execution Core  │    │   Sandboxes     │
+├─────────────────┤    ├──────────────────┤    ├─────────────────┤
+│ ✅ Claude Code  │────│ BenchHarness     │────│LocalSandbox     │
+│ ✅ Gemini       │    │ AgentRunner      │    │DockerSandbox    │
+│ ✅ HelloWorld   │    │ SpecLoader       │    │CloudSandbox     │
+│                 │    │ ReportGenerator  │    │   (Future)      │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+----
+
+== Supported Agent Types
+
+- **`claude-code`** - Claude Code CLI integration with MCP tools ✅
+- **`gemini`** - Google Gemini CLI integration with yolo mode ✅
+- **`hello-world`** - Mock agent for testing infrastructure ✅
+
+== Benchmark Tracks
+
+Spring AI Bench defines tracks that map directly to **real enterprise developer workflows**:
+
+- ✅ **Test Coverage Uplift**
+- ✅ **Issue Analysis & Labeling**
+- ✅ **Pull Request Review**
+- ✅ **Integration Testing**
+- ✅ **Bug Fixing**
+- ✅ **Dependency Upgrades**
+
+== Next Steps
+
+To get started with Spring AI Bench:
+
+- xref:getting-started.adoc[Getting Started Guide] - Quick setup and first benchmark
+- xref:architecture.adoc[Architecture Overview] - Understand the system design
+- xref:benchmarks/overview.adoc[Benchmark Concepts] - Learn about benchmark design
+- xref:agents/claude-code.adoc[Agent Integration] - Connect your favorite AI agents

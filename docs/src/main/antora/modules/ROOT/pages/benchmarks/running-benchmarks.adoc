@@ -1,0 +1,310 @@
+= Running Benchmarks
+:page-title: Running Benchmarks
+:toc: left
+:tabsize: 2
+:sectnums:
+
+This guide covers how to execute benchmarks using Spring AI Bench.
+
+== Quick Start
+
+=== Run a Single Benchmark
+
+[source,bash]
+----
+# Run the end-to-end test with built-in benchmark
+./mvnw test -Dtest=BenchHarnessE2ETest
+
+# Run with specific agent
+./mvnw test -Pagents-live -Dtest=ClaudeCodeIntegrationTest
+----
+
+=== Run Benchmark Suite
+
+[source,bash]
+----
+# All core benchmarks (no live agents)
+./mvnw test
+
+# All agent integration benchmarks
+./mvnw test -Pagents-live
+----
+
+== Environment Setup
+
+=== API Keys
+
+For live agent testing, configure your environment:
+
+[source,bash]
+----
+# Claude Code
+export ANTHROPIC_API_KEY=your-anthropic-key
+
+# Gemini
+export GEMINI_API_KEY=your-google-key
+
+# GitHub (for private repositories)
+export GITHUB_TOKEN=your-github-token
+----
+
+=== Agent CLI Tools
+
+Install required CLI tools for your agents:
+
+[tabs]
+====
+Claude Code::
++
+[source,bash]
+----
+# Install Claude CLI
+npm install -g @anthropic-ai/claude-cli
+
+# Verify installation
+claude --version
+----
+
+Gemini::
++
+[source,bash]
+----
+# Install Google Cloud SDK
+curl https://sdk.cloud.google.com | bash
+
+# Initialize and authenticate
+gcloud init
+gcloud auth application-default login
+----
+====
+
+== Running Specific Benchmarks
+
+=== By Test Class
+
+[source,bash]
+----
+# Claude Code integration
+./mvnw test -Dtest=ClaudeCodeIntegrationTest
+
+# Gemini integration
+./mvnw test -Dtest=GeminiIntegrationTest
+
+# HelloWorld (mock agent)
+./mvnw test -Dtest=HelloWorldIntegrationTest
+----
+
+=== By Profile
+
+[source,bash]
+----
+# Live agents only
+./mvnw test -Pagents-live
+
+# Core framework only
+./mvnw test -Pdefault
+----
+
+=== Custom Benchmark Files
+
+To run benchmarks from YAML specifications:
+
+[source,bash]
+----
+# Single benchmark file
+java -jar bench-app/target/bench-app.jar \
+  --benchmark src/test/resources/samples/calculator-sqrt-bug.yaml
+
+# Multiple benchmarks
+java -jar bench-app/target/bench-app.jar \
+  --benchmark-dir src/test/resources/samples/
+----
+
+== Understanding Results
+
+=== Console Output
+
+During execution, you'll see structured logging:
+
+[source]
+----
+[INFO] ADAPTER - Starting ClaudeCodeAgentModel
+[INFO] SETUP - Workspace: /tmp/bench-workspace-123
+[INFO] SETUP - Run root: /tmp/bench-reports/456
+[INFO] WORKSPACE - Workspace cleaned successfully
+[INFO] AGENT - Executing agent task
+[INFO] AGENT - Agent call completed. Results: 1
+[INFO] VERIFIER - Starting verification
+[INFO] VERIFIER - exists:PASS content:PASS
+[INFO] RESULT - SUCCESS: All checks passed
+[INFO] FINAL - Exit code: 0, Duration: 15432ms
+----
+
+=== HTML Reports
+
+After execution, HTML reports are generated:
+
+[source]
+----
+bench-reports/
+└── {run-id}/
+    ├── run.log           # Detailed execution log
+    ├── report.html       # Human-readable report
+    ├── report.json       # Machine-readable metadata
+    └── workspace/        # Final workspace state
+----
+
+=== JSON Metadata
+
+The `report.json` file contains structured results:
+
+[source,json]
+----
+{
+  "runId": "123e4567-e89b-12d3-a456-426614174000",
+  "benchmarkId": "calculator-sqrt-bug",
+  "success": true,
+  "exitCode": 0,
+  "durationMs": 15432,
+  "startTime": "2024-01-15T10:30:00Z",
+  "endTime": "2024-01-15T10:30:15Z",
+  "agent": {
+    "kind": "claude-code",
+    "model": "claude-3-5-sonnet"
+  },
+  "verification": {
+    "success": true,
+    "checks": [
+      {"name": "exists", "pass": true, "detail": "ok"},
+      {"name": "content", "pass": true, "detail": "ok"}
+    ]
+  }
+}
+----
+
+== Configuration Options
+
+=== Timeout Settings
+
+[source,bash]
+----
+# Custom timeout (in seconds)
+./mvnw test -Dtest.timeout=1200
+
+# Per-agent timeout in YAML
+agent:
+  timeout: PT10M  # 10 minutes
+----
+
+=== Workspace Management
+
+[source,bash]
+----
+# Keep workspace after execution (for debugging)
+./mvnw test -Dkeep.workspace=true
+
+# Custom workspace root
+./mvnw test -Dworkspace.root=/custom/path
+----
+
+=== Agent-Specific Settings
+
+[tabs]
+====
+Claude Code::
++
+[source,yaml]
+----
+agent:
+  kind: claude-code
+  model: claude-3-5-sonnet
+  autoApprove: true
+  extras:
+    yolo: true
+    max_steps: 10
+----
+
+Gemini::
++
+[source,yaml]
+----
+agent:
+  kind: gemini
+  model: gemini-2.0-flash-exp
+  autoApprove: true
+  extras:
+    yolo: true
+    temperature: 0.7
+----
+====
+
+== Troubleshooting
+
+=== Common Issues
+
+==== Authentication Failures
+
+[source,bash]
+----
+# Verify API keys are set
+echo $ANTHROPIC_API_KEY
+echo $GEMINI_API_KEY
+
+# Test agent availability
+claude --version
+gcloud auth list
+----
+
+==== Timeout Errors
+
+[source,bash]
+----
+# Increase timeout for complex benchmarks
+./mvnw test -Dtest.timeout=3600
+----
+
+==== Workspace Conflicts
+
+[source,bash]
+----
+# Clean all workspaces
+rm -rf /tmp/bench-*
+
+# Use custom workspace location
+./mvnw test -Dworkspace.root=/custom/location
+----
+
+=== Debug Mode
+
+Enable detailed logging:
+
+[source,bash]
+----
+# Maven debug output
+./mvnw test -X
+
+# Spring Boot debug logging
+./mvnw test -Dlogging.level.org.springaicommunity=DEBUG
+----
+
+=== Log Analysis
+
+Check log files for detailed execution traces:
+
+[source,bash]
+----
+# Find recent benchmark runs
+ls -lt /tmp/bench-reports/
+
+# View detailed log
+cat /tmp/bench-reports/{run-id}/run.log
+
+# Search for errors
+grep -i error /tmp/bench-reports/{run-id}/run.log
+----
+
+== Next Steps
+
+* xref:benchmarks/writing-benchmarks.adoc[Writing Custom Benchmarks] - Create your own benchmarks
+* xref:agents/claude-code.adoc[Agent Configuration] - Configure agents for optimal performance
+* xref:api/verification.adoc[Verification System] - Understand success criteria and verification

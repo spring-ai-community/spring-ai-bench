@@ -1,0 +1,331 @@
+= AgentSpec API
+:page-title: AgentSpec API
+:toc: left
+:tabsize: 2
+:sectnums:
+
+The `AgentSpec` class defines the configuration and parameters for agent execution in benchmarks.
+
+== Overview
+
+`AgentSpec` is the central configuration object that specifies:
+
+* **Agent Type** - Which agent implementation to use
+* **Model Configuration** - Model version and parameters
+* **Task Definition** - Natural language prompt describing the task
+* **Execution Settings** - Timeout, approval settings, and metadata
+
+== Builder Pattern
+
+Spring AI Bench provides a fluent builder API for creating agent specifications:
+
+[source,java]
+----
+AgentSpec spec = AgentSpec.builder()
+    .kind("claude-code")
+    .model("claude-3-5-sonnet")
+    .prompt("Fix the failing JUnit tests in this project")
+    .autoApprove(true)
+    .build();
+----
+
+== Constructor Options
+
+=== Record Constructor
+
+[source,java]
+----
+AgentSpec spec = new AgentSpec(
+    "claude-code",           // kind
+    "claude-3-5-sonnet",     // model
+    true,                    // autoApprove
+    "Fix failing tests",     // prompt
+    Map.of("temperature", 0.1), // genParams
+    "developer"              // role
+);
+----
+
+=== Builder Methods
+
+[source,java]
+----
+AgentSpec spec = AgentSpec.builder()
+    .kind("gemini")
+    .model("gemini-2.0-flash-exp")
+    .autoApprove(false)
+    .prompt("Implement user authentication feature")
+    .genParams(Map.of(
+        "temperature", 0.2,
+        "max_tokens", 2048
+    ))
+    .role("senior-developer")
+    .build();
+----
+
+== Parameters
+
+=== kind (Required)
+
+The agent implementation to use:
+
+[source,java]
+----
+.kind("claude-code")    // Claude Code CLI agent
+.kind("gemini")         // Google Gemini CLI agent
+.kind("hello-world")    // Mock agent for testing
+----
+
+=== model (Optional)
+
+The specific model version:
+
+[source,java]
+----
+// Claude models
+.model("claude-3-5-sonnet")
+.model("claude-3-haiku")
+.model("claude-3-opus")
+
+// Gemini models
+.model("gemini-2.0-flash-exp")
+.model("gemini-1.5-pro")
+.model("gemini-1.5-flash")
+----
+
+=== prompt (Required)
+
+Natural language task description:
+
+[source,java]
+----
+.prompt("""
+    This Spring Boot application has a security vulnerability in the
+    UserController class. The endpoint allows unauthorized access.
+
+    Tasks:
+    1. Identify the security issue
+    2. Fix the vulnerability using Spring Security
+    3. Add appropriate tests to verify the fix
+    4. Ensure all existing tests still pass
+    """)
+----
+
+=== autoApprove (Optional)
+
+Whether to bypass human confirmation prompts:
+
+[source,java]
+----
+.autoApprove(true)   // Skip confirmation (recommended for benchmarks)
+.autoApprove(false)  // Require human approval (interactive mode)
+----
+
+=== genParams (Optional)
+
+Model-specific generation parameters:
+
+[source,java]
+----
+.genParams(Map.of(
+    "temperature", 0.1,      // Lower for more deterministic output
+    "max_tokens", 4096,      // Maximum response length
+    "top_p", 0.9,           // Nucleus sampling parameter
+    "frequency_penalty", 0.0 // Repetition penalty
+))
+----
+
+=== role (Optional)
+
+Agent role or persona:
+
+[source,java]
+----
+.role("senior-developer")     // Senior developer persona
+.role("security-expert")      // Security-focused approach
+.role("test-engineer")        // Testing-focused approach
+.role("architect")            // Architecture-focused approach
+----
+
+== YAML Configuration
+
+AgentSpec can also be defined in YAML format:
+
+[source,yaml]
+----
+agent:
+  kind: claude-code
+  model: claude-3-5-sonnet
+  autoApprove: true
+  prompt: |
+    Fix the failing JUnit tests in this Spring Boot application.
+
+    Requirements:
+    - All tests must pass after fixes
+    - Do not modify test logic
+    - Follow Spring Boot best practices
+    - Add logging where appropriate
+
+  genParams:
+    temperature: 0.1
+    max_tokens: 4096
+  role: senior-developer
+----
+
+== Agent-Specific Configurations
+
+=== Claude Code
+
+[source,java]
+----
+AgentSpec.builder()
+    .kind("claude-code")
+    .model("claude-3-5-sonnet")
+    .genParams(Map.of(
+        "max_tokens", 4096,
+        "temperature", 0.1
+    ))
+    .autoApprove(true)
+    .prompt("Comprehensive task description")
+    .build();
+----
+
+=== Gemini
+
+[source,java]
+----
+AgentSpec.builder()
+    .kind("gemini")
+    .model("gemini-2.0-flash-exp")
+    .genParams(Map.of(
+        "temperature", 0.2,
+        "top_p", 0.8,
+        "top_k", 40
+    ))
+    .autoApprove(true)
+    .prompt("Detailed task specification")
+    .build();
+----
+
+=== HelloWorld (Testing)
+
+[source,java]
+----
+AgentSpec.builder()
+    .kind("hello-world")
+    .prompt("Create a file named hello.txt with contents: Hello World!")
+    .autoApprove(true)
+    .build();
+----
+
+== Validation
+
+AgentSpec includes built-in validation:
+
+[source,java]
+----
+// This will throw IllegalArgumentException
+AgentSpec.builder()
+    .kind("")  // Empty kind not allowed
+    .build();
+
+// This will throw IllegalArgumentException
+AgentSpec.builder()
+    .kind("claude-code")
+    .prompt("")  // Empty prompt not allowed
+    .build();
+----
+
+== Integration Examples
+
+=== With BenchCase
+
+[source,java]
+----
+BenchCase benchCase = BenchCase.builder()
+    .id("user-auth-security-fix")
+    .repo(RepoSpec.builder()
+        .owner("example-org")
+        .name("spring-boot-app")
+        .ref("v1.0.0")
+        .build())
+    .agent(AgentSpec.builder()
+        .kind("claude-code")
+        .model("claude-3-5-sonnet")
+        .prompt("Fix security vulnerability in user authentication")
+        .autoApprove(true)
+        .build())
+    .success(SuccessSpec.builder()
+        .cmd("mvn test")
+        .expectExitCode(0)
+        .build())
+    .build();
+----
+
+=== With AgentRunner
+
+[source,java]
+----
+AgentRunner runner = new ClaudeCodeAgentRunner(agentModel, verifier);
+
+AgentSpec spec = AgentSpec.builder()
+    .kind("claude-code")
+    .model("claude-3-5-sonnet")
+    .prompt("Implement user registration feature")
+    .autoApprove(true)
+    .build();
+
+AgentResult result = runner.run(workspace, spec, Duration.ofMinutes(10));
+----
+
+== Best Practices
+
+=== Prompt Design
+
+* **Be Specific** - Clearly define requirements and constraints
+* **Include Context** - Provide relevant background information
+* **Set Expectations** - Specify success criteria and testing requirements
+* **Use Examples** - Include code examples or expected outputs when helpful
+
+=== Model Selection
+
+* **Task Complexity** - Use more capable models for complex tasks
+* **Speed vs Quality** - Balance response time with output quality
+* **Cost Considerations** - Consider API costs for large benchmark suites
+
+=== Parameter Tuning
+
+* **Temperature** - Lower (0.0-0.2) for deterministic tasks, higher (0.7-1.0) for creative tasks
+* **Max Tokens** - Set appropriate limits based on expected response length
+* **Auto-Approve** - Enable for automated benchmarks, disable for interactive development
+
+== Error Handling
+
+Common validation errors and solutions:
+
+[source,java]
+----
+try {
+    AgentSpec spec = AgentSpec.builder()
+        .kind("invalid-agent")
+        .build();
+} catch (IllegalArgumentException e) {
+    // Handle unsupported agent kind
+    log.error("Unsupported agent kind: {}", e.getMessage());
+}
+
+try {
+    AgentSpec spec = AgentSpec.builder()
+        .kind("claude-code")
+        .prompt("")
+        .build();
+} catch (IllegalArgumentException e) {
+    // Handle empty prompt
+    log.error("Prompt cannot be empty: {}", e.getMessage());
+}
+----
+
+== Next Steps
+
+* xref:api/agent-runner.adoc[AgentRunner API] - Learn about agent execution
+* xref:api/verification.adoc[Verification System] - Understand result verification
+* xref:benchmarks/writing-benchmarks.adoc[Writing Benchmarks] - Create custom benchmarks with AgentSpec

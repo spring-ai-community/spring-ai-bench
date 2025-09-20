@@ -1,0 +1,168 @@
+= Getting Started
+:page-title: Getting Started
+:toc: left
+:tabsize: 2
+:sectnums:
+
+This guide will get you up and running with Spring AI Bench quickly.
+
+== Prerequisites
+
+Before you begin, ensure you have:
+
+- **Java 17+** - Required for building and running
+- **Maven 3.6+** - Build system
+- **Docker** - For DockerSandbox testing (optional)
+- **GitHub Token** - For repository access (set `GITHUB_TOKEN` env var)
+- **Agent API Keys** - For agent integration tests:
+  * `ANTHROPIC_API_KEY` - Claude Code agent
+  * `GEMINI_API_KEY` - Gemini agent
+
+== Installation
+
+=== Clone the Repository
+
+[source,bash]
+----
+git clone https://github.com/spring-ai-community/spring-ai-bench.git
+cd spring-ai-bench
+----
+
+=== Build from Source
+
+[source,bash]
+----
+# Full build with tests (requires API keys for agent tests)
+./mvnw clean install
+
+# Quick build (skip tests)
+./mvnw clean install -DskipTests
+
+# Compile only (fastest)
+./mvnw clean compile
+----
+
+== Running Your First Benchmark
+
+=== Core Tests (No API Keys Required)
+
+[source,bash]
+----
+# All core tests (infrastructure, sandboxes, framework)
+./mvnw test
+
+# Specific test categories
+./mvnw test -Dtest=*IntegrationTest    # All integration tests
+./mvnw test -Dtest=BenchHarnessE2ETest # End-to-end benchmark test
+./mvnw test -Dtest=LocalSandboxIntegrationTest # Local execution tests
+./mvnw test -Dtest=DockerSandboxTest   # Docker container tests
+----
+
+=== Agent Integration Tests (Requires API Keys)
+
+==== Prerequisites
+
+Set up your environment with API keys:
+
+[source,bash]
+----
+export ANTHROPIC_API_KEY=your_claude_key
+export GEMINI_API_KEY=your_gemini_key
+----
+
+==== Run All Agent Tests
+
+[source,bash]
+----
+./mvnw test -Pagents-live
+----
+
+==== Run Specific Agent Tests
+
+[source,bash]
+----
+# Claude Code agent only
+ANTHROPIC_API_KEY=your_key ./mvnw test -Dtest=ClaudeIntegrationTest
+
+# Gemini agent only
+GEMINI_API_KEY=your_key ./mvnw test -Dtest=GeminiIntegrationTest
+
+# HelloWorld mock agent (no API key needed)
+./mvnw test -Dtest=HelloWorldIntegrationTest
+----
+
+== Test Profiles
+
+Spring AI Bench uses Maven profiles to control test execution:
+
+- **Default profile**: Runs core infrastructure tests (no API keys required)
+- **`agents-live` profile**: Runs live agent integration tests (requires API keys)
+
+[source,bash]
+----
+./mvnw test -Pagents-live
+----
+
+== Configuration
+
+=== Basic YAML Configuration
+
+Create a benchmark specification file:
+
+[source,yaml]
+----
+repo:
+  owner: rd-1-2022
+  name: simple-calculator
+  ref: 93da3b1847ed67f3bc7d8a84e1e6afd737f1a555
+
+agent:
+  kind: claude-code
+  model: claude-4-sonnet
+  autoApprove: true
+  prompt: |
+    Fix the failing JUnit tests in this project.
+    Run "./mvnw test" until all tests pass, then commit.
+
+success:
+  cmd: mvn test
+
+timeoutSec: 600
+----
+
+=== AgentSpec Builder Pattern
+
+Use the fluent builder API for programmatic configuration:
+
+[source,java]
+----
+AgentSpec spec = AgentSpec.builder()
+    .kind("claude-code")
+    .model("claude-3-5-sonnet")
+    .prompt("Fix the failing test in UserServiceTest")
+    .autoApprove(true)
+    .build();
+----
+
+== Verification Commands
+
+[source,bash]
+----
+# Verify everything builds and core tests pass
+./mvnw clean verify
+
+# Quick smoke test
+./mvnw test -Dtest=BenchHarnessSmokeTest
+
+# Full verification including agent tests (requires API keys)
+ANTHROPIC_API_KEY=your_key GEMINI_API_KEY=your_key ./mvnw clean verify -Pagents-live
+----
+
+== Next Steps
+
+Now that you have Spring AI Bench running:
+
+1. xref:benchmarks/overview.adoc[Learn about benchmark concepts] - Understand how benchmarks are structured
+2. xref:agents/claude-code.adoc[Set up your first agent] - Connect Claude Code or Gemini
+3. xref:benchmarks/writing-benchmarks.adoc[Write custom benchmarks] - Create benchmarks for your own projects
+4. xref:sandboxes/local.adoc[Explore execution environments] - Understand isolation and security

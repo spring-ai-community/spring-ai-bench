@@ -1,0 +1,25 @@
+= Custom Agents
+:page-title: Custom Agents
+:toc: left
+:tabsize: 2
+:sectnums:
+
+Build your own agent integrations for Spring AI Bench.
+
+== Overview
+
+Learn how to create custom agent integrations for your specific AI tools.
+
+_This page is under development._
+
+== Coming Soon
+
+* AgentRunner interface implementation
+* Custom agent configuration
+* Integration examples
+* Testing guidelines
+
+== Next Steps
+
+* xref:agents/claude-code.adoc[Claude Code Agent] - Reference implementation
+* xref:api/agent-runner.adoc[AgentRunner API] - Interface documentation

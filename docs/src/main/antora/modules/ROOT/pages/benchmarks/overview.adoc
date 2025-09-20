@@ -1,0 +1,164 @@
+= Benchmark Overview
+:page-title: Benchmark Overview
+:toc: left
+:tabsize: 2
+:sectnums:
+
+Spring AI Bench benchmarks are designed to evaluate AI agents on real-world Java software engineering tasks.
+
+== What Makes a Good Benchmark?
+
+Effective benchmarks for AI developer agents should:
+
+* **Reflect Real Workflows** - Mirror actual developer tasks and processes
+* **Use Representative Codebases** - Work with typical enterprise Java projects
+* **Measure Practical Skills** - Test abilities that matter in production
+* **Avoid Overfitting** - Resist gaming through memorization
+* **Enable Custom Evaluation** - Work on your own codebases
+
+== Benchmark Categories
+
+=== Coding Tasks
+
+Software development activities that agents should be able to perform:
+
+* **Bug Fixing** - Diagnose and fix failing tests or runtime issues
+* **Feature Implementation** - Add new functionality based on specifications
+* **Refactoring** - Improve code structure while preserving behavior
+* **API Migration** - Update code to use newer APIs or frameworks
+
+=== Project Management
+
+Higher-level tasks that demonstrate planning and coordination:
+
+* **Issue Triage** - Analyze bug reports and feature requests
+* **PR Review** - Evaluate code changes for quality and correctness
+* **Test Coverage** - Identify and write tests for uncovered code
+* **Documentation** - Generate or update technical documentation
+
+=== Version Upgrade
+
+Complex tasks involving dependency and framework management:
+
+* **Dependency Upgrades** - Update libraries while fixing breaking changes
+* **Framework Migration** - Move between framework versions (e.g., Spring Boot 2→3)
+* **Java Version Upgrade** - Update codebases to newer Java versions
+* **Build System Migration** - Convert between build tools (e.g., Maven→Gradle)
+
+== Benchmark Structure
+
+=== YAML Specification
+
+Each benchmark is defined by a YAML file:
+
+[source,yaml]
+----
+# Benchmark metadata
+id: calculator-sqrt-bug
+name: Calculator Square Root Bug Fix
+category: coding
+difficulty: intermediate
+
+# Repository specification
+repo:
+  owner: rd-1-2022
+  name: simple-calculator
+  ref: 93da3b1847ed67f3bc7d8a84e1e6afd737f1a555
+
+# Agent configuration
+agent:
+  kind: claude-code
+  model: claude-3-5-sonnet
+  autoApprove: true
+  prompt: |
+    This Java project has a failing test for square root calculation.
+    The test expects an exception for negative inputs, but the code
+    doesn't handle this case. Fix the implementation and ensure all
+    tests pass.
+
+# Success criteria
+success:
+  cmd: mvn test
+  expectExitCode: 0
+  timeout: 300
+
+# Additional metadata
+timeoutSec: 600
+tags:
+  - java
+  - junit
+  - math
+  - error-handling
+----
+
+=== Component Breakdown
+
+==== Repository Specification
+
+* **Owner/Name** - GitHub repository coordinates
+* **Ref** - Specific commit, branch, or tag to checkout
+* **Subpath** - Optional subdirectory focus (for monorepos)
+
+==== Agent Configuration
+
+* **Kind** - Agent type (`claude-code`, `gemini`, `hello-world`)
+* **Model** - Specific model version to use
+* **Prompt** - Natural language task description
+* **Auto-approve** - Whether to bypass human confirmation prompts
+
+==== Success Criteria
+
+* **Command** - Shell command to verify success
+* **Exit Code** - Expected exit code (usually 0)
+* **Timeout** - Maximum time for verification
+* **File Checks** - Optional file existence/content verification
+
+== Evaluation Metrics
+
+=== Primary Metrics
+
+* **Success Rate** - Percentage of benchmarks completed successfully
+* **Time to Completion** - Duration from start to successful completion
+* **Attempt Efficiency** - Ratio of successful attempts to total attempts
+
+=== Secondary Metrics
+
+* **Code Quality** - Style, maintainability, and best practices
+* **Test Coverage** - Percentage of code covered by tests
+* **Security Compliance** - Absence of security vulnerabilities
+* **Resource Usage** - CPU, memory, and network consumption
+
+== Benchmark Design Principles
+
+=== Realistic Scenarios
+
+Benchmarks should represent tasks that developers actually perform:
+
+* Use **real codebases** with typical complexity
+* Include **context and constraints** found in production
+* Require **multi-step reasoning** and planning
+* Test **tool usage** and command-line interaction
+
+=== Evaluation Robustness
+
+Prevent gaming and ensure fair evaluation:
+
+* Use **multiple repositories** for each task type
+* Include **negative cases** that should fail
+* Test **edge cases** and error conditions
+* Rotate **repository versions** to prevent memorization
+
+=== Scalability
+
+Design for efficient execution and maintenance:
+
+* Support **parallel execution** of multiple benchmarks
+* Enable **batch processing** for large benchmark suites
+* Provide **filtering and tagging** for selective execution
+* Include **cleanup and isolation** to prevent interference
+
+== Next Steps
+
+* xref:benchmarks/running-benchmarks.adoc[Running Benchmarks] - Execute existing benchmarks
+* xref:benchmarks/writing-benchmarks.adoc[Writing Benchmarks] - Create custom benchmarks
+* xref:agents/claude-code.adoc[Agent Integration] - Set up AI agents for benchmarking

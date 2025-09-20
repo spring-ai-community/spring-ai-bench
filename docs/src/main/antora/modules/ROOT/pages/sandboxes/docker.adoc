@@ -1,0 +1,25 @@
+= Docker Sandbox
+:page-title: Docker Sandbox
+:toc: left
+:tabsize: 2
+:sectnums:
+
+Container-based isolation for secure agent execution.
+
+== Overview
+
+The Docker Sandbox provides container-based isolation for enhanced security.
+
+_This page is under development._
+
+== Coming Soon
+
+* Docker setup requirements
+* Container configuration
+* Security benefits
+* Performance considerations
+
+== Next Steps
+
+* xref:sandboxes/local.adoc[Local Sandbox] - Process-based execution
+* xref:sandboxes/cloud.adoc[Cloud Sandbox] - Distributed execution

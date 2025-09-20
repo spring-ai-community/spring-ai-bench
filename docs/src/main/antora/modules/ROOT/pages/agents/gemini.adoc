@@ -1,0 +1,25 @@
+= Gemini Agent
+:page-title: Gemini Agent
+:toc: left
+:tabsize: 2
+:sectnums:
+
+Google Gemini CLI agent integration for Spring AI Bench.
+
+== Overview
+
+The Gemini agent provides integration with Google's Gemini models through the CLI interface.
+
+_This page is under development._
+
+== Coming Soon
+
+* Gemini CLI setup instructions
+* Configuration options
+* Usage examples
+* Best practices
+
+== Next Steps
+
+* xref:agents/claude-code.adoc[Claude Code Agent] - Alternative agent option
+* xref:agents/custom-agents.adoc[Custom Agents] - Build your own integration

@@ -1,0 +1,25 @@
+= Writing Benchmarks
+:page-title: Writing Benchmarks
+:toc: left
+:tabsize: 2
+:sectnums:
+
+Learn how to create custom benchmarks for your specific use cases.
+
+== Overview
+
+This section will cover how to write custom benchmarks for Spring AI Bench.
+
+_This page is under development._
+
+== Coming Soon
+
+* Benchmark specification format
+* YAML configuration examples
+* Custom verification criteria
+* Repository setup guidelines
+
+== Next Steps
+
+* xref:benchmarks/overview.adoc[Benchmark Overview] - Learn benchmark concepts
+* xref:benchmarks/running-benchmarks.adoc[Running Benchmarks] - Execute existing benchmarks

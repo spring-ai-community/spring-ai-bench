@@ -1,0 +1,25 @@
+= Local Sandbox
+:page-title: Local Sandbox
+:toc: left
+:tabsize: 2
+:sectnums:
+
+Process-based execution in the local environment.
+
+== Overview
+
+The Local Sandbox provides process-based isolation for agent execution.
+
+_This page is under development._
+
+== Coming Soon
+
+* Local sandbox configuration
+* Security considerations
+* Performance characteristics
+* Troubleshooting
+
+== Next Steps
+
+* xref:sandboxes/docker.adoc[Docker Sandbox] - Container-based isolation
+* xref:architecture.adoc[Architecture] - System overview

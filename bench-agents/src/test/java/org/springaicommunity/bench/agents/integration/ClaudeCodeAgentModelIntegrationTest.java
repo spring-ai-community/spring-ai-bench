@@ -60,7 +60,7 @@ class ClaudeCodeAgentModelIntegrationTest {
 		options.setYolo(true); // Skip permissions for testing
 
 		ClaudeCodeAgentModel agentModel = new ClaudeCodeAgentModel(client, options,
-				new org.springaicommunity.agents.model.sandbox.LocalSandbox());
+				new org.springaicommunity.agents.model.sandbox.LocalSandbox(tempWorkspace));
 		assumeTrue(agentModel.isAvailable(), "ClaudeCodeAgentModel not available");
 
 		agentRunner = new ClaudeCodeAgentRunner(agentModel, new HelloWorldVerifier());

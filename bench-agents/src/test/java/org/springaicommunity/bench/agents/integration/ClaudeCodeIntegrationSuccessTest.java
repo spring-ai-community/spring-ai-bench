@@ -69,7 +69,7 @@ class ClaudeCodeIntegrationSuccessTest {
 				.build(), tempWorkspace);
 
 		agentModel = new ClaudeCodeAgentModel(client, options,
-				new org.springaicommunity.agents.model.sandbox.LocalSandbox());
+				new org.springaicommunity.agents.model.sandbox.LocalSandbox(tempWorkspace));
 		assumeTrue(agentModel.isAvailable(), "ClaudeCodeAgentModel not available");
 	}
 

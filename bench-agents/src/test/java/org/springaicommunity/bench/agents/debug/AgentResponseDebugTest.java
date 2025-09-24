@@ -53,7 +53,8 @@ class AgentResponseDebugTest {
 				.permissionMode(org.springaicommunity.agents.claudecode.sdk.config.PermissionMode.BYPASS_PERMISSIONS)
 				.build(), tempWorkspace);
 
-		agentModel = new ClaudeCodeAgentModel(client, options);
+		agentModel = new ClaudeCodeAgentModel(client, options,
+				new org.springaicommunity.agents.model.sandbox.LocalSandbox());
 		assumeTrue(agentModel.isAvailable(), "ClaudeCodeAgentModel not available");
 	}
 

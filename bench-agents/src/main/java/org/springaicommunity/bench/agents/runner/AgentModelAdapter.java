@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import org.springaicommunity.agents.claudecode.ClaudeCodeAgentModel;
-import org.springaicommunity.agents.claudecode.sdk.exceptions.ClaudeSDKException;
 import org.springaicommunity.agents.gemini.GeminiAgentModel;
 import org.springaicommunity.agents.gemini.GeminiAgentOptions;
 import org.springaicommunity.agents.model.*;
@@ -179,7 +178,7 @@ public class AgentModelAdapter implements AgentRunner {
 			try {
 				return ClaudeCodeAgentModel.createWithWorkspaceSetup(workspace, timeout);
 			}
-			catch (IOException | ClaudeSDKException | RuntimeException e) {
+			catch (RuntimeException e) {
 				logger.log("AGENT", "Failed to create workspace-specific model, using original: " + e.getMessage());
 				return model; // Fall back to original model
 			}

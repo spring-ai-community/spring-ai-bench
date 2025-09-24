@@ -58,7 +58,8 @@ class ClaudeCodeHtmlReportTest {
 				.permissionMode(org.springaicommunity.agents.claudecode.sdk.config.PermissionMode.BYPASS_PERMISSIONS)
 				.build(), tempWorkspace);
 
-		ClaudeCodeAgentModel agentModel = new ClaudeCodeAgentModel(client, options);
+		ClaudeCodeAgentModel agentModel = new ClaudeCodeAgentModel(client, options,
+				new org.springaicommunity.agents.model.sandbox.LocalSandbox());
 		assumeTrue(agentModel.isAvailable(), "ClaudeCodeAgentModel not available");
 
 		agentRunner = new ClaudeCodeAgentRunner(agentModel, new HelloWorldVerifier());

@@ -64,7 +64,8 @@ class GeminiIntegrationTest {
 		// Create Gemini CLI with debug options and yolo mode
 		CLIOptions cliOptions = CLIOptions.builder().debug(true).yoloMode(true).build();
 		GeminiClient client = GeminiClient.create(cliOptions, tempWorkspace);
-		GeminiAgentModel agentModel = new GeminiAgentModel(client, options);
+		GeminiAgentModel agentModel = new GeminiAgentModel(client, options,
+				new org.springaicommunity.agents.model.sandbox.LocalSandbox());
 
 		assumeTrue(agentModel.isAvailable(), "GeminiAgentModel not available");
 

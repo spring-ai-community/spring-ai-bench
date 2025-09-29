@@ -197,7 +197,7 @@ Spring AI Bench is built around a **Sandbox abstraction** that provides isolated
 Key components:
 - `BenchHarness`: End-to-end benchmark execution
 - `AgentRunner`: Agent execution interface with Spring AI Agents integration
-- `SuccessVerifier`: Validation of benchmark results
+- `SuccessVerifier`: Validation of benchmark results *(temporary implementation - will evolve into judge concept in spring-ai-agents)*
 - `ReportGenerator`: HTML and JSON report generation
 
 For detailed architecture information, see [Architecture Documentation](https://spring-ai-community.github.io/spring-ai-bench/architecture.html).

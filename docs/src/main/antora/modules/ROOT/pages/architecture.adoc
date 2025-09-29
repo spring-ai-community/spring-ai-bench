@@ -135,7 +135,7 @@ This ensures benchmark success guarantees good end-user experience by testing th
 * `AgentRunner` - Agent execution interface
 * `HelloWorldAgentRunner` - Deterministic implementation
 * `HelloWorldAIAgentRunner` - AI-powered implementation
-* `SuccessVerifier` - Validation of benchmark results
+* `SuccessVerifier` - Validation of benchmark results *(temporary implementation - evolving into judge concept in spring-ai-agents)*
 
 === Repository & Workspace Management
 

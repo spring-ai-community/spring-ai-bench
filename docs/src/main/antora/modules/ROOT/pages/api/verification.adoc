@@ -10,6 +10,8 @@ Success criteria and result verification for benchmarks.
 
 The verification system determines whether agent execution was successful.
 
+NOTE: The current verification implementation is temporary and will evolve into a comprehensive **judge concept** in the https://github.com/spring-ai-community/spring-ai-agents[Spring AI Agents] framework. This migration will provide more sophisticated result validation capabilities beyond simple command execution.
+
 _This page is under development._
 
 == Coming Soon

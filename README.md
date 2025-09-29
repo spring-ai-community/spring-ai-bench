@@ -1,5 +1,12 @@
 # Spring AI Bench
 
+<!-- [![Build Status](https://github.com/spring-ai-community/spring-ai-bench/workflows/CI/badge.svg)](https://github.com/spring-ai-community/spring-ai-bench/actions) -->
+<!-- [![Maven Central](https://img.shields.io/maven-central/v/org.springaicommunity.bench/spring-ai-bench-parent.svg)](https://search.maven.org/search?q=g:org.springaicommunity.bench) -->
+
+**Maven Snapshot Artifacts Coming Soon**
+
+📖 **[Documentation](https://spring-ai-community.github.io/spring-ai-bench/)** | [Getting Started](https://spring-ai-community.github.io/spring-ai-bench/getting-started.html) | [Benchmarks](https://spring-ai-community.github.io/spring-ai-bench/benchmarks/overview.html)
+
 ## Motivation
 
 After spending hundreds of hours working with popular AI tools for software development, I've been extremely impressed by their capabilities. This is a transformative technology that continues to improve at a rapid pace.

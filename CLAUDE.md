@@ -57,8 +57,12 @@ Configuration merging precedence: Case → Run YAML → CLI overrides
 # Run hello-world benchmark via Maven exec plugin
 ./mvnw exec:java -pl bench-core -Dexec.args="run --run-file runs/examples/hello-world-run.yaml"
 
-# Generate static site from benchmark results
-jbang jbang/site.java
+# Generate static site from benchmark results (JBang - much simpler!)
+jbang jbang/site.java --reportsDir /tmp/bench-reports --siteDir /tmp/bench-site
+
+# Alternative: Maven exec (more verbose)
+./mvnw exec:java -pl bench-site -Dexec.mainClass="org.springaicommunity.bench.site.SiteMain" \
+  -Dexec.args="--reportsDir /tmp/bench-reports --siteDir /tmp/bench-site"
 ```
 
 ### Agent Integration Testing
@@ -71,11 +75,54 @@ export ANTHROPIC_API_KEY=your_key
 export GEMINI_API_KEY=your_key
 ./mvnw test -Pagents-live
 
+# Multi-agent comparison test (runs deterministic + AI agents)
+ANTHROPIC_API_KEY=your_key GEMINI_API_KEY=your_key \
+./mvnw test -Dtest=HelloWorldMultiAgentTest -pl bench-agents
+
 # Specific agent tests
 ./mvnw test -Dtest=ClaudeCodeIntegrationTest
 ./mvnw test -Dtest=GeminiIntegrationTest
 ./mvnw test -Dtest=HelloWorldIntegrationTest
+./mvnw test -Dtest=HelloWorldAIIntegrationTest -pl bench-agents
 ```
+
+### Viewing Benchmark Reports
+
+After running tests or benchmarks, reports are generated in multiple formats:
+
+#### HTML Reports (for browser viewing)
+```bash
+# Main benchmark reports index
+file:///tmp/bench-reports/index.html
+
+# Generated benchmark site (after running site generator)
+file:///tmp/bench-site/index.html
+
+# Individual run reports (replace <run-id> with actual UUID)
+file:///tmp/bench-reports/<run-id>/index.html
+
+# Latest run in generated site
+file:///tmp/bench-site/runs/<run-id>/index.html
+```
+
+#### Site Generation Process
+```bash
+# 1. Run tests/benchmarks to generate reports in /tmp/bench-reports
+./mvnw test -Dtest=HelloWorldMultiAgentTest -pl bench-agents
+
+# 2. Generate comprehensive site from all reports (JBang - simple!)
+jbang jbang/site.java --reportsDir /tmp/bench-reports --siteDir /tmp/bench-site
+
+# 3. Open site in browser
+open file:///tmp/bench-site/index.html
+```
+
+#### Report Structure
+- **Individual Reports**: Each test run creates `/tmp/bench-reports/<uuid>/`
+  - `index.html` - Human-readable report with execution details
+  - `report.json` - Machine-readable benchmark data
+  - `run.log` - Detailed execution logs
+- **Site Reports**: Aggregated view of all runs with navigation
 
 ## Maven Module Dependencies
 

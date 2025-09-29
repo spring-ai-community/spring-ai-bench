@@ -75,6 +75,7 @@ cd spring-ai-bench
 - **`claude-code`** - Claude Code CLI integration with MCP tools ✅
 - **`gemini`** - Google Gemini CLI integration with yolo mode ✅
 - **`hello-world`** - Mock agent for testing infrastructure ✅
+- **`hello-world-ai`** - AI-powered hello world via spring-ai-agents JBang integration ✅
 
 ### 🎯 Benchmark Categories
 
@@ -95,6 +96,15 @@ cd spring-ai-bench
   - `GEMINI_API_KEY` - Gemini agent
 
 ### Building from Source
+
+> **⚠️ Dependency Notice**: To use the latest agent integrations, you must first build and install spring-ai-agents locally:
+> ```bash
+> # Build spring-ai-agents first
+> git clone https://github.com/spring-ai-community/spring-ai-agents.git
+> cd spring-ai-agents
+> ./mvnw clean install -DskipTests
+> cd ..
+> ```
 
 ```bash
 # Clone the repository
@@ -149,6 +159,12 @@ GEMINI_API_KEY=your_key ./mvnw test -Dtest=GeminiIntegrationTest
 
 # HelloWorld mock agent (no API key needed)
 ./mvnw test -Dtest=HelloWorldIntegrationTest
+
+# HelloWorld AI agent (requires spring-ai-agents built locally and API keys)
+./mvnw test -Dtest=HelloWorldAIIntegrationTest
+
+# Multi-agent comparison test (runs deterministic + Claude + Gemini agents)
+ANTHROPIC_API_KEY=your_key GEMINI_API_KEY=your_key ./mvnw test -Dtest=HelloWorldMultiAgentTest
 ```
 
 #### Test Profiles
@@ -171,6 +187,24 @@ GEMINI_API_KEY=your_key ./mvnw test -Dtest=GeminiIntegrationTest
 # Full verification including agent tests (requires API keys)
 ANTHROPIC_API_KEY=your_key GEMINI_API_KEY=your_key ./mvnw clean verify -Pagents-live
 ```
+
+### Benchmark Report Generation
+
+Spring AI Bench automatically generates comprehensive HTML reports for all test runs:
+
+```bash
+# Generate interactive site from all benchmark reports
+jbang jbang/site.java --reportsDir /tmp/bench-reports --siteDir /tmp/bench-site
+
+# View results in browser
+open file:///tmp/bench-site/index.html
+```
+
+#### Report Features
+- **Interactive Dashboard** - Browse all benchmark runs with filtering and navigation
+- **Individual Run Details** - Detailed execution logs, agent metadata, and verification results
+- **Performance Metrics** - Duration tracking, success rates, and comparative analysis
+- **Artifact Preservation** - All generated files and logs are preserved for analysis
 
 ## Configuration
 
@@ -219,12 +253,30 @@ Total: **174 tests** with 100% pass rate
 
 ## Key Features
 
+### Multi-Agent Benchmarking 🆕
+- ✅ **Comparative Testing** - Run deterministic vs AI-powered agents side-by-side
+- ✅ **Performance Metrics** - Precise timing and success rate tracking
+- ✅ **Provider Comparison** - Claude Code vs Gemini CLI vs deterministic execution
+- ✅ **JBang Integration** - End-to-end testing via spring-ai-agents JBang launcher
+
+#### Latest Benchmark Results
+Recent multi-agent testing shows clear performance characteristics:
+
+| Agent Type | Duration | Performance Ratio | Use Case |
+|-----------|----------|-------------------|----------|
+| **Deterministic** | 115 ms | 1x (baseline) | Simple, predictable tasks |
+| **Gemini AI** | 5.3 seconds | 46x slower | Balanced AI capability/speed |
+| **Claude AI** | 99 seconds | 862x slower | Complex reasoning tasks |
+
+*All agents successfully completed the hello-world file creation task with 100% accuracy.*
+
 ### Recent Implementation
 - ✅ **Claude Code Integration** - Full support with cost tracking and metadata
 - ✅ **Gemini Integration** - Complete yolo mode configuration for file operations
 - ✅ **Enhanced Reporting** - HTML reports with agent metadata and cost information
 - ✅ **Verification System** - Comprehensive file and content verification
 - ✅ **Maven Profiles** - Agent testing with proper environment variable configuration
+- ✅ **Multi-Agent Testing** - Comparative benchmarking between different agent types
 
 ### Architecture Improvements
 - ✅ **Migrated to zt-exec** - Replaced ProcessBuilder with robust zt-exec library

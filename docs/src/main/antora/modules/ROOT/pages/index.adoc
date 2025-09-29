@@ -85,6 +85,30 @@ cd spring-ai-bench
 - **`claude-code`** - Claude Code CLI integration with MCP tools ✅
 - **`gemini`** - Google Gemini CLI integration with yolo mode ✅
 - **`hello-world`** - Mock agent for testing infrastructure ✅
+- **`hello-world-ai`** - AI-powered hello world via spring-ai-agents JBang integration ✅
+
+== Multi-Agent Benchmarking
+
+Spring AI Bench supports comparative benchmarking between different agent implementations. The example below shows hello-world task execution across different approaches:
+
+[cols="1,1,1"]
+|===
+|Implementation |Duration |Performance Ratio
+
+|**hello-world (deterministic)**
+|115 ms
+|1x (baseline)
+
+|**hello-world-ai (Gemini provider)**
+|5.3 seconds
+|46x slower
+
+|**hello-world-ai (Claude provider)**
+|99 seconds
+|862x slower
+|===
+
+*All implementations successfully completed the hello-world file creation task with 100% accuracy.*
 
 == Benchmark Tracks
 

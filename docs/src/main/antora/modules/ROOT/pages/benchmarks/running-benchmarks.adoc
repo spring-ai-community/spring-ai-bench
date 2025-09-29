@@ -32,6 +32,24 @@ This guide covers how to execute benchmarks using Spring AI Bench.
 
 == Environment Setup
 
+=== Local Development Requirements
+
+For AI agent integration testing, you'll need to build and install spring-ai-agents locally:
+
+[source,bash]
+----
+# Build spring-ai-agents first
+git clone https://github.com/spring-ai-community/spring-ai-agents.git
+cd spring-ai-agents
+./mvnw clean install -DskipTests
+cd ..
+
+# Then build spring-ai-bench
+git clone https://github.com/spring-ai-community/spring-ai-bench.git
+cd spring-ai-bench
+./mvnw clean install
+----
+
 === API Keys
 
 For live agent testing, configure your environment:
@@ -92,6 +110,12 @@ gcloud auth application-default login
 
 # HelloWorld (mock agent)
 ./mvnw test -Dtest=HelloWorldIntegrationTest
+
+# HelloWorld AI agent (requires spring-ai-agents built locally)
+./mvnw test -Dtest=HelloWorldAIIntegrationTest
+
+# Multi-agent comparison (deterministic + Claude + Gemini)
+ANTHROPIC_API_KEY=your_key GEMINI_API_KEY=your_key ./mvnw test -Dtest=HelloWorldMultiAgentTest
 ----
 
 === By Profile
@@ -153,6 +177,26 @@ bench-reports/
     ├── report.json       # Machine-readable metadata
     └── workspace/        # Final workspace state
 ----
+
+=== Interactive Dashboard
+
+Generate a comprehensive dashboard from all benchmark reports:
+
+[source,bash]
+----
+# Generate interactive site from all benchmark reports
+jbang jbang/site.java --reportsDir /tmp/bench-reports --siteDir /tmp/bench-site
+
+# View results in browser
+open file:///tmp/bench-site/index.html
+----
+
+The dashboard provides:
+
+* **Run Overview** - Table of all benchmark executions with status and timing
+* **Agent Comparison** - Side-by-side performance comparison across agents
+* **Detailed Reports** - Click-through to individual run details
+* **Performance Metrics** - Duration tracking and success rates
 
 === JSON Metadata
 

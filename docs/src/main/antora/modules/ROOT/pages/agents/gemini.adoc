@@ -8,18 +8,204 @@ Google Gemini CLI agent integration for Spring AI Bench.
 
 == Overview
 
-The Gemini agent provides integration with Google's Gemini models through the CLI interface.
+The Gemini agent provides integration with Google's Gemini models through the Spring AI Agents framework.
 
-_This page is under development._
+* **AI-Powered** - Uses Google's Gemini models for task execution
+* **JBang Integration** - Seamless execution via JBang launcher
+* **Provider Selection** - Can be used as a provider for `hello-world-ai` agent
+* **Autonomous Operation** - Executes tasks without manual intervention
 
-== Coming Soon
+== Prerequisites
 
-* Gemini CLI setup instructions
-* Configuration options
-* Usage examples
-* Best practices
+=== API Key Setup
+
+[source,bash]
+----
+# Set your Google Gemini API key
+export GEMINI_API_KEY=your-gemini-api-key
+
+# Verify key is set
+echo $GEMINI_API_KEY
+----
+
+=== Agent Availability
+
+The Gemini agent is integrated through the Spring AI Agents framework:
+
+[source,bash]
+----
+# Verify spring-ai-agents is built locally
+ls -la /home/mark/community/spring-ai-agents/jbang/launcher.java
+----
+
+== Configuration
+
+=== Basic Agent Specification
+
+[source,yaml]
+----
+agent:
+  kind: gemini
+  model: gemini-2.0-flash-exp
+  autoApprove: true
+  prompt: |
+    Create a Java class that implements a simple calculator.
+    Include basic arithmetic operations and unit tests.
+----
+
+=== Advanced Configuration
+
+[source,yaml]
+----
+agent:
+  kind: gemini
+  model: gemini-2.0-flash-exp
+  autoApprove: true
+  genParams:
+    temperature: 0.7
+    max_tokens: 2048
+  extras:
+    yolo: true          # Enable autonomous mode
+    provider: gemini    # Specify provider explicitly
+  prompt: |
+    This Spring Boot application needs refactoring.
+
+    Tasks:
+    1. Improve code structure and organization
+    2. Add proper error handling
+    3. Include comprehensive tests
+    4. Follow Spring Boot best practices
+----
+
+== Features
+
+=== Task Execution
+
+The Gemini provider handles various development tasks:
+
+* **File Operations** - Create and modify files as needed
+* **Code Generation** - Generate code based on natural language prompts
+* **Task Automation** - Execute multi-step workflows autonomously
+
+=== Framework Integration
+
+* **Spring AI Agents** - Uses the unified agent framework
+* **JBang Launcher** - Executes via JBang command-line interface
+* **Provider Model** - Works as a pluggable provider implementation
+
+== Integration with Spring AI Bench
+
+=== Performance Comparison
+
+Recent benchmark results for hello-world task across different implementations:
+
+[cols="1,1,1"]
+|===
+|Implementation |Duration |Performance Ratio
+
+|hello-world (deterministic)
+|115 ms
+|1x (baseline)
+
+|**hello-world-ai (Gemini provider)**
+|**5.3 seconds**
+|**46x slower**
+
+|hello-world-ai (Claude provider)
+|99 seconds
+|862x slower
+|===
+
+=== Multi-Agent Testing
+
+Run comparative benchmarks:
+
+[source,bash]
+----
+# Single Gemini test
+GEMINI_API_KEY=your_key ./mvnw test -Dtest=HelloWorldAIIntegrationTest
+
+# Multi-agent comparison
+ANTHROPIC_API_KEY=your_claude_key GEMINI_API_KEY=your_gemini_key \
+  ./mvnw test -Dtest=HelloWorldMultiAgentTest
+----
+
+== Best Practices
+
+=== Prompt Design
+
+Effective prompts for Gemini:
+
+[source,yaml]
+----
+# Good prompt - clear and specific
+prompt: |
+  Create a REST controller for user management.
+
+  Requirements:
+  - CRUD operations for User entity
+  - Input validation with Bean Validation
+  - Proper HTTP status codes
+  - Exception handling with @ControllerAdvice
+
+  Use Spring Boot 3.x conventions.
+----
+
+[source,yaml]
+----
+# Avoid - too vague
+prompt: "Make a user controller"
+----
+
+=== Configuration Tips
+
+* **Temperature Settings** - Adjust temperature for different task types
+* **Token Limits** - Set appropriate max_tokens based on expected output
+* **Model Selection** - Use `gemini-2.0-flash-exp` for current integration
+* **Provider Parameter** - Specify `provider: gemini` in agent configuration
+
+== Troubleshooting
+
+=== Common Issues
+
+==== API Key Problems
+
+[source,bash]
+----
+# Check API key configuration
+echo $GEMINI_API_KEY
+
+# Test key validity (if you have gcloud CLI)
+gcloud auth application-default print-access-token
+----
+
+==== Integration Issues
+
+[source,bash]
+----
+# Verify spring-ai-agents installation
+jbang --version
+ls -la /home/mark/community/spring-ai-agents/jbang/launcher.java
+
+# Test JBang launcher
+jbang /home/mark/community/spring-ai-agents/jbang/launcher.java hello-world-agent-ai --help
+----
+
+=== Debug Mode
+
+Enable detailed logging:
+
+[source,bash]
+----
+# Run with verbose output
+./mvnw test -Dtest=HelloWorldAIIntegrationTest -X
+
+# Check specific Gemini logs
+grep -i gemini /tmp/bench-reports/{run-id}/run.log
+----
 
 == Next Steps
 
 * xref:agents/claude-code.adoc[Claude Code Agent] - Alternative agent option
 * xref:agents/custom-agents.adoc[Custom Agents] - Build your own integration
+* xref:benchmarks/running-benchmarks.adoc[Running Benchmarks] - Execute Gemini benchmarks

@@ -101,7 +101,7 @@ tags:
 
 ==== Agent Configuration
 
-* **Kind** - Agent type (`claude-code`, `gemini`, `hello-world`)
+* **Kind** - Agent type (`claude-code`, `gemini`, `hello-world`, `hello-world-ai`)
 * **Model** - Specific model version to use
 * **Prompt** - Natural language task description
 * **Auto-approve** - Whether to bypass human confirmation prompts
@@ -156,6 +156,38 @@ Design for efficient execution and maintenance:
 * Enable **batch processing** for large benchmark suites
 * Provide **filtering and tagging** for selective execution
 * Include **cleanup and isolation** to prevent interference
+
+== Multi-Agent Benchmarking
+
+Spring AI Bench supports comparative testing between different agent types, enabling performance analysis across deterministic and AI-powered agents.
+
+=== Comparative Testing
+
+Multi-agent benchmarks run the same task across different implementations:
+
+* **Deterministic Implementation** - `hello-world` agent provides fast, predictable baseline
+* **AI-Powered Implementation** - `hello-world-ai` agent uses spring-ai-agents framework
+  - Claude provider for complex reasoning tasks
+  - Gemini provider for balanced speed/capability
+* **Direct CLI Agents** - `claude-code` and `gemini` for direct integration
+
+=== Performance Metrics
+
+Key metrics for multi-agent comparison:
+
+* **Execution Time** - Duration from start to completion
+* **Success Rate** - Percentage of successful task completions
+* **Performance Ratio** - Relative speed compared to baseline
+* **Accuracy** - Quality and correctness of output
+
+=== Integration with Spring AI Agents
+
+The `hello-world-ai` agent type provides end-to-end integration with the Spring AI Agents framework:
+
+* **JBang Launcher** - Seamless execution via JBang command-line tool
+* **Provider Selection** - Choose between Claude, Gemini, or other AI providers
+* **Local Testing** - Full integration testing without external dependencies
+* **Report Generation** - Comprehensive HTML reports with agent metadata
 
 == Next Steps
 

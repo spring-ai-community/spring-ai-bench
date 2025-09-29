@@ -97,21 +97,33 @@ Spring AI Bench supports comparative benchmarking between different agent implem
 
 *All implementations successfully completed the hello-world file creation task with 100% accuracy.*
 
-### Benchmark Tracks
+### Benchmark Tracks: The Full Vision
 
-#### Available Now
-- ✅ **hello-world**: File creation and basic infrastructure validation
+Spring AI Bench is designed to support tracks that map directly to **real enterprise developer workflows** - this is what makes it different from existing benchmarks that focus only on narrow bug-fixing loops.
 
-#### Coming Soon
-Spring AI Bench is designed to support tracks that map directly to **real enterprise developer workflows**:
+#### ✅ Available Now
+- **hello-world**: File creation and basic infrastructure validation
 
-- 🚧 **Test Coverage Uplift**: Generate tests to meet coverage thresholds
-- 🚧 **Issue Analysis & Labeling**: Automated issue triage and classification
-- 🚧 **Pull Request Review**: Comprehensive PR analysis and feedback
-- 🚧 **Integration Testing**: Validate system integration points
-- 🚧 **Bug Fixing**: Resolve issues while maintaining build health
-- 🚧 **Dependency Upgrades**: Manage and validate dependency updates
-- 🚧 **Static Analysis Remediation**: Fix checkstyle and code quality issues
+#### 🚧 In Active Development
+These tracks represent the core enterprise Java workflows that current benchmarks ignore:
+
+- **Test Coverage Uplift**: Generate tests to achieve specific coverage thresholds while keeping builds green
+- **Issue Analysis & Labeling**: Automated issue triage and classification using domain-specific labels
+- **Pull Request Review**: Comprehensive PR analysis with structured reports, risk assessment, and policy compliance
+- **Static Analysis Remediation**: Fix checkstyle violations and code quality issues while preserving functionality
+
+#### 📋 Future Roadmap
+The complete enterprise development lifecycle:
+
+- **Integration Testing**: Validate system integration points and service boundaries
+- **Bug Fixing**: Resolve real issues while maintaining build health and test coverage
+- **Dependency Upgrades**: Manage Maven dependency updates with compatibility validation
+- **API Migration**: Update code to use newer API versions with deprecation handling
+- **Compliance Validation**: Ensure code meets enterprise security and governance standards
+- **Performance Optimization**: Identify and resolve performance bottlenecks
+- **Documentation Generation**: Auto-generate and maintain technical documentation
+
+**This is the vision that sets Spring AI Bench apart** - measuring AI agents on the full spectrum of enterprise Java development, not just isolated bug fixes.
 
 ## Quick Start
 

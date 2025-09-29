@@ -16,9 +16,20 @@ Effective benchmarks for AI developer agents should:
 * **Avoid Overfitting** - Resist gaming through memorization
 * **Enable Custom Evaluation** - Work on your own codebases
 
-== Benchmark Categories
+== Current Implementation Status
 
-=== Coding Tasks
+=== ✅ Available Now
+
+**hello-world Track**: Infrastructure validation and basic agent testing
+* File creation and basic I/O operations
+* Multi-agent comparison (deterministic vs AI-powered)
+* Foundation for future track development
+
+=== 🚧 Planned Benchmark Categories
+
+These represent the enterprise Java workflows that will differentiate Spring AI Bench from Python-focused benchmarks:
+
+==== Coding Tasks
 
 Software development activities that agents should be able to perform:
 
@@ -27,7 +38,7 @@ Software development activities that agents should be able to perform:
 * **Refactoring** - Improve code structure while preserving behavior
 * **API Migration** - Update code to use newer APIs or frameworks
 
-=== Project Management
+==== Project Management
 
 Higher-level tasks that demonstrate planning and coordination:
 
@@ -36,7 +47,7 @@ Higher-level tasks that demonstrate planning and coordination:
 * **Test Coverage** - Identify and write tests for uncovered code
 * **Documentation** - Generate or update technical documentation
 
-=== Version Upgrade
+==== Version Upgrade
 
 Complex tasks involving dependency and framework management:
 
@@ -53,42 +64,27 @@ Each benchmark is defined by a YAML file:
 
 [source,yaml]
 ----
-# Benchmark metadata
-id: calculator-sqrt-bug
-name: Calculator Square Root Bug Fix
+# hello-world.yaml - Current working example
+id: hello-world
 category: coding
-difficulty: intermediate
+version: 0.5
 
-# Repository specification
 repo:
-  owner: rd-1-2022
-  name: simple-calculator
-  ref: 93da3b1847ed67f3bc7d8a84e1e6afd737f1a555
+  owner: example-org
+  name: example-repo
+  ref: main
 
-# Agent configuration
 agent:
-  kind: claude-code
-  model: claude-3-5-sonnet
+  kind: hello-world-ai
+  provider: claude
   autoApprove: true
   prompt: |
-    This Java project has a failing test for square root calculation.
-    The test expects an exception for negative inputs, but the code
-    doesn't handle this case. Fix the implementation and ensure all
-    tests pass.
+    Create a hello world file with the specified content.
 
-# Success criteria
 success:
-  cmd: mvn test
-  expectExitCode: 0
-  timeout: 300
+  cmd: ls hello.txt
 
-# Additional metadata
 timeoutSec: 600
-tags:
-  - java
-  - junit
-  - math
-  - error-handling
 ----
 
 === Component Breakdown
@@ -101,8 +97,10 @@ tags:
 
 ==== Agent Configuration
 
-* **Kind** - Agent type (`claude-code`, `gemini`, `hello-world`, `hello-world-ai`)
-* **Model** - Specific model version to use
+* **Kind** - Agent type (currently: `hello-world`, `hello-world-ai`)
+  * `hello-world` - Deterministic mock agent for testing
+  * `hello-world-ai` - AI-powered agent via Spring AI Agents integration
+* **Provider** - AI provider for hello-world-ai (`claude`, `gemini`)
 * **Prompt** - Natural language task description
 * **Auto-approve** - Whether to bypass human confirmation prompts
 

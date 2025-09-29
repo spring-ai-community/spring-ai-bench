@@ -1,0 +1,8 @@
+{
+  "aliases": {
+    "bench-site": {
+      "script-ref": "jbang/site.java",
+      "description": "Build static site (index + latest run) from bench-reports/"
+    }
+  }
+}

@@ -85,6 +85,7 @@
 		<module>bench-core</module>
 		<module>bench-app</module>
 		<module>bench-agents</module>
+		<module>bench-site</module>
 		<module>docs</module>
 	</modules>
 

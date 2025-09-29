@@ -5,6 +5,7 @@
 ** xref:benchmarks/overview.adoc[Overview]
 ** xref:benchmarks/running-benchmarks.adoc[Running Benchmarks]
 ** xref:benchmarks/writing-benchmarks.adoc[Writing Benchmarks]
+** link:/benchmarks/[Benchmark Results,window=_blank]
 * Agent Integration
 ** xref:agents/claude-code.adoc[Claude Code]
 ** xref:agents/gemini.adoc[Gemini]

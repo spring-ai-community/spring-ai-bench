@@ -1,0 +1,32 @@
+# Run spec (per run); user may tweak values or pass flags to override
+schema: bench.run.v1
+
+case: hello-world                 # required: resolves to bench-tracks/.../cases/<case>.yaml
+runId: auto                       # "auto" → UUIDv4; or set a fixed ID for repro
+outDir: bench-reports             # output root dir
+
+agent:
+  # Abstraction: how to call the agent
+  type: jbang                     # "jbang" | "java" | "exec" (future-proof)
+  alias: hello-world              # JBang agent name (from spring-ai-agents)
+  args: []                        # extra args (rare for hello-world)
+
+inputs:
+  # Optional overrides to the case inputs (merged: run.inputs overrides case.inputs)
+  path: "workspace/hello.txt"
+  content: "Hello World!"
+
+verifier:
+  # Optional overrides to the case verifier (merged)
+  checks:
+    - type: exists
+      path: "workspace/hello.txt"
+    - type: equalsUtf8
+      path: "workspace/hello.txt"
+      expected: "Hello World!"
+
+environment:
+  # (Phase 0–2: not enforced; reserved for future)
+  workingDir: "."                 # repo root by default
+  # javaHome: ...
+  # env: { KEY: VALUE }

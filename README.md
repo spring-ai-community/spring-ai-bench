@@ -165,8 +165,8 @@ GEMINI_API_KEY=your_key ./mvnw test -Dtest=GeminiIntegrationTest
 # Verify everything builds and core tests pass
 ./mvnw clean verify
 
-# Quick smoke test
-./mvnw test -Dtest=BenchHarnessSmokeTest
+# Quick baseline test
+./mvnw test -Dtest=BenchHarnessTest
 
 # Full verification including agent tests (requires API keys)
 ANTHROPIC_API_KEY=your_key GEMINI_API_KEY=your_key ./mvnw clean verify -Pagents-live
@@ -213,7 +213,7 @@ Spring AI Bench uses a comprehensive testing approach:
 - **Unit Tests** - Individual component testing (90 tests)
 - **Integration Tests** - Real process execution validation (17 tests)
 - **E2E Tests** - Complete benchmark workflow testing (2 tests)
-- **Smoke Tests** - Basic functionality validation (1 test)
+- **Baseline Tests** - Basic functionality validation (1 test)
 
 Total: **174 tests** with 100% pass rate
 

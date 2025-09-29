@@ -72,5 +72,17 @@
         </plugin>
       </plugins>
     </pluginManagement>
+
+    <plugins>
+      <!-- Maven exec plugin for running our CLI -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.1.0</version>
+        <configuration>
+          <mainClass>org.springaicommunity.bench.core.cli.BenchMain</mainClass>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 </project>

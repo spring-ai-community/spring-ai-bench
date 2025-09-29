@@ -35,5 +35,7 @@ build/
 ### Plans Directory ###
 plans/
 
-### Bench Reports ###
+### Bench Reports and Site ###
+bench-reports/
+site/
 target/bench-reports/

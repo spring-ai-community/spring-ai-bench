@@ -151,8 +151,8 @@ AgentSpec spec = AgentSpec.builder()
 # Verify everything builds and core tests pass
 ./mvnw clean verify
 
-# Quick smoke test
-./mvnw test -Dtest=BenchHarnessSmokeTest
+# Quick benchmark test
+./mvnw test -Dtest=BenchHarnessTest
 
 # Full verification including agent tests (requires API keys)
 ANTHROPIC_API_KEY=your_key GEMINI_API_KEY=your_key ./mvnw clean verify -Pagents-live

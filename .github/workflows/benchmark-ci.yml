@@ -1,0 +1,172 @@
+name: Benchmark CI
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '.github/**'
+      - 'docs/**'
+      - '*.md'
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - '.github/**'
+      - 'docs/**'
+      - '*.md'
+  workflow_dispatch:
+
+jobs:
+  benchmark-and-deploy:
+    name: Run Benchmarks & Deploy Results
+    runs-on: ubuntu-latest
+    if: ${{ github.repository_owner == 'spring-ai-community' }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: "pages"
+      cancel-in-progress: false
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install JBang
+        run: |
+          curl -Ls https://sh.jbang.dev | bash -s - app setup
+          echo "$HOME/.jbang/bin" >> $GITHUB_PATH
+
+      - name: Verify JBang installation
+        run: |
+          echo "=== Verifying JBang installation ==="
+          if command -v jbang >/dev/null 2>&1; then
+            echo "✅ JBang verified: $(jbang version)"
+          else
+            echo "❌ JBang not found in PATH"
+            echo "PATH: $PATH"
+            exit 1
+          fi
+
+      - name: Install Claude Code CLI
+        run: |
+          # Install Claude Code CLI from npm globally
+          npm install -g @anthropic-ai/claude-code --silent
+          echo "✅ Claude Code CLI installed via npm"
+
+      - name: Install Gemini CLI
+        run: |
+          # Install official Gemini CLI from npm
+          npm install -g @google/gemini-cli --silent
+          echo "✅ Gemini CLI installed via npm"
+
+      - name: Verify CLI installations
+        run: |
+          echo "=== Verifying CLI installations ==="
+          if command -v claude >/dev/null 2>&1; then
+            echo "✅ Claude CLI verified: $(claude --version 2>&1)"
+          else
+            echo "❌ Claude CLI not found in PATH"
+            echo "PATH: $PATH"
+            ls -la /usr/local/bin/ | grep claude || echo "No claude in /usr/local/bin/"
+            exit 1
+          fi
+          if command -v gemini >/dev/null 2>&1; then
+            echo "✅ Gemini CLI verified: $(gemini --version 2>&1)"
+          else
+            echo "❌ Gemini CLI not found in PATH"
+            echo "PATH: $PATH"
+            ls -la /usr/local/bin/ | grep gemini || echo "No gemini in /usr/local/bin/"
+            exit 1
+          fi
+
+      - name: Build project
+        run: |
+          echo "Building spring-ai-bench project..."
+          ./mvnw --batch-mode --quiet clean install -DskipTests
+
+      - name: Run benchmarks
+        run: |
+          echo "Running hello-world benchmark..."
+          ./mvnw exec:java -pl bench-core -Dexec.args="run --run-file runs/examples/hello-world-run.yaml"
+
+          # Verify benchmark results
+          if [ -d "bench-reports" ] && [ "$(ls bench-reports/ | wc -l)" -gt 0 ]; then
+            echo "✅ Benchmark completed - found $(ls bench-reports/ | wc -l) run(s)"
+            ls -la bench-reports/
+          else
+            echo "❌ Benchmark failed - no reports generated"
+            exit 1
+          fi
+
+      - name: Upload benchmark reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-reports
+          path: bench-reports/
+          retention-days: 7
+
+      - name: Generate static site
+        run: |
+          echo "Generating static site..."
+          jbang jbang/site.java
+
+          # Verify site generation
+          if [ -f "site/index.html" ] && [ -f "site/runs.json" ]; then
+            echo "✅ Static site generated successfully"
+            ls -la site/
+          else
+            echo "❌ Static site generation failed"
+            exit 1
+          fi
+
+      - name: Build documentation
+        if: github.ref == 'refs/heads/main'
+        run: ./mvnw clean antora:antora -pl docs --quiet --batch-mode
+        env:
+          NPM_CONFIG_LOGLEVEL: error
+          NPM_CONFIG_PROGRESS: false
+
+      - name: Integrate benchmark results with documentation
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "Integrating benchmark results with documentation..."
+
+          # Create benchmarks subdirectory in docs output
+          mkdir -p docs/target/antora/site/benchmarks
+
+          # Copy benchmark site to docs output
+          cp -r site/* docs/target/antora/site/benchmarks/
+
+          # Verify integration
+          echo "✅ Benchmark results integrated at /benchmarks path"
+          ls -la docs/target/antora/site/benchmarks/
+
+      - name: Setup Pages
+        if: github.ref == 'refs/heads/main'
+        uses: actions/configure-pages@v4
+
+      - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./docs/target/antora/site
+
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        id: deployment
+        uses: actions/deploy-pages@v4

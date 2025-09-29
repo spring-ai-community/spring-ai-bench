@@ -24,7 +24,7 @@ import org.springaicommunity.agents.model.*;
 /**
  * Deterministic "Hello World" agent model for testing the integration between Spring AI
  * Bench and Spring AI Agents. This agent always creates a hello.txt file with "Hello
- * World!" content, providing predictable behavior for smoke tests.
+ * World!" content, providing predictable behavior for baseline tests.
  */
 public class HelloWorldAgentModel implements AgentModel {
 

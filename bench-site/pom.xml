@@ -8,41 +8,33 @@
     <version>0.1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>bench-app</artifactId>
+  <artifactId>bench-site</artifactId>
   <packaging>jar</packaging>
 
   <dependencies>
+    <!-- JSON processing -->
     <dependency>
-      <groupId>org.springaicommunity</groupId>
-      <artifactId>bench-core</artifactId>
-      <version>${project.version}</version>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
     </dependency>
 
-    <!-- Spring Shell -->
+    <!-- Tests -->
     <dependency>
-      <groupId>org.springframework.shell</groupId>
-      <artifactId>spring-shell-starter</artifactId>
-      <version>3.3.0</version>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-        <version>3.5.3</version>
-      </plugin>
-
-      <!-- Maven exec plugin for running our CLI -->
+      <!-- Maven exec plugin for running site generator -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <version>3.1.0</version>
         <configuration>
-          <mainClass>org.springaicommunity.bench.core.cli.BenchMain</mainClass>
-          <includeProjectDependencies>true</includeProjectDependencies>
-          <includePluginDependencies>false</includePluginDependencies>
+          <mainClass>org.springaicommunity.bench.site.SiteMain</mainClass>
         </configuration>
       </plugin>
     </plugins>

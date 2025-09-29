@@ -1,0 +1,14 @@
+# Case spec (static, versioned with the track)
+schema: bench.case.v1
+id: hello-world
+description: "Writes hello.txt with exact content 'Hello World!'"
+inputs:
+  path: "workspace/hello.txt"
+  content: "Hello World!"
+verifier:
+  checks:
+    - type: exists
+      path: "workspace/hello.txt"
+    - type: equalsUtf8
+      path: "workspace/hello.txt"
+      expected: "Hello World!"

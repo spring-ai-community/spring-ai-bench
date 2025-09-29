@@ -4,7 +4,7 @@
 :tabsize: 2
 :sectnums:
 
-Spring AI Bench is designed as a modular, extensible framework for benchmarking AI agents in Java environments.
+Spring AI Bench is a comprehensive execution framework for running AI agents in isolated environments with support for benchmarking, customization, and monitoring.
 
 == System Overview
 
@@ -18,236 +18,291 @@ Spring AI Bench is designed as a modular, extensible framework for benchmarking 
 │ • Execution     │ • Agent Runners   │ • CLI Interface          │
 │ • Sandboxes     │ • Integration     │ • Report Viewing         │
 │ • Verification  │ • Auto-Config     │ • Batch Processing       │
-│ • Specs         │ • Adapters        │                          │
+│ • Specifications│ • Spring AI       │ • Site Generation        │
+│                 │   Agents          │                          │
 └─────────────────┴───────────────────┴──────────────────────────┘
-            │                 │                    │
-            │                 │                    │
-┌───────────▼─────────────────▼────────────────────▼──────────────┐
-│                    Spring AI Agents                             │
-│                                                                 │
-│  • ClaudeCodeAgentModel    • GeminiAgentModel                   │
-│  • CLI Discovery           • Provider SDKs                     │
-│  • Agent Client            • Spring Boot Integration           │
-└─────────────────────────────────────────────────────────────────┘
 ----
 
-== Core Components
+== Core Architecture
 
-=== bench-core Module
+=== Execution Framework
 
-The foundational module that provides the execution framework:
-
-==== Execution Engine
-* **`BenchHarness`** - Orchestrates the complete benchmark workflow
-* **`AgentRunner`** - Interface for agent execution
-* **`AgentResult`** - Standardized result format
-
-==== Sandbox System
-* **`LocalSandbox`** - Process-based execution in local environment
-* **`DockerSandbox`** - Container-based isolation
-* **`CloudSandbox`** - Distributed execution (future)
-
-==== Specification System
-* **`BenchCase`** - Complete benchmark specification
-* **`AgentSpec`** - Agent configuration and prompts
-* **`RepoSpec`** - Repository and checkout information
-* **`SuccessSpec`** - Success criteria definition
-
-==== Verification System
-* **`SuccessVerifier`** - Interface for result verification
-* **`VerificationContext`** - Runtime context for verification
-* **`VerificationResult`** - Detailed verification outcome
-
-=== bench-agents Module
-
-Integration layer that connects Spring AI Bench with agent implementations:
-
-==== Agent Runners
-* **`ClaudeCodeAgentRunner`** - Claude Code CLI integration
-* **`GeminiAgentRunner`** - Gemini CLI integration
-* **`AgentModelAdapter`** - Generic adapter for Spring AI Agent models
-
-==== Service Layer
-* **`WorkspaceService`** - Workspace lifecycle management
-* **`ReportService`** - Report generation and output
-* **`SimpleLogCapture`** - Structured logging system
-
-==== Configuration
-* **`AgentProviderConfig`** - Spring Boot auto-configuration
-* **Spring Profiles** - Environment-specific settings
-
-=== bench-app Module
-
-Command-line interface and standalone application:
-
-* **`Main`** - Application entry point
-* **CLI parsing** - Command-line argument processing
-* **Batch execution** - Multiple benchmark processing
-* **Report viewing** - HTML report browser integration
-
-== Execution Flow
+The system is built around a **Sandbox abstraction** that provides isolated execution environments:
 
 [source]
 ----
-1. Specification Loading
-   ├── YAML file parsing
-   ├── AgentSpec creation
-   └── Repository specification
-
-2. Workspace Setup
-   ├── Repository cloning
-   ├── Workspace isolation
-   └── Environment preparation
-
-3. Agent Execution
-   ├── Agent model configuration
-   ├── CLI process spawning
-   ├── Timeout management
-   └── Output capture
-
-4. Verification
-   ├── Success criteria evaluation
-   ├── File system verification
-   ├── Command execution
-   └── Result compilation
-
-5. Reporting
-   ├── HTML report generation
-   ├── JSON metadata export
-   └── Artifact archival
+Sandbox (interface)
+├── LocalSandbox - Process exec implementation
+├── DockerSandbox - TestContainers implementation
+└── [Future: CloudSandbox - Distributed execution]
 ----
 
-== Package Organization
+**Key Components:**
 
-=== bench-agents Package Structure
+* `ExecSpec` - Command specification with timeout, environment variables, MCP config
+* `ExecResult` - Execution results with exit codes, logs, duration
+* `TimeoutException` - Timeout handling for long-running processes
 
-After recent refactoring, the package structure follows cohesive organization:
+=== Execution Backends
 
-[source]
-----
-org.springaicommunity.bench.agents/
-├── runner/              # Agent runners, services, and configuration
-│   ├── AgentModelAdapter
-│   ├── ClaudeCodeAgentRunner
-│   ├── GeminiAgentRunner
-│   ├── AgentProviderConfig
-│   ├── WorkspaceService
-│   └── ReportService
-├── support/             # Utilities and shared support classes
-│   ├── CliUtils
-│   └── SimpleLogCapture
-├── report/              # HTML and JSON report generators
-│   ├── HtmlReportGenerator
-│   ├── JsonReportGenerator
-│   ├── MinimalHtmlReportGenerator
-│   ├── MinimalJsonReportGenerator
-│   └── IndexPageGenerator
-└── verifier/            # Success verification system
-    ├── SuccessVerifier
-    ├── VerificationContext
-    ├── VerificationResult
-    ├── Check
-    └── HelloWorldVerifier
-----
+==== Local Process Execution (`LocalSandbox`)
 
-=== Design Principles
+* **Purpose**: Execute commands in local processes within isolated directories
+* **Security**: Directory isolation only - commands execute with JVM privileges
+* **Features**:
+  ** Customizable working directories
+  ** Environment variable support
+  ** Timeout handling
+  ** MCP (Model Context Protocol) integration
+  ** Automatic cleanup of temporary directories
 
-* **Single Responsibility** - Each class has a focused purpose
-* **DRY Compliance** - Eliminated repeated patterns through service extraction
-* **Spring Best Practices** - Proper service layering and dependency injection
-* **Package Cohesion** - Related classes grouped logically
+==== Docker/TestContainers (`DockerSandbox`)
 
-== Extension Points
+* **Purpose**: Execute commands in Docker containers for strong isolation
+* **Features**:
+  ** Uses TestContainers library (v1.21.0)
+  ** Long-lived containers with "sleep infinity" pattern
+  ** Multiple command executions within same container environment
+  ** Automatic container lifecycle management
+  ** Working directory: `/work`
 
-=== Custom Agents
+==== Future: Distributed/Cloud Implementation
 
-Implement the `AgentRunner` interface:
+* Foundation laid with **Spring Cloud Deployer SPI** integration
+* Support for distributed task execution
+* Prepared for cloud-based distributed architecture
 
-[source,java]
-----
-public class CustomAgentRunner implements AgentRunner {
+=== Customization Framework
 
-    @Override
-    public AgentResult run(Path workspace, AgentSpec spec, Duration timeout)
-            throws Exception {
-        // Custom agent implementation
-        return new AgentResult(exitCode, logFile, duration);
-    }
-}
-----
+**ExecSpecCustomizer Pattern** allows runtime modification of execution specifications:
 
-=== Custom Verification
+* `ExecSpecCustomizer` (interface) - Base customization contract
+* `ClaudeCliCustomizer` - Specialized for Claude CLI integration
+  ** Automatically injects MCP tools via `--tools` flag
+  ** Transforms: `["claude-cli", "agent.py"]` → `["claude-cli", "agent.py", "--tools=brave,filesystem"]`
 
-Implement the `SuccessVerifier` interface:
+=== Agent Integration
 
-[source,java]
-----
-public class CustomVerifier implements SuccessVerifier {
+==== Agent Implementations
 
-    @Override
-    public VerificationResult verify(VerificationContext context) {
-        // Custom verification logic
-        return new VerificationResult(success, reason, checks);
-    }
-}
-----
+Spring AI Bench currently supports:
 
-=== Custom Sandboxes
+* **hello-world**: Deterministic mock agent for infrastructure testing
+* **hello-world-ai**: AI-powered agent via Spring AI Agents integration
+  ** Claude provider support
+  ** Gemini provider support
+  ** JBang launcher pattern
 
-Implement the `Sandbox` interface:
+==== Spring AI Agents Integration
 
-[source,java]
-----
-public class CustomSandbox implements Sandbox {
-
-    @Override
-    public ExecResult exec(ExecSpec spec) throws Exception {
-        // Custom execution environment
-        return new ExecResult(exitCode, stdout, stderr, duration);
-    }
-}
-----
-
-== Security Model
-
-=== Sandbox Isolation
-
-- **Process Isolation** - Separate processes for agent execution
-- **Filesystem Isolation** - Temporary workspaces with cleanup
-- **Network Controls** - Optional network isolation in Docker mode
-- **Resource Limits** - CPU, memory, and time constraints
-
-=== Secret Management
-
-- **Environment Variables** - Secure API key handling
-- **No Secret Logging** - Careful avoidance of secret exposure
-- **Workspace Cleanup** - Automatic cleanup of sensitive data
-
-== Performance Characteristics
-
-=== Scalability
-
-- **Parallel Execution** - Multiple benchmarks can run concurrently
-- **Resource Management** - Configurable resource limits
-- **Cleanup Efficiency** - Automatic workspace and process cleanup
-
-=== Monitoring
-
-- **Structured Logging** - Comprehensive execution logging
-- **Metrics Integration** - Ready for Micrometer integration
-- **Report Generation** - Detailed HTML and JSON reports
-
-== Spring Java Format
-
-The project uses Spring Java Format for consistent code formatting:
+The integration with Spring AI Agents follows this pattern:
 
 [source,bash]
 ----
-# Apply formatting
-./mvnw spring-javaformat:apply
-
-# Validate formatting
-./mvnw spring-javaformat:validate
+# spring-ai-bench → JBang → spring-ai-agents → AI provider
+jbang /path/to/spring-ai-agents/jbang/launcher.java \
+  hello-world-agent-ai \
+  path=hello.txt \
+  content="Hello World!" \
+  provider=claude
 ----
 
-This ensures all code follows Spring's established conventions for readability and maintainability.
+This ensures benchmark success guarantees good end-user experience by testing the exact CLI interface users would use.
+
+=== Benchmarking System
+
+==== Benchmark Specifications
+
+* `BenchSpec` - Top-level benchmark specification
+* `BenchCase` - Individual benchmark case with:
+  ** ID, category ("coding", "project-mgmt", "version-upgrade")
+  ** Repository specification (`RepoSpec`)
+  ** Agent specification (`AgentSpec`)
+  ** Success criteria (`SuccessSpec`)
+  ** Timeout configuration
+
+==== Agent Support
+
+`AgentSpec` supports multiple agent types:
+
+* `"hello-world"` - Deterministic mock agent
+* `"hello-world-ai"` - AI-powered agent via Spring AI Agents
+* Configurable models, prompts, generation parameters
+
+==== Execution Harness
+
+* `BenchHarness` - End-to-end benchmark execution
+* `AgentRunner` - Agent execution interface
+* `HelloWorldAgentRunner` - Deterministic implementation
+* `HelloWorldAIAgentRunner` - AI-powered implementation
+* `SuccessVerifier` - Validation of benchmark results
+
+=== Repository & Workspace Management
+
+* `RepoWorkspaceManager` - GitHub repository operations
+* `Workspace` - Isolated workspace for agent execution
+* Automatic repository cloning and cleanup
+* GitHub API integration for repository access
+
+== Integration Components
+
+=== Spring Cloud Deployer
+
+* **SPI Integration**: `spring-cloud-deployer-spi` (v2.9.5)
+* **Local Implementation**: `spring-cloud-deployer-local` (v2.9.5)
+* **Purpose**: Process management and distributed task execution
+* **Usage**: `LocalTaskLauncher` for process orchestration
+
+=== Model Context Protocol (MCP)
+
+* `McpConfig` - Configuration for MCP tool integration
+* Environment variable injection: `MCP_TOOLS`
+* Integration with Claude CLI through customizers
+
+=== TestContainers
+
+* **Version**: 1.21.0
+* **Purpose**: Docker-based sandbox isolation
+* **Features**: Container lifecycle management, port mapping, volume mounts
+
+== Key Design Decisions
+
+=== Sandbox Abstraction
+
+* **Rationale**: Support multiple execution environments (local, Docker, future cloud)
+* **Pattern**: Interface-based design for extensibility
+* **Trade-offs**: Abstraction overhead vs. flexibility
+
+=== Merged Log Output
+
+* **Design**: `ExecResult` combines stdout/stderr into `mergedLog`
+* **Rationale**: Optimized for AI analysis - preserves temporal ordering
+* **Use Case**: LLMs can analyze execution logs in chronological order
+
+=== Customizer Pattern
+
+* **Purpose**: Last-mile command/environment customization
+* **Benefits**: Flexible, composable, testable
+* **Example**: Claude CLI tool injection without hardcoding
+
+=== Resource Management
+
+* **AutoCloseable**: All sandboxes implement proper cleanup
+* **Try-with-resources**: Workspace management ensures cleanup
+* **Timeout Handling**: Prevents runaway processes
+
+== Module Structure
+
+[source]
+----
+spring-ai-bench/
+├── bench-core/           # Core execution framework
+│   ├── exec/            # Execution system (Sandbox, ExecSpec, etc.)
+│   ├── spec/            # Benchmark specifications
+│   ├── repo/            # Repository & workspace management
+│   ├── run/             # Benchmark harness & execution
+│   └── io/              # Configuration loading
+├── bench-agents/         # Agent integration layer
+│   ├── runner/          # Agent runners (Claude, Gemini, HelloWorld)
+│   └── integration/     # Spring Boot auto-configuration
+├── bench-app/           # Application CLI
+├── bench-site/          # Static site generation
+└── bench-tracks/        # Benchmark track definitions
+    └── hello-world/     # Hello world track (current)
+----
+
+== Dependencies & Technology Stack
+
+=== Core Dependencies
+
+* **Spring Framework**: Core dependency injection and configuration
+* **Spring Cloud Deployer**: Distributed process management
+* **Jackson**: YAML/JSON configuration handling
+* **TestContainers**: Docker sandbox implementation
+* **GitHub API**: Repository operations
+* **SLF4J**: Logging framework
+
+=== Build System
+
+* **Maven**: Build system with multi-module structure
+* **Java 17+**: Target runtime
+* **Surefire**: Test execution
+
+== Development Timeline
+
+**September 2024 Implementation:**
+
+* Complete execution framework with sandbox isolation
+* Spring AI Agents integration via JBang launcher
+* Agent implementations (hello-world deterministic and AI-powered)
+* Basic reporting and HTML generation
+* Docker and local sandbox support
+
+== Testing Strategy
+
+* **Unit Tests**: Individual component testing
+* **Integration Tests**: End-to-end sandbox execution
+* **Smoke Tests**: Basic functionality validation
+* **E2E Tests**: Complete benchmark execution flows
+
+== Future Development Areas
+
+=== Cloud Implementation
+
+* Cloud-based sandbox implementations
+* Auto-scaling execution clusters
+* Distributed benchmark orchestration
+* Cost optimization strategies
+
+=== Enhanced Agent Support
+
+* Additional agent integrations beyond current implementations
+* Agent-specific optimizations and customizations
+* Multi-agent benchmark scenarios
+
+=== Monitoring & Observability
+
+* Execution metrics collection
+* Performance monitoring dashboards
+* Resource utilization tracking
+* Benchmark result analytics
+
+=== Security Enhancements
+
+* Improved sandbox isolation
+* Resource limits and quotas
+* Security scanning integration
+* Audit logging
+
+== Getting Started
+
+=== Prerequisites
+
+* Java 17+
+* Docker (for DockerSandbox)
+* Maven 3.6+
+* GitHub access token (for repository operations)
+
+=== Basic Usage
+
+[source,java]
+----
+// Local execution
+try (var sandbox = LocalSandbox.builder().build()) {
+    var spec = ExecSpec.of("echo", "Hello World");
+    var result = sandbox.exec(spec);
+    System.out.println("Exit code: " + result.exitCode());
+    System.out.println("Output: " + result.mergedLog());
+}
+
+// Docker execution
+try (var sandbox = new DockerSandbox("openjdk:17-jdk")) {
+    var spec = ExecSpec.of("java", "-version");
+    var result = sandbox.exec(spec);
+    System.out.println("Java version: " + result.mergedLog());
+}
+----
+
+---
+
+*This document reflects the current architecture as of September 2024.*

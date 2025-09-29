@@ -1,0 +1,354 @@
+= Implementation Details
+:page-title: Implementation Details
+:toc: left
+:tabsize: 2
+:sectnums:
+
+Spring AI Bench provides a comprehensive execution framework and benchmarking platform for AI agents in Java environments with isolated sandboxes, customizable execution, and evaluation capabilities.
+
+== Architecture Overview
+
+[source]
+----
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   BenchHarness  │    │   AgentRunner   │    │SuccessVerifier │
+│                 │    │                 │    │                 │
+│ Orchestrates    │────│ Executes agent  │────│ Validates       │
+│ benchmark runs  │    │ in workspace    │    │ success criteria│
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │
+                                ▼
+                       ┌─────────────────┐
+                       │    Sandbox      │
+                       │   (Interface)   │
+                       └─────────────────┘
+                                │
+                ┌───────────────┼───────────────┐
+                ▼               ▼               ▼
+        ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+        │LocalSandbox │ │DockerSandbox│ │CloudSandbox │
+        │             │ │             │ │   (Future)  │
+        │Process exec │ │Containers   │ │Distributed  │
+        └─────────────┘ └─────────────┘ └─────────────┘
+----
+
+== Usage Examples
+
+=== Basic Local Execution
+
+[source,java]
+----
+// Execute a simple command
+try (var sandbox = LocalSandbox.builder().build()) {
+    var spec = ExecSpec.of("echo", "Hello World");
+    var result = sandbox.exec(spec);
+
+    System.out.println("Exit code: " + result.exitCode());
+    System.out.println("Output: " + result.mergedLog());
+}
+----
+
+=== Docker Sandbox with Custom Environment
+
+[source,java]
+----
+// Execute in isolated Docker container
+try (var sandbox = new DockerSandbox("openjdk:17-jdk")) {
+    var spec = ExecSpec.builder()
+        .command("java", "-version")
+        .env("JAVA_OPTS", "-Xmx512m")
+        .timeout(Duration.ofSeconds(30))
+        .build();
+
+    var result = sandbox.exec(spec);
+    System.out.println("Java version: " + result.mergedLog());
+}
+----
+
+=== Running a Complete Benchmark
+
+[source,java]
+----
+// Load and execute a benchmark
+Path benchmarkFile = Path.of("benchmarks/hello-world.yaml");
+BenchCase benchCase = BenchCaseLoader.load(benchmarkFile);
+
+var harness = new BenchHarness(github, Duration.ofMinutes(10));
+BenchResult result = harness.run(benchCase);
+
+System.out.println("Success: " + result.success());
+System.out.println("Duration: " + result.duration());
+----
+
+== Benchmark Specification Format
+
+Benchmarks are defined in YAML files with the following structure:
+
+[source,yaml]
+----
+# hello-world.yaml
+id: hello-world
+category: coding
+version: 0.5
+
+repo:
+  owner: example-org
+  name: example-repo
+  ref: main
+
+agent:
+  kind: hello-world-ai
+  provider: claude
+  autoApprove: true
+  prompt: |
+    Create a hello world file with the specified content.
+
+success:
+  cmd: ls hello.txt
+
+timeoutSec: 600
+----
+
+=== Supported Agent Types
+
+* **`hello-world`** - Deterministic mock agent for testing infrastructure ✅
+* **`hello-world-ai`** - AI-powered agent via Spring AI Agents integration ✅
+  ** Claude provider support
+  ** Gemini provider support
+
+=== Benchmark Categories
+
+* **`coding`** - Software development tasks (hello world, future: bug fixes, feature implementation)
+* **`project-mgmt`** - Project management and planning tasks (future)
+* **`version-upgrade`** - Dependency and framework upgrade tasks (future)
+
+== Development Setup
+
+=== Prerequisites
+
+* **Java 17+** - Required for building and running
+* **Maven 3.6+** - Build system
+* **Docker** - For DockerSandbox testing (optional)
+* **GitHub Token** - For repository access (set `GITHUB_TOKEN` env var)
+* **Agent API Keys** - For agent integration tests:
+  ** `ANTHROPIC_API_KEY` - Claude Code agent
+  ** `GEMINI_API_KEY` - Gemini agent
+
+=== Building from Source
+
+[source,bash]
+----
+# Full build with tests
+./mvnw clean install
+
+# Quick build (skip tests)
+./mvnw clean install -DskipTests
+
+# Run specific test categories
+./mvnw test -Dtest=*IntegrationTest
+./mvnw test -Dtest=BenchHarnessE2ETest
+----
+
+=== Running Tests
+
+[source,bash]
+----
+# All tests
+./mvnw test
+
+# Integration tests only
+./mvnw test -Dtest=*IntegrationTest
+
+# Specific sandbox tests
+./mvnw test -Dtest=LocalSandboxIntegrationTest
+./mvnw test -Dtest=DockerSandboxTest
+
+# Agent integration tests (requires API keys)
+ANTHROPIC_API_KEY=your_key GEMINI_API_KEY=your_key ./mvnw test -Pagents-live
+# Or run specific agent tests:
+ANTHROPIC_API_KEY=your_key ./mvnw test -Dtest=ClaudeCodeIntegrationSuccessTest -pl bench-agents
+GEMINI_API_KEY=your_key ./mvnw test -Dtest=GeminiIntegrationTest -pl bench-agents
+----
+
+== Configuration
+
+=== Environment Variables
+
+[source,bash]
+----
+# GitHub API access
+export GITHUB_TOKEN=your_github_token
+
+# MCP tools configuration (automatically set by framework)
+export MCP_TOOLS=brave,filesystem,github
+
+# Docker settings (for DockerSandbox)
+export DOCKER_HOST=unix:///var/run/docker.sock
+----
+
+=== JVM Configuration
+
+The project includes optimized JVM settings in `.mvn/jvm.config`:
+
+[source]
+----
+-XX:-PrintWarnings
+-Xshare:off
+----
+
+== Advanced Features
+
+=== Custom Execution Customizers
+
+[source,java]
+----
+// Create a customizer for Claude CLI integration
+ExecSpecCustomizer claudeCustomizer = new ClaudeCliCustomizer();
+
+// Build sandbox with customizers
+var sandbox = LocalSandbox.builder()
+    .customizer(claudeCustomizer)
+    .workingDirectory(workspace)
+    .build();
+----
+
+=== MCP (Model Context Protocol) Integration
+
+[source,java]
+----
+// Configure MCP tools
+var mcpConfig = McpConfig.of("brave", "filesystem", "github");
+
+var spec = ExecSpec.builder()
+    .command("claude-code", "agent.py")
+    .mcp(mcpConfig)  // Automatically adds --tools=brave,filesystem,github
+    .build();
+----
+
+=== Workspace Management
+
+[source,java]
+----
+// Automatic repository cloning and cleanup
+try (var manager = new RepoWorkspaceManager(github)) {
+    var repoSpec = new RepoSpec("owner", "repo", "main");
+    var workspace = manager.checkout(repoSpec, Duration.ofMinutes(5));
+
+    // Use workspace for agent execution
+    var sandbox = LocalSandbox.builder()
+        .workingDirectory(workspace.repoDir())
+        .build();
+}
+----
+
+== Testing Strategy
+
+Spring AI Bench uses a comprehensive testing approach:
+
+* **Unit Tests** - Individual component testing
+* **Integration Tests** - Real process execution validation
+* **E2E Tests** - Complete benchmark workflow testing
+* **Smoke Tests** - Basic functionality validation
+
+== Recent Updates
+
+=== Current Implementation (September 2024)
+
+* ✅ **Spring AI Agents Integration** - Seamless JBang launcher pattern
+* ✅ **Multi-agent comparison** - Deterministic vs AI-powered agents
+* ✅ **Improved timeout handling** - Automatic process destruction and better error messages
+* ✅ **Enhanced platform compatibility** - Windows/Unix shell command abstraction
+* ✅ **Comprehensive reporting** - HTML and JSON reports with timing data
+
+=== Key Improvements
+
+* **Cleaner Process Execution** - Robust process management with proper cleanup
+* **Better Error Handling** - Detailed error messages with command output
+* **Robust Timeout Management** - Built-in process cleanup and timeout exceptions
+* **Future-Ready Logging** - Native SLF4J integration for observability
+
+== Integration Patterns
+
+=== HelloWorld vs HelloWorldAI Distinction
+
+* **hello-world**: Deterministic mock agent (no AI, ~100ms)
+* **hello-world-ai**: AI-powered agent via Spring AI Agents JBang integration
+  ** Uses `provider` parameter to select: `claude` or `gemini`
+  ** Performance varies: Gemini ~5s, Claude ~18s+
+
+=== JBang Integration Architecture
+
+[source,java]
+----
+// Pattern: spring-ai-bench → JBang → spring-ai-agents → AI provider
+List<String> command = Arrays.asList(
+    "jbang",
+    "/absolute/path/to/spring-ai-agents/jbang/launcher.java",
+    "hello-world-agent-ai",
+    "path=hello.txt",
+    "content=Hello World!",
+    "provider=" + provider  // "claude" or "gemini"
+);
+----
+
+=== Multi-Agent Test Implementation
+
+**Comparative Benchmarking**: The `HelloWorldMultiAgentTest` runs identical tasks across:
+
+. hello-world (deterministic baseline)
+. hello-world-ai with provider=gemini
+. hello-world-ai with provider=claude
+
+**Performance Characteristics Observed**:
+
+* Deterministic: ~114ms (baseline)
+* Gemini AI: ~5,600ms
+* Claude AI: ~18,000ms
+
+=== Report Generation
+
+**Multi-Format Output**: Each agent run generates:
+
+* Console summary with performance ratios
+* Individual HTML reports in `/tmp/bench-reports/<uuid>/`
+* Aggregated dashboard via `jbang jbang/site.java`
+
+**Site Generation Best Practice**:
+
+[source,bash]
+----
+# 1. Run multi-agent test
+ANTHROPIC_API_KEY=key GEMINI_API_KEY=key ./mvnw test -Dtest=HelloWorldMultiAgentTest -pl bench-agents
+
+# 2. Generate comprehensive site
+jbang jbang/site.java --reportsDir /tmp/bench-reports --siteDir /tmp/bench-site
+
+# 3. View results
+open file:///tmp/bench-reports/index.html  # Better formatted table
+open file:///tmp/bench-site/index.html     # Aggregated view
+----
+
+== Testing Strategy Insights
+
+=== API Key Management
+
+Tests use `assumeTrue()` for graceful skipping:
+
+[source,java]
+----
+assumeTrue(hasClaudeApiKey(), "ANTHROPIC_API_KEY not set");
+assumeTrue(hasGeminiApiKey(), "GEMINI_API_KEY not set");
+assumeTrue(isSpringAIAgentsBuilt(), "Spring AI Agents not built locally");
+----
+
+=== Verification System
+
+Multi-workspace verification pattern:
+
+[source,java]
+----
+// Each agent gets isolated workspace: /tmp/junit<id>/<agent-type>/
+// Verification checks file existence and content independently
+----
+
+This approach enables clean comparative analysis without interference between agent executions.

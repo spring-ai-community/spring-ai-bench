@@ -49,7 +49,7 @@ Enterprise Java teams deserve a benchmark that reflects **real software developm
 # Clone and run a quick test
 git clone https://github.com/spring-ai-community/spring-ai-bench.git
 cd spring-ai-bench
-./mvnw test -Dtest=BenchHarnessE2ETest
+./mvnw test -Dtest=BenchHarnessE2ETest -pl bench-core
 ```
 
 ### 🏗️ Architecture
@@ -129,42 +129,51 @@ cd spring-ai-bench
 ./mvnw test
 
 # Specific test categories
-./mvnw test -Dtest=*IntegrationTest    # All integration tests
-./mvnw test -Dtest=BenchHarnessE2ETest # End-to-end benchmark test
-./mvnw test -Dtest=LocalSandboxIntegrationTest # Local execution tests
-./mvnw test -Dtest=DockerSandboxTest   # Docker container tests
+./mvnw test -Dtest="*IntegrationTest" -pl bench-core    # Core integration tests
+./mvnw test -Dtest=BenchHarnessE2ETest -pl bench-core   # End-to-end benchmark test
+./mvnw test -Dtest=LocalSandboxIntegrationTest -pl bench-core # Local execution tests
+./mvnw test -Dtest=DockerSandboxTest -pl bench-core     # Docker container tests
 ```
 
 #### Agent Integration Tests (Requires API Keys)
 
 **Prerequisites:**
-- `ANTHROPIC_API_KEY` - For Claude Code agent testing
-- `GEMINI_API_KEY` - For Gemini agent testing
+Set up your API keys before running agent tests:
+
+```bash
+# Claude Code agent (required for Claude tests)
+export ANTHROPIC_API_KEY=your_anthropic_api_key
+
+# Gemini agent (required for Gemini tests)
+export GEMINI_API_KEY=your_gemini_api_key
+
+# Verify keys are set
+echo $ANTHROPIC_API_KEY
+echo $GEMINI_API_KEY
+```
 
 **Run All Agent Tests:**
 ```bash
-# Set your API keys and run all agent integration tests
-export ANTHROPIC_API_KEY=your_claude_key
-export GEMINI_API_KEY=your_gemini_key
+# Run all agent integration tests (API keys must be set first)
 ./mvnw test -Pagents-live
 ```
 
 **Run Specific Agent Tests:**
 ```bash
-# Claude Code agent only
-ANTHROPIC_API_KEY=your_key ./mvnw test -Dtest=ClaudeIntegrationTest
+# Claude Code agent only (ANTHROPIC_API_KEY must be set)
+./mvnw test -Dtest=ClaudeCodeIntegrationSuccessTest -pl bench-agents
 
-# Gemini agent only
-GEMINI_API_KEY=your_key ./mvnw test -Dtest=GeminiIntegrationTest
+# Gemini agent only (GEMINI_API_KEY must be set)
+./mvnw test -Dtest=GeminiIntegrationTest -pl bench-agents
 
 # HelloWorld mock agent (no API key needed)
-./mvnw test -Dtest=HelloWorldIntegrationTest
+./mvnw test -Dtest=HelloWorldIntegrationTest -pl bench-agents
 
 # HelloWorld AI agent (requires spring-ai-agents built locally and API keys)
-./mvnw test -Dtest=HelloWorldAIIntegrationTest
+./mvnw test -Dtest=HelloWorldAIIntegrationTest -pl bench-agents
 
-# Multi-agent comparison test (runs deterministic + Claude + Gemini agents)
-ANTHROPIC_API_KEY=your_key GEMINI_API_KEY=your_key ./mvnw test -Dtest=HelloWorldMultiAgentTest
+# Multi-agent comparison test (both API keys must be set)
+./mvnw test -Dtest=HelloWorldMultiAgentTest -pl bench-agents
 ```
 
 #### Test Profiles
@@ -182,10 +191,10 @@ ANTHROPIC_API_KEY=your_key GEMINI_API_KEY=your_key ./mvnw test -Dtest=HelloWorld
 ./mvnw clean verify
 
 # Quick baseline test
-./mvnw test -Dtest=BenchHarnessTest
+./mvnw test -Dtest=BenchHarnessE2ETest -pl bench-core
 
-# Full verification including agent tests (requires API keys)
-ANTHROPIC_API_KEY=your_key GEMINI_API_KEY=your_key ./mvnw clean verify -Pagents-live
+# Full verification including agent tests (API keys must be set first)
+./mvnw clean verify -Pagents-live
 ```
 
 ### Benchmark Report Generation

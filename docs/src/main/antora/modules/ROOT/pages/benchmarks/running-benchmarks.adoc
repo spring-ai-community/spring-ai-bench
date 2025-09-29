@@ -13,10 +13,10 @@ This guide covers how to execute benchmarks using Spring AI Bench.
 [source,bash]
 ----
 # Run the end-to-end test with built-in benchmark
-./mvnw test -Dtest=BenchHarnessE2ETest
+./mvnw test -Dtest=BenchHarnessE2ETest -pl bench-core
 
 # Run with specific agent
-./mvnw test -Pagents-live -Dtest=ClaudeCodeIntegrationTest
+./mvnw test -Pagents-live -Dtest=ClaudeCodeIntegrationSuccessTest -pl bench-agents
 ----
 
 === Run Benchmark Suite
@@ -103,19 +103,19 @@ gcloud auth application-default login
 [source,bash]
 ----
 # Claude Code integration
-./mvnw test -Dtest=ClaudeCodeIntegrationTest
+./mvnw test -Dtest=ClaudeCodeIntegrationSuccessTest -pl bench-agents
 
 # Gemini integration
-./mvnw test -Dtest=GeminiIntegrationTest
+./mvnw test -Dtest=GeminiIntegrationTest -pl bench-agents
 
 # HelloWorld (mock agent)
-./mvnw test -Dtest=HelloWorldIntegrationTest
+./mvnw test -Dtest=HelloWorldIntegrationTest -pl bench-agents
 
 # HelloWorld AI agent (requires spring-ai-agents built locally)
-./mvnw test -Dtest=HelloWorldAIIntegrationTest
+./mvnw test -Dtest=HelloWorldAIIntegrationTest -pl bench-agents
 
 # Multi-agent comparison (deterministic + Claude + Gemini)
-ANTHROPIC_API_KEY=your_key GEMINI_API_KEY=your_key ./mvnw test -Dtest=HelloWorldMultiAgentTest
+./mvnw test -Dtest=HelloWorldMultiAgentTest -pl bench-agents
 ----
 
 === By Profile

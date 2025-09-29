@@ -333,3 +333,97 @@ This project followed a disciplined "genesis" implementation approach with compr
 - Agent types are pluggable via Spring Boot auto-configuration
 - The CLI → JBang → Agent pattern scales to any agent type
 - Static site generation automatically handles new benchmark types
+
+## Multi-Agent Benchmarking Development Learnings
+
+### Local Development Requirements
+**Critical Discovery**: To use AI agent integrations, spring-ai-agents must be built and installed locally first:
+```bash
+# Build spring-ai-agents dependency first
+git clone https://github.com/spring-ai-community/spring-ai-agents.git
+cd spring-ai-agents
+./mvnw clean install -DskipTests
+cd ../spring-ai-bench
+./mvnw clean install
+```
+
+This is required because spring-ai-agents is not published to Maven Central yet.
+
+### Agent Integration Patterns
+
+**HelloWorld vs HelloWorldAI Distinction**:
+- `hello-world` = Deterministic mock agent (no AI, ~100ms)
+- `hello-world-ai` = AI-powered agent via spring-ai-agents JBang integration
+  - Uses `provider` parameter to select: `claude` or `gemini`
+  - Performance varies dramatically: Gemini ~5s, Claude ~18s+
+
+**JBang Integration Architecture**:
+```java
+// Pattern: spring-ai-bench → JBang → spring-ai-agents → AI provider
+List<String> command = Arrays.asList(
+    "jbang",
+    "/absolute/path/to/spring-ai-agents/jbang/launcher.java",
+    "hello-world-agent-ai",
+    "path=hello.txt",
+    "content=Hello World!",
+    "provider=" + provider  // "claude" or "gemini"
+);
+```
+
+### Multi-Agent Test Implementation
+
+**Comparative Benchmarking**: The `HelloWorldMultiAgentTest` runs identical tasks across:
+1. Deterministic baseline (hello-world)
+2. Gemini AI provider (hello-world-ai with provider=gemini)
+3. Claude AI provider (hello-world-ai with provider=claude)
+
+**Performance Characteristics Observed**:
+- Deterministic: ~114ms (1x baseline)
+- Gemini AI: ~5,600ms (46x slower)
+- Claude AI: ~18,000ms (158x slower)
+
+### Report Generation Insights
+
+**Multi-Format Output**: Each agent run generates:
+- Console summary with performance ratios
+- Individual HTML reports in `/tmp/bench-reports/<uuid>/`
+- Aggregated dashboard via `jbang jbang/site.java`
+
+**Site Generation Best Practice**:
+```bash
+# 1. Run multi-agent test
+ANTHROPIC_API_KEY=key GEMINI_API_KEY=key ./mvnw test -Dtest=HelloWorldMultiAgentTest -pl bench-agents
+
+# 2. Generate comprehensive site
+jbang jbang/site.java --reportsDir /tmp/bench-reports --siteDir /tmp/bench-site
+
+# 3. View results
+open file:///tmp/bench-reports/index.html  # Better formatted table
+open file:///tmp/bench-site/index.html     # Aggregated view
+```
+
+### Documentation Clarity Requirements
+
+**Agent Type vs Implementation**: Critical to distinguish between:
+- **Agent Types**: `claude-code`, `gemini`, `hello-world`, `hello-world-ai`
+- **Provider Selection**: Only `hello-world-ai` can choose between Claude/Gemini providers
+- **Direct CLI vs Framework**: `claude-code`/`gemini` call CLI directly, `hello-world-ai` uses spring-ai-agents
+
+**Avoid Performance Commentary**: Show measured data without speculation about "better for X" since we only have one simple task measurement.
+
+### Testing Strategy Insights
+
+**API Key Management**: Tests use `assumeTrue()` for graceful skipping:
+```java
+assumeTrue(hasClaudeApiKey(), "ANTHROPIC_API_KEY not set");
+assumeTrue(hasGeminiApiKey(), "GEMINI_API_KEY not set");
+assumeTrue(isSpringAIAgentsBuilt(), "Spring AI Agents not built locally");
+```
+
+**Verification System**: Multi-workspace verification pattern:
+```java
+// Each agent gets isolated workspace: /tmp/junit<id>/<agent-type>/
+// Verification checks file existence and content independently
+```
+
+This approach enables clean comparative analysis without interference between agent executions.

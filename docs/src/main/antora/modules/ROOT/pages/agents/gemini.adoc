@@ -123,11 +123,10 @@ Run comparative benchmarks:
 [source,bash]
 ----
 # Single Gemini test
-GEMINI_API_KEY=your_key ./mvnw test -Dtest=HelloWorldAIIntegrationTest
+./mvnw test -Dtest=HelloWorldAIIntegrationTest -pl bench-agents
 
 # Multi-agent comparison
-ANTHROPIC_API_KEY=your_claude_key GEMINI_API_KEY=your_gemini_key \
-  ./mvnw test -Dtest=HelloWorldMultiAgentTest
+./mvnw test -Dtest=HelloWorldMultiAgentTest -pl bench-agents
 ----
 
 == Best Practices
@@ -198,7 +197,7 @@ Enable detailed logging:
 [source,bash]
 ----
 # Run with verbose output
-./mvnw test -Dtest=HelloWorldAIIntegrationTest -X
+./mvnw test -Dtest=HelloWorldAIIntegrationTest -pl bench-agents -X
 
 # Check specific Gemini logs
 grep -i gemini /tmp/bench-reports/{run-id}/run.log

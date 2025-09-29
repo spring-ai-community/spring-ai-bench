@@ -63,7 +63,7 @@ That's the standard enterprise developers hold themselves to — and the standar
 # Clone and run a quick test
 git clone https://github.com/spring-ai-community/spring-ai-bench.git
 cd spring-ai-bench
-./mvnw test -Dtest=BenchHarnessE2ETest
+./mvnw test -Dtest=BenchHarnessE2ETest -pl bench-core
 ----
 
 == Architecture Overview

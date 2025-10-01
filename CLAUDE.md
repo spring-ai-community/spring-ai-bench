@@ -66,25 +66,43 @@ jbang jbang/site.java --reportsDir /tmp/bench-reports --siteDir /tmp/bench-site
 ```
 
 ### Agent Integration Testing
+
+**PREREQUISITE**: Spring AI Agents must be installed in local Maven repository:
+```bash
+cd ../spring-ai-agents
+./mvnw clean install -DskipTests
+cd ../spring-ai-bench
+```
+
+**Running Tests**:
 ```bash
 # Core tests (no API keys required)
 ./mvnw test
 
-# Live agent tests (requires API keys)
-export ANTHROPIC_API_KEY=your_key
-export GEMINI_API_KEY=your_key
-./mvnw test -Pagents-live
+# Live agent tests with Gemini (fast, ~5-10 seconds)
+export GEMINI_API_KEY="AIzaSy..."
+./mvnw test -pl bench-agents -Dtest=GeminiIntegrationTest
+
+# Live agent tests with Claude (slower, ~60-120 seconds)
+export ANTHROPIC_API_KEY="sk-ant-api03-..."
+./mvnw test -pl bench-agents -Pagents-live
 
 # Multi-agent comparison test (runs deterministic + AI agents)
 ANTHROPIC_API_KEY=your_key GEMINI_API_KEY=your_key \
 ./mvnw test -Dtest=HelloWorldMultiAgentTest -pl bench-agents
 
 # Specific agent tests
-./mvnw test -Dtest=ClaudeCodeIntegrationTest
-./mvnw test -Dtest=GeminiIntegrationTest
-./mvnw test -Dtest=HelloWorldIntegrationTest
+./mvnw test -Dtest=ClaudeCodeIntegrationTest -pl bench-agents
+./mvnw test -Dtest=GeminiIntegrationTest -pl bench-agents
+./mvnw test -Dtest=HelloWorldIntegrationTest -pl bench-agents
 ./mvnw test -Dtest=HelloWorldAIIntegrationTest -pl bench-agents
 ```
+
+**Important Notes**:
+- Tests tagged with `@Tag("agents-live")` require API keys and are skipped without them
+- Claude tests have `@Timeout(180)` (3 minutes) due to agent execution time
+- Gemini tests are faster with `@Timeout(120)` (2 minutes)
+- Use Gemini for faster iteration during development
 
 ### Viewing Benchmark Reports
 

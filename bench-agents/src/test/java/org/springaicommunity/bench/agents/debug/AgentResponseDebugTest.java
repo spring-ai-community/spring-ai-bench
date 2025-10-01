@@ -23,9 +23,9 @@ import java.time.Duration;
 import java.util.Map;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import org.springaicommunity.agents.claudecode.ClaudeCodeAgentModel;
-import org.springaicommunity.agents.claudecode.ClaudeCodeAgentOptions;
-import org.springaicommunity.agents.claudecode.sdk.ClaudeCodeClient;
+import org.springaicommunity.agents.claude.ClaudeAgentModel;
+import org.springaicommunity.agents.claude.ClaudeAgentOptions;
+import org.springaicommunity.agents.claude.sdk.ClaudeAgentClient;
 import org.springaicommunity.agents.model.AgentOptions;
 import org.springaicommunity.agents.model.AgentResponse;
 import org.springaicommunity.agents.model.AgentTaskRequest;
@@ -36,26 +36,26 @@ class AgentResponseDebugTest {
 
 	private Path tempWorkspace;
 
-	private ClaudeCodeAgentModel agentModel;
+	private ClaudeAgentModel agentModel;
 
 	@BeforeEach
 	void setUp() throws Exception {
 		tempWorkspace = Files.createTempDirectory("agent-response-debug-");
 
-		ClaudeCodeAgentOptions options = new ClaudeCodeAgentOptions();
+		ClaudeAgentOptions options = new ClaudeAgentOptions();
 		options.setYolo(true);
 		options.setTimeout(Duration.ofMinutes(2));
 		options.setModel("claude-sonnet-4-20250514"); // Claude 4 Sonnet
 
-		ClaudeCodeClient client = ClaudeCodeClient
-			.create(org.springaicommunity.agents.claudecode.sdk.transport.CLIOptions.builder()
+		ClaudeAgentClient client = ClaudeAgentClient
+			.create(org.springaicommunity.agents.claude.sdk.transport.CLIOptions.builder()
 				.timeout(Duration.ofMinutes(2))
-				.permissionMode(org.springaicommunity.agents.claudecode.sdk.config.PermissionMode.BYPASS_PERMISSIONS)
+				.permissionMode(org.springaicommunity.agents.claude.sdk.config.PermissionMode.BYPASS_PERMISSIONS)
 				.build(), tempWorkspace);
 
-		agentModel = new ClaudeCodeAgentModel(client, options,
+		agentModel = new ClaudeAgentModel(client, options,
 				new org.springaicommunity.agents.model.sandbox.LocalSandbox(tempWorkspace));
-		assumeTrue(agentModel.isAvailable(), "ClaudeCodeAgentModel not available");
+		assumeTrue(agentModel.isAvailable(), "ClaudeAgentModel not available");
 	}
 
 	@AfterEach

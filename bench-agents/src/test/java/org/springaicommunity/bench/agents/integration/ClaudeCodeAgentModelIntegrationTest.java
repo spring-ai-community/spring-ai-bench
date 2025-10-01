@@ -23,22 +23,22 @@ import java.nio.file.Path;
 import java.time.Duration;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import org.springaicommunity.agents.claudecode.ClaudeCodeAgentModel;
-import org.springaicommunity.agents.claudecode.ClaudeCodeAgentOptions;
-import org.springaicommunity.agents.claudecode.sdk.ClaudeCodeClient;
+import org.springaicommunity.agents.claude.ClaudeAgentModel;
+import org.springaicommunity.agents.claude.ClaudeAgentOptions;
+import org.springaicommunity.agents.claude.sdk.ClaudeAgentClient;
 import org.springaicommunity.bench.agents.runner.ClaudeCodeAgentRunner;
 import org.springaicommunity.bench.agents.verifier.HelloWorldVerifier;
 import org.springaicommunity.bench.core.run.AgentResult;
 import org.springaicommunity.bench.core.spec.AgentSpec;
 
 /**
- * Integration test for real ClaudeCodeAgentModel execution through bench-agents. This
- * test verifies the complete pipeline with actual Claude Code calls.
+ * Integration test for real ClaudeAgentModel execution through bench-agents. This test
+ * verifies the complete pipeline with actual Claude Code calls.
  */
 @Tag("agents-live")
 @EnabledIfEnvironmentVariable(named = "ANTHROPIC_API_KEY", matches = ".+")
 @Timeout(180) // Cap runtime at 3 minutes for Claude execution
-class ClaudeCodeAgentModelIntegrationTest {
+class ClaudeAgentModelIntegrationTest {
 
 	private Path tempWorkspace;
 
@@ -54,14 +54,14 @@ class ClaudeCodeAgentModelIntegrationTest {
 	void setUp() throws Exception {
 		tempWorkspace = Files.createTempDirectory("claude-model-test-");
 
-		// Create ClaudeCodeAgentModel with default configuration
-		ClaudeCodeClient client = ClaudeCodeClient.create();
-		ClaudeCodeAgentOptions options = new ClaudeCodeAgentOptions();
+		// Create ClaudeAgentModel with default configuration
+		ClaudeAgentClient client = ClaudeAgentClient.create();
+		ClaudeAgentOptions options = new ClaudeAgentOptions();
 		options.setYolo(true); // Skip permissions for testing
 
-		ClaudeCodeAgentModel agentModel = new ClaudeCodeAgentModel(client, options,
+		ClaudeAgentModel agentModel = new ClaudeAgentModel(client, options,
 				new org.springaicommunity.agents.model.sandbox.LocalSandbox(tempWorkspace));
-		assumeTrue(agentModel.isAvailable(), "ClaudeCodeAgentModel not available");
+		assumeTrue(agentModel.isAvailable(), "ClaudeAgentModel not available");
 
 		agentRunner = new ClaudeCodeAgentRunner(agentModel, new HelloWorldVerifier());
 	}
@@ -109,7 +109,7 @@ class ClaudeCodeAgentModelIntegrationTest {
 		String content = Files.readString(helloFile);
 		assertThat(content.trim()).isEqualTo("Hello World!");
 
-		System.out.println("✅ SUCCESS: ClaudeCodeAgentModel integration pipeline works end-to-end");
+		System.out.println("✅ SUCCESS: ClaudeAgentModel integration pipeline works end-to-end");
 	}
 
 	@Test
@@ -166,7 +166,7 @@ class ClaudeCodeAgentModelIntegrationTest {
 		assertThat(htmlContent).contains("SUCCESS");
 		assertThat(htmlContent).contains("Verification Checks");
 
-		System.out.println("✅ SUCCESS: ClaudeCodeAgentModel report generation with proper provenance");
+		System.out.println("✅ SUCCESS: ClaudeAgentModel report generation with proper provenance");
 	}
 
 	@Test
@@ -182,7 +182,7 @@ class ClaudeCodeAgentModelIntegrationTest {
 
 		AgentResult result = agentRunner.run(tempWorkspace, spec, Duration.ofMinutes(2));
 
-		// Should succeed because ClaudeCodeAgentModel should create the correct file
+		// Should succeed because ClaudeAgentModel should create the correct file
 		assertThat(result.exitCode()).isEqualTo(0);
 
 		// Verify the verification checks passed
@@ -200,7 +200,7 @@ class ClaudeCodeAgentModelIntegrationTest {
 		assertThat(jsonContent).contains("\"success\" : true");
 		assertThat(jsonContent).contains("\"pass\" : true"); // Verification checks passed
 
-		System.out.println("✅ SUCCESS: ClaudeCodeAgentModel verification system correctly validates agent output");
+		System.out.println("✅ SUCCESS: ClaudeAgentModel verification system correctly validates agent output");
 	}
 
 	private static boolean isCliAvailable(String cmd) {

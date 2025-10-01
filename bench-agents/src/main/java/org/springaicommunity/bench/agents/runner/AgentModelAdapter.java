@@ -22,7 +22,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import org.springaicommunity.agents.claudecode.ClaudeCodeAgentModel;
+import org.springaicommunity.agents.claude.ClaudeAgentModel;
 import org.springaicommunity.agents.gemini.GeminiAgentModel;
 import org.springaicommunity.agents.gemini.GeminiAgentOptions;
 import org.springaicommunity.agents.model.*;
@@ -173,10 +173,10 @@ public class AgentModelAdapter implements AgentRunner {
 	/** Configures the agent model for workspace-specific execution. */
 	private AgentModel configureAgentForWorkspace(AgentModel model, Path workspace, Duration timeout,
 			SimpleLogCapture logger) {
-		if (model instanceof ClaudeCodeAgentModel) {
-			logger.log("AGENT", "Creating workspace-specific ClaudeCodeAgentModel");
+		if (model instanceof ClaudeAgentModel) {
+			logger.log("AGENT", "Creating workspace-specific ClaudeAgentModel");
 			try {
-				return ClaudeCodeAgentModel.createWithWorkspaceSetup(workspace, timeout);
+				return ClaudeAgentModel.createWithWorkspaceSetup(workspace, timeout);
 			}
 			catch (RuntimeException e) {
 				logger.log("AGENT", "Failed to create workspace-specific model, using original: " + e.getMessage());

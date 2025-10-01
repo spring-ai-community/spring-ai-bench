@@ -15,7 +15,7 @@
  */
 package org.springaicommunity.bench.agents.runner;
 
-import org.springaicommunity.agents.claudecode.ClaudeCodeAgentModel;
+import org.springaicommunity.agents.claude.ClaudeAgentModel;
 import org.springaicommunity.agents.gemini.GeminiAgentModel;
 import org.springaicommunity.bench.agents.verifier.SuccessVerifier;
 import org.springaicommunity.bench.core.run.AgentRunner;
@@ -33,10 +33,10 @@ import org.springframework.context.annotation.Configuration;
 public class AgentProviderConfig {
 
 	@Bean
-	@ConditionalOnClass(ClaudeCodeAgentModel.class)
+	@ConditionalOnClass(ClaudeAgentModel.class)
 	@ConditionalOnMissingBean(AgentRunner.class)
 	@ConditionalOnProperty(name = "spring.ai.bench.agent.provider", havingValue = "claude-code")
-	public AgentRunner claudeRunner(ClaudeCodeAgentModel model, SuccessVerifier verifier) {
+	public AgentRunner claudeRunner(ClaudeAgentModel model, SuccessVerifier verifier) {
 		return new ClaudeCodeAgentRunner(model, verifier);
 	}
 

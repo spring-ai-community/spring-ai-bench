@@ -23,9 +23,9 @@ import java.nio.file.Path;
 import java.time.Duration;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import org.springaicommunity.agents.claudecode.ClaudeCodeAgentModel;
-import org.springaicommunity.agents.claudecode.ClaudeCodeAgentOptions;
-import org.springaicommunity.agents.claudecode.sdk.ClaudeCodeClient;
+import org.springaicommunity.agents.claude.ClaudeAgentModel;
+import org.springaicommunity.agents.claude.ClaudeAgentOptions;
+import org.springaicommunity.agents.claude.sdk.ClaudeAgentClient;
 import org.springaicommunity.bench.agents.runner.ClaudeCodeAgentRunner;
 import org.springaicommunity.bench.agents.verifier.HelloWorldVerifier;
 import org.springaicommunity.bench.core.run.AgentResult;
@@ -46,21 +46,21 @@ class ClaudeCodeReportGenerationTest {
 	void setUp() throws Exception {
 		tempWorkspace = Files.createTempDirectory("claude-report-test-");
 
-		// Create ClaudeCodeAgentModel with real configuration
-		ClaudeCodeAgentOptions options = new ClaudeCodeAgentOptions();
+		// Create ClaudeAgentModel with real configuration
+		ClaudeAgentOptions options = new ClaudeAgentOptions();
 		options.setYolo(true); // Skip permissions for testing
 		options.setTimeout(Duration.ofMinutes(2));
 
 		// Create client
-		ClaudeCodeClient client = ClaudeCodeClient
-			.create(org.springaicommunity.agents.claudecode.sdk.transport.CLIOptions.builder()
+		ClaudeAgentClient client = ClaudeAgentClient
+			.create(org.springaicommunity.agents.claude.sdk.transport.CLIOptions.builder()
 				.timeout(Duration.ofMinutes(2))
-				.permissionMode(org.springaicommunity.agents.claudecode.sdk.config.PermissionMode.BYPASS_PERMISSIONS)
+				.permissionMode(org.springaicommunity.agents.claude.sdk.config.PermissionMode.BYPASS_PERMISSIONS)
 				.build(), tempWorkspace);
 
-		ClaudeCodeAgentModel agentModel = new ClaudeCodeAgentModel(client, options,
+		ClaudeAgentModel agentModel = new ClaudeAgentModel(client, options,
 				new org.springaicommunity.agents.model.sandbox.LocalSandbox(tempWorkspace));
-		assumeTrue(agentModel.isAvailable(), "ClaudeCodeAgentModel not available");
+		assumeTrue(agentModel.isAvailable(), "ClaudeAgentModel not available");
 
 		// Create agent runner with HelloWorldVerifier
 		agentRunner = new ClaudeCodeAgentRunner(agentModel, new HelloWorldVerifier());

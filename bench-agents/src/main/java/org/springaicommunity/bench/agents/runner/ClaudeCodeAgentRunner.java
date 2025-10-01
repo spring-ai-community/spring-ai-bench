@@ -17,7 +17,7 @@ package org.springaicommunity.bench.agents.runner;
 
 import java.nio.file.Path;
 import java.time.Duration;
-import org.springaicommunity.agents.claudecode.ClaudeCodeAgentModel;
+import org.springaicommunity.agents.claude.ClaudeAgentModel;
 import org.springaicommunity.bench.agents.verifier.SuccessVerifier;
 import org.springaicommunity.bench.core.run.AgentResult;
 import org.springaicommunity.bench.core.run.AgentRunner;
@@ -31,7 +31,7 @@ public class ClaudeCodeAgentRunner implements AgentRunner {
 
 	private final AgentModelAdapter adapter;
 
-	public ClaudeCodeAgentRunner(ClaudeCodeAgentModel model, SuccessVerifier verifier) {
+	public ClaudeCodeAgentRunner(ClaudeAgentModel model, SuccessVerifier verifier) {
 		this.adapter = new AgentModelAdapter(model, verifier);
 	}
 

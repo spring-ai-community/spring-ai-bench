@@ -38,10 +38,10 @@
             <version>0.1.0-SNAPSHOT</version>
         </dependency>
 
-        <!-- Claude Code Agent -->
+        <!-- Claude Agent -->
         <dependency>
             <groupId>org.springaicommunity.agents</groupId>
-            <artifactId>spring-ai-claude-code</artifactId>
+            <artifactId>spring-ai-claude-agent</artifactId>
             <version>0.1.0-SNAPSHOT</version>
         </dependency>
 

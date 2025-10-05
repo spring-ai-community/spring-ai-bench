@@ -176,7 +176,7 @@ bench-agents/
 │   │   ├── CliUtils.java
 │   │   └── SimpleLogCapture.java
 │   ├── report/          # HTML and JSON report generators
-│   └── verifier/        # Success verification system
+│   └── judge/           # Judge framework integration for benchmarks
 ├── src/main/resources/
 │   ├── META-INF/spring/ # Auto-configuration registration
 │   └── application.properties

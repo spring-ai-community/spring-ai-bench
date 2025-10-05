@@ -1,27 +1,259 @@
-= Verification System
-:page-title: Verification System
+= Judge Framework Integration
+:page-title: Judge Framework Integration
 :toc: left
 :tabsize: 2
 :sectnums:
 
-Success criteria and result verification for benchmarks.
+Automated agent evaluation using the Judge framework from Spring AI Agents.
 
 == Overview
 
-The verification system determines whether agent execution was successful.
+Spring AI Bench uses the https://github.com/spring-ai-community/spring-ai-agents[Judge framework] from Spring AI Agents to verify agent execution results. The Judge framework provides deterministic, LLM-powered, and ensemble evaluation capabilities.
 
-NOTE: The current verification implementation is temporary and will evolve into a comprehensive **judge concept** in the https://github.com/spring-ai-community/spring-ai-agents[Spring AI Agents] framework. This migration will provide more sophisticated result validation capabilities beyond simple command execution.
+== Architecture
 
-_This page is under development._
+Spring AI Bench follows a **driver program pattern**:
 
-== Coming Soon
+* **spring-ai-agents** provides the Judge framework (reusable evaluation library)
+* **spring-ai-bench** uses the Judge framework to evaluate benchmark results
 
-* SuccessVerifier interface
-* Verification criteria
-* Custom verification
-* Debugging verification failures
+This separation allows the Judge framework to be used by any evaluation system, not just benchmarks.
+
+== Benchmark Modules
+
+=== bench-agents Module
+
+The `bench-agents` module uses Judge framework for live agent integration testing:
+
+[source,java]
+----
+// Example from ClaudeAgentModelIntegrationTest
+Judge judge = Judges.allOf(
+    new FileExistsJudge("hello.txt"),
+    new FileContentJudge("hello.txt", "Hello World!",
+                         FileContentJudge.MatchMode.EXACT)
+);
+
+JudgmentContext context = JudgmentContext.builder()
+    .workspace(workspaceDir)
+    .build();
+
+Judgment judgment = judge.judge(context);
+
+if (judgment.pass()) {
+    // Agent succeeded
+} else {
+    // Agent failed: judgment.reasoning()
+}
+----
+
+**Key features:**
+
+* Direct use of Judge framework judges (`FileExistsJudge`, `FileContentJudge`)
+* Compose judges using `Judges.allOf()` for multi-criteria evaluation
+* Create `JudgmentContext` from workspace and execution metadata
+* Get structured `Judgment` results with pass/fail status and reasoning
+
+=== bench-core CLI Runner
+
+The `bench-core` module uses Spring Dependency Injection to configure judges:
+
+[source,java]
+----
+@Configuration
+public class JudgeConfiguration {
+
+    @Bean(name = "hello-world")
+    public Judge helloWorldJudge() {
+        return Judges.allOf(
+            new FileExistsJudge("hello.txt"),
+            new FileContentJudge("hello.txt", "Hello World!",
+                                 FileContentJudge.MatchMode.EXACT)
+        );
+    }
+}
+----
+
+**BenchRunner integration:**
+
+[source,java]
+----
+public class BenchRunner {
+    private final Map<String, Judge> judges;
+
+    public BenchRunner(Map<String, Judge> judges) {
+        this.judges = judges;
+    }
+
+    public void execute(RunSpec runSpec) throws Exception {
+        // ... execute agent ...
+
+        // Look up judge by case ID
+        Judge judge = judges.get(runSpec.getCaseId());
+
+        // Create judgment context
+        JudgmentContext context = JudgmentContext.builder()
+            .workspace(workspace)
+            .build();
+
+        // Execute judgment
+        Judgment judgment = judge.judge(context);
+
+        String status = judgment.pass() ? "success" : "failure";
+
+        // Generate reports with judgment
+        generateReports(runSpec, judgment);
+    }
+}
+----
+
+**Key patterns:**
+
+* **Spring DI as factory** - `@Bean` methods create judge instances
+* **Judge lookup by case ID** - `judges.get(runSpec.getCaseId())`
+* **Manual DI for CLI mode** - `BenchMain` creates judges map when running without Spring context
+* **Structured results** - `Judgment` object with pass/fail, reasoning, and checks
+
+== Report Generation
+
+Reports use Judge framework's `Judgment` results:
+
+=== JSON Reports
+
+[source,json]
+----
+{
+  "status": "success",
+  "checks": [
+    {
+      "name": "File exists: hello.txt",
+      "status": "pass",
+      "details": "File exists at hello.txt"
+    },
+    {
+      "name": "File content matches",
+      "status": "pass",
+      "details": "Content matches expected value exactly"
+    }
+  ]
+}
+----
+
+=== HTML Reports
+
+Reports display judge results with visual indicators:
+
+* ✅ PASS - Check succeeded
+* ❌ FAIL - Check failed
+
+Each check includes:
+
+* Check name
+* Status (pass/fail)
+* Detailed message
+
+== Judge Types Available
+
+Spring AI Bench uses deterministic judges from the Judge framework:
+
+[cols="1,2,2"]
+|===
+|Judge |Purpose |Example
+
+|`FileExistsJudge`
+|Verify file creation
+|`new FileExistsJudge("report.txt")`
+
+|`FileContentJudge`
+|Verify file contents
+|`new FileContentJudge("hello.txt", "Hello World!", MatchMode.EXACT)`
+
+|`Judges.allOf()`
+|Compose multiple judges
+|`Judges.allOf(existsJudge, contentJudge)`
+
+|`Judges.anyOf()`
+|Any judge must pass
+|`Judges.anyOf(judge1, judge2)`
+|===
+
+See the https://github.com/spring-ai-community/spring-ai-agents[Spring AI Agents documentation] for the complete Judge API.
+
+== Adding New Benchmark Cases
+
+To add a new benchmark case with judge evaluation:
+
+**1. Create a judge bean in `JudgeConfiguration`:**
+
+[source,java]
+----
+@Bean(name = "my-benchmark")
+public Judge myBenchmarkJudge() {
+    return Judges.allOf(
+        new FileExistsJudge("output.txt"),
+        new FileContentJudge("output.txt", "Expected content",
+                             FileContentJudge.MatchMode.CONTAINS)
+    );
+}
+----
+
+**2. The bean name must match the case ID** from your YAML configuration.
+
+**3. Create your benchmark YAML** in `bench-tracks/{case-id}/cases/{case-id}.yaml`
+
+**4. Run the benchmark:**
+
+[source,bash]
+----
+bench run --case my-benchmark
+----
+
+The runner will automatically look up your judge bean and execute it after the agent completes.
+
+== Testing with Judges
+
+Integration tests use Judge framework directly:
+
+[source,java]
+----
+@Test
+void agentCreatesCorrectFile() throws Exception {
+    Path workspace = Files.createTempDirectory("test");
+
+    // Run agent
+    agentModel.execute(AgentTaskRequest.builder()
+        .goal("Create hello.txt with content: Hello World!")
+        .workingDirectory(workspace)
+        .build());
+
+    // Verify with judge
+    Judge judge = Judges.allOf(
+        new FileExistsJudge("hello.txt"),
+        new FileContentJudge("hello.txt", "Hello World!",
+                             FileContentJudge.MatchMode.EXACT)
+    );
+
+    JudgmentContext context = JudgmentContext.builder()
+        .workspace(workspace)
+        .build();
+
+    Judgment judgment = judge.judge(context);
+
+    assertThat(judgment.pass()).isTrue();
+}
+----
+
+== Migration Notes
+
+Spring AI Bench has fully migrated from temporary verifier infrastructure to the Judge framework:
+
+* **bench-agents**: ✅ Complete - Uses Judge framework directly
+* **bench-core**: ✅ Complete - Uses Spring DI for judge configuration
+
+All verification now uses the Judge framework from Spring AI Agents.
 
 == Next Steps
 
 * xref:api/agent-spec.adoc[AgentSpec API] - Agent configuration
 * xref:api/agent-runner.adoc[AgentRunner API] - Agent execution
+* https://github.com/spring-ai-community/spring-ai-agents[Spring AI Agents Judge Framework] - Complete Judge API documentation

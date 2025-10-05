@@ -5,6 +5,11 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springaicommunity.agents.judge.Judge;
+import org.springaicommunity.agents.judge.Judges;
+import org.springaicommunity.agents.judge.fs.FileContentJudge;
+import org.springaicommunity.agents.judge.fs.FileExistsJudge;
+
 /**
  * CLI entry point for Spring AI Bench following the genesis plan. Supports the new
  * YAML-based case/run configuration system.
@@ -62,11 +67,28 @@ public class BenchMain {
 		SpecLoader specLoader = new SpecLoader();
 		RunSpec runSpec = specLoader.loadRunSpec(config);
 
+		// Create judges map (manual DI for CLI)
+		Map<String, Judge> judges = createJudges();
+
 		// Execute the run
-		BenchRunner runner = new BenchRunner();
+		BenchRunner runner = new BenchRunner(judges);
 		runner.execute(runSpec);
 
 		System.out.println("Run completed successfully. Results in: " + runSpec.getOutputDir());
+	}
+
+	/**
+	 * Create judges for known benchmark cases. In CLI mode, we manually create the judges
+	 * that would normally be provided by Spring DI.
+	 */
+	private static Map<String, Judge> createJudges() {
+		Map<String, Judge> judges = new HashMap<>();
+
+		// hello-world judge
+		judges.put("hello-world", Judges.allOf(new FileExistsJudge("hello.txt"),
+				new FileContentJudge("hello.txt", "Hello World!", FileContentJudge.MatchMode.EXACT)));
+
+		return judges;
 	}
 
 	private static RunConfig parseRunArgs(String[] args) {

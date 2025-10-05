@@ -15,11 +15,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.springaicommunity.agents.judge.Judge;
+import org.springaicommunity.agents.judge.context.JudgmentContext;
+import org.springaicommunity.agents.judge.result.Judgment;
+
 /**
  * Core runner that executes benchmarks according to the genesis plan. Handles workspace
- * management, JBang agent invocation, verification, and reporting.
+ * management, JBang agent invocation, judgment via Judge framework, and reporting.
  */
 public class BenchRunner {
+
+	private final Map<String, Judge> judges;
+
+	public BenchRunner(Map<String, Judge> judges) {
+		this.judges = judges;
+	}
 
 	private static final DateTimeFormatter UTC_FORMATTER = DateTimeFormatter
 		.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'")
@@ -44,27 +54,28 @@ public class BenchRunner {
 			writeLog(logFile, "[AGENT] Starting agent invocation");
 			JBangResult agentResult = invokeAgent(runSpec, workspace, logFile);
 
-			// TODO: Migrate to Judge framework
-			// Verify results
-			writeLog(logFile, "[JUDGE] Starting judgment (TODO: migrate to Judge framework)");
-			// VerificationResult verificationResult = verifyResults(runSpec, workspace,
-			// logFile);
+			// Execute judgment using Judge framework
+			writeLog(logFile, "[JUDGE] Starting judgment via Judge framework");
+			Judge judge = judges.get(runSpec.getCaseId());
+			if (judge == null) {
+				throw new IllegalStateException("No judge configured for case: " + runSpec.getCaseId());
+			}
+
+			JudgmentContext context = JudgmentContext.builder().workspace(workspace).build();
+			Judgment judgment = judge.judge(context);
 
 			Instant finishedAt = Instant.now();
 			long durationMs = finishedAt.toEpochMilli() - startedAt.toEpochMilli();
 
-			boolean success = agentResult.getExitCode() == 0; // TODO: && judgment.pass();
+			boolean success = judgment.pass();
 			String status = success ? "success" : "failure";
 
-			writeLog(logFile,
-					"[RESULT] " + (success ? "SUCCESS" : "FAILURE") + ": agent exit code " + agentResult.getExitCode());
+			writeLog(logFile, "[RESULT] " + (success ? "SUCCESS" : "FAILURE") + ": " + judgment.reasoning());
 			writeLog(logFile, "FINISHED: " + UTC_FORMATTER.format(finishedAt));
 
 			// Generate reports
 			writeLog(logFile, "[REPORTER] Generating reports");
-			// TODO: Re-enable report generation with Judge
-			// generateReports(runSpec, startedAt, finishedAt, durationMs, status,
-			// verificationResult, agentResult);
+			generateReports(runSpec, startedAt, finishedAt, durationMs, status, judgment, agentResult);
 
 		}
 		catch (Exception e) {
@@ -145,51 +156,11 @@ public class BenchRunner {
 		return new JBangResult(exitCode, commandStr, output.toString());
 	}
 
-	private CheckResult performCheck(CheckSpec check, Path workspace) {
-		try {
-			switch (check.getType()) {
-				case "exists":
-					return checkExists(check, workspace);
-				case "equalsUtf8":
-					return checkEqualsUtf8(check, workspace);
-				default:
-					return new CheckResult(check.getType(), false, "Unknown check type: " + check.getType());
-			}
-		}
-		catch (Exception e) {
-			return new CheckResult(check.getType(), false, "Error: " + e.getMessage());
-		}
-	}
-
-	private CheckResult checkExists(CheckSpec check, Path workspace) {
-		Path filePath = workspace.resolve(check.getPath());
-		boolean exists = Files.exists(filePath);
-		String details = exists ? "ok" : "not found";
-		return new CheckResult("exists", exists, details);
-	}
-
-	// TODO: Migrate to Judge framework
-	private CheckResult checkEqualsUtf8(CheckSpec check, Path workspace) {
-		try {
-			Path filePath = workspace.resolve(check.getPath());
-			if (!Files.exists(filePath)) {
-				return new CheckResult("content", false, "file not found");
-			}
-			String actual = Files.readString(filePath);
-			boolean matches = check.getExpected().equals(actual);
-			String details = matches ? "ok" : "content mismatch";
-			return new CheckResult("content", matches, details);
-		}
-		catch (IOException e) {
-			return new CheckResult("content", false, "read error: " + e.getMessage());
-		}
-	}
-
 	private void generateReports(RunSpec runSpec, Instant startedAt, Instant finishedAt, long durationMs, String status,
-			VerificationResult verificationResult, JBangResult agentResult) throws IOException {
+			Judgment judgment, JBangResult agentResult) throws IOException {
 
 		ReportGenerator reportGen = new ReportGenerator();
-		reportGen.generateReports(runSpec, startedAt, finishedAt, durationMs, status, verificationResult, agentResult);
+		reportGen.generateReports(runSpec, startedAt, finishedAt, durationMs, status, judgment, agentResult);
 	}
 
 	private void writeLog(Path logFile, String message) {
@@ -207,7 +178,7 @@ public class BenchRunner {
 		Files.delete(path);
 	}
 
-	// Helper classes for results
+	// Helper class for JBang result
 	static class JBangResult {
 
 		private final int exitCode;
@@ -232,64 +203,6 @@ public class BenchRunner {
 
 		public String getOutput() {
 			return output;
-		}
-
-	}
-
-	// TODO: Migrate to Judge framework
-	static class CheckResult {
-
-		private final String type;
-
-		private final boolean passed;
-
-		private final String message;
-
-		public CheckResult(String type, boolean passed, String message) {
-			this.type = type;
-			this.passed = passed;
-			this.message = message;
-		}
-
-		public String getType() {
-			return type;
-		}
-
-		public boolean isPassed() {
-			return passed;
-		}
-
-		public String getMessage() {
-			return message;
-		}
-
-	}
-
-	// TODO: Migrate to Judge framework
-	static class VerificationResult {
-
-		private final boolean success;
-
-		private final String reason;
-
-		private final List<CheckResult> checkResults;
-
-		public VerificationResult(boolean success, String reason, List<CheckResult> checkResults) {
-			this.success = success;
-			this.reason = reason;
-			this.checkResults = checkResults;
-		}
-
-		public boolean isSuccess() {
-			return success;
-		}
-
-		public String getReason() {
-			return reason;
-		}
-
-		public List<CheckResult> getCheckResults() {
-			return checkResults;
 		}
 
 	}

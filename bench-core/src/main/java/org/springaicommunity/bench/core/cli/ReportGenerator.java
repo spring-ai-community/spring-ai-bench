@@ -12,8 +12,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springaicommunity.agents.judge.result.Check;
+import org.springaicommunity.agents.judge.result.Judgment;
+
 /**
- * Generates JSON and HTML reports according to the genesis plan.
+ * Generates JSON and HTML reports using Judge framework's Judgment.
  */
 public class ReportGenerator {
 
@@ -24,18 +27,17 @@ public class ReportGenerator {
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	public void generateReports(RunSpec runSpec, Instant startedAt, Instant finishedAt, long durationMs, String status,
-			BenchRunner.VerificationResult verificationResult, BenchRunner.JBangResult agentResult) throws IOException {
+			Judgment judgment, BenchRunner.JBangResult agentResult) throws IOException {
 
 		// Generate JSON report
-		generateJsonReport(runSpec, startedAt, finishedAt, durationMs, status, verificationResult, agentResult);
+		generateJsonReport(runSpec, startedAt, finishedAt, durationMs, status, judgment, agentResult);
 
 		// Generate HTML report
-		generateHtmlReport(runSpec, startedAt, finishedAt, durationMs, status, verificationResult, agentResult);
+		generateHtmlReport(runSpec, startedAt, finishedAt, durationMs, status, judgment, agentResult);
 	}
 
 	private void generateJsonReport(RunSpec runSpec, Instant startedAt, Instant finishedAt, long durationMs,
-			String status, BenchRunner.VerificationResult verificationResult, BenchRunner.JBangResult agentResult)
-			throws IOException {
+			String status, Judgment judgment, BenchRunner.JBangResult agentResult) throws IOException {
 
 		Map<String, Object> report = new HashMap<>();
 		report.put("schemaVersion", "0.1");
@@ -46,14 +48,16 @@ public class ReportGenerator {
 		report.put("finishedAtUtc", UTC_FORMATTER.format(finishedAt));
 		report.put("durationMs", durationMs);
 
-		// Checks
+		// Checks from Judge framework
 		List<Map<String, Object>> checks = new ArrayList<>();
-		for (BenchRunner.CheckResult checkResult : verificationResult.getCheckResults()) {
-			Map<String, Object> check = new HashMap<>();
-			check.put("name", checkResult.getType());
-			check.put("status", checkResult.isPassed() ? "pass" : "fail");
-			check.put("details", checkResult.getMessage());
-			checks.add(check);
+		if (judgment.checks() != null) {
+			for (Check check : judgment.checks()) {
+				Map<String, Object> checkMap = new HashMap<>();
+				checkMap.put("name", check.name());
+				checkMap.put("status", check.passed() ? "pass" : "fail");
+				checkMap.put("details", check.message());
+				checks.add(checkMap);
+			}
 		}
 		report.put("checks", checks);
 
@@ -91,8 +95,7 @@ public class ReportGenerator {
 	}
 
 	private void generateHtmlReport(RunSpec runSpec, Instant startedAt, Instant finishedAt, long durationMs,
-			String status, BenchRunner.VerificationResult verificationResult, BenchRunner.JBangResult agentResult)
-			throws IOException {
+			String status, Judgment judgment, BenchRunner.JBangResult agentResult) throws IOException {
 
 		StringBuilder html = new StringBuilder();
 		html.append("<!DOCTYPE html>\n");
@@ -140,21 +143,23 @@ public class ReportGenerator {
 		html.append("    <p><strong>Description:</strong> ").append(runSpec.getDescription()).append("</p>\n");
 		html.append("  </div>\n");
 
-		// Verification Results
+		// Judge Results
 		html.append("  <div class=\"card\">\n");
-		html.append("    <h3>Verification Results</h3>\n");
-		for (BenchRunner.CheckResult checkResult : verificationResult.getCheckResults()) {
-			String checkClass = checkResult.isPassed() ? "check-pass" : "check-fail";
-			String checkStatus = checkResult.isPassed() ? "✅ PASS" : "❌ FAIL";
-			html.append("    <p><span class=\"")
-				.append(checkClass)
-				.append("\">")
-				.append(checkStatus)
-				.append("</span> ")
-				.append(checkResult.getType())
-				.append(": ")
-				.append(checkResult.getMessage())
-				.append("</p>\n");
+		html.append("    <h3>Judge Results</h3>\n");
+		if (judgment.checks() != null) {
+			for (Check check : judgment.checks()) {
+				String checkClass = check.passed() ? "check-pass" : "check-fail";
+				String checkStatus = check.passed() ? "✅ PASS" : "❌ FAIL";
+				html.append("    <p><span class=\"")
+					.append(checkClass)
+					.append("\">")
+					.append(checkStatus)
+					.append("</span> ")
+					.append(check.name())
+					.append(": ")
+					.append(check.message())
+					.append("</p>\n");
+			}
 		}
 		html.append("  </div>\n");
 

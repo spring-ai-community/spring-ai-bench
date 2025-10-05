@@ -159,9 +159,9 @@ class BenchAgentsIntegrationTest {
 
 		String jsonContent = Files.readString(runDir.resolve("report.json"));
 		assertThat(jsonContent).contains("\"success\" : true");
-		assertThat(jsonContent).contains("\"pass\" : true"); // Verification checks passed
+		assertThat(jsonContent).contains("\"passed\" : true"); // Judge checks passed
 
-		System.out.println("✅ SUCCESS: Verification system correctly validates agent output");
+		System.out.println("✅ SUCCESS: Judge system correctly validates agent output");
 	}
 
 }

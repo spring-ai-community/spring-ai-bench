@@ -21,19 +21,17 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
-import org.springaicommunity.bench.agents.verifier.VerificationResult;
+import org.springaicommunity.agents.judge.result.Judgment;
 
 /**
- * Generates minimal JSON reports for agent execution results. Uses the new verification
- * system data.
+ * Generates minimal JSON reports for agent execution results. Uses the judge framework.
  */
 public class MinimalJsonReportGenerator {
 
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 
 	public static Path generate(UUID runId, String caseId, boolean success, Instant startedAt, Instant finishedAt,
-			long durationMs, VerificationResult verificationResult, Path runRoot, Path workspace, String provider)
-			throws Exception {
+			long durationMs, Judgment judgment, Path runRoot, Path workspace, String provider) throws Exception {
 
 		// Create structured report data
 		Map<String, Object> report = new LinkedHashMap<>();
@@ -42,7 +40,7 @@ public class MinimalJsonReportGenerator {
 		report.put("runId", runId.toString());
 		report.put("caseId", caseId);
 		report.put("success", success);
-		report.put("reason", verificationResult != null ? verificationResult.reason() : "No verification");
+		report.put("reason", judgment != null ? judgment.reasoning() : "No judgment");
 		report.put("startedAt", startedAt.toString());
 		report.put("finishedAt", finishedAt.toString());
 		report.put("durationMs", durationMs);
@@ -51,11 +49,11 @@ public class MinimalJsonReportGenerator {
 		report.put("logPath", "run.log");
 		report.put("workspacePath", "../" + runRoot.getParent().relativize(runRoot.getParent()).toString());
 
-		// Verification checks
-		if (verificationResult != null && !verificationResult.checks().isEmpty()) {
-			var checks = verificationResult.checks()
+		// Judgment checks
+		if (judgment != null && !judgment.checks().isEmpty()) {
+			var checks = judgment.checks()
 				.stream()
-				.map(check -> Map.of("name", check.name(), "pass", check.pass(), "info", check.info()))
+				.map(check -> Map.of("name", check.name(), "passed", check.passed(), "message", check.message()))
 				.toList();
 			report.put("checks", checks);
 		}
@@ -85,14 +83,14 @@ public class MinimalJsonReportGenerator {
 
 	// Backward compatibility overload
 	public static Path generate(UUID runId, String caseId, boolean success, Instant startedAt, Instant finishedAt,
-			long durationMs, VerificationResult verificationResult, Path runRoot) throws Exception {
+			long durationMs, Judgment judgment, Path runRoot) throws Exception {
 
 		// Use default values for new parameters
 		Path workspace = runRoot.getParent().resolve("workspace-unknown");
 		String provider = "unknown";
 
-		return generate(runId, caseId, success, startedAt, finishedAt, durationMs, verificationResult, runRoot,
-				workspace, provider);
+		return generate(runId, caseId, success, startedAt, finishedAt, durationMs, judgment, runRoot, workspace,
+				provider);
 	}
 
 }

@@ -20,12 +20,12 @@ import java.time.Instant;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springaicommunity.agents.judge.result.Judgment;
 import org.springaicommunity.agents.model.AgentModel;
 import org.springaicommunity.agents.model.AgentResponse;
 import org.springaicommunity.bench.agents.report.IndexPageGenerator;
 import org.springaicommunity.bench.agents.report.MinimalHtmlReportGenerator;
 import org.springaicommunity.bench.agents.report.MinimalJsonReportGenerator;
-import org.springaicommunity.bench.agents.verifier.VerificationResult;
 import org.springframework.stereotype.Service;
 
 /** Service for generating benchmark reports including JSON, HTML, and index pages. */
@@ -42,25 +42,25 @@ public class ReportService {
 	 * @param startedAt the start time
 	 * @param finishedAt the finish time
 	 * @param durationMs the duration in milliseconds
-	 * @param verificationResult the verification result
+	 * @param judgment the judgment result
 	 * @param runRoot the run root directory
 	 * @param workspace the workspace directory
 	 * @param agentResponse the agent response
 	 * @param agentModel the agent model used
 	 */
 	public void generateReports(UUID runId, String caseId, boolean success, Instant startedAt, Instant finishedAt,
-			long durationMs, VerificationResult verificationResult, Path runRoot, Path workspace,
-			AgentResponse agentResponse, AgentModel agentModel) {
+			long durationMs, Judgment judgment, Path runRoot, Path workspace, AgentResponse agentResponse,
+			AgentModel agentModel) {
 		try {
 			String agentProviderInfo = getAgentProviderInfo(agentModel);
 
 			// Generate JSON report with enhanced provenance
-			MinimalJsonReportGenerator.generate(runId, caseId, success, startedAt, finishedAt, durationMs,
-					verificationResult, runRoot, workspace, agentProviderInfo);
+			MinimalJsonReportGenerator.generate(runId, caseId, success, startedAt, finishedAt, durationMs, judgment,
+					runRoot, workspace, agentProviderInfo);
 
 			// Generate HTML report with agent response metadata
-			MinimalHtmlReportGenerator.generate(runId, caseId, success, startedAt, finishedAt, durationMs,
-					verificationResult, runRoot, agentResponse);
+			MinimalHtmlReportGenerator.generate(runId, caseId, success, startedAt, finishedAt, durationMs, judgment,
+					runRoot, agentResponse);
 
 			// Update index page
 			Path reportsBaseDir = runRoot.getParent();

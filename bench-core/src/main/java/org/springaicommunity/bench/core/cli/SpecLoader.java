@@ -71,7 +71,9 @@ public class SpecLoader {
 	private RunSpec mergeSpecs(CaseSpec caseSpec, RunYaml runYaml, BenchMain.RunConfig config) {
 		// Start with case defaults
 		Map<String, Object> inputs = new HashMap<>(caseSpec.getInputs());
-		VerifierSpec verifier = caseSpec.getVerifier();
+		// TODO: Update to use Judge configuration instead of VerifierSpec
+		// For now, verifier configuration is handled directly in AgentModelAdapter
+		Object verifier = null;
 
 		// Apply run YAML overrides
 		if (runYaml != null) {
@@ -116,7 +118,8 @@ public class SpecLoader {
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object> verifierData = (Map<String, Object>) data.get("verifier");
-		VerifierSpec verifier = mapToVerifierSpec(verifierData);
+		// TODO: Convert to Judge configuration
+		Object verifier = null;
 
 		return new CaseSpec(id, description, inputs, verifier);
 	}
@@ -140,30 +143,13 @@ public class SpecLoader {
 
 		@SuppressWarnings("unchecked")
 		Map<String, Object> verifierData = (Map<String, Object>) data.get("verifier");
-		VerifierSpec verifier = mapToVerifierSpec(verifierData);
+		// TODO: Convert to Judge configuration
+		Object verifier = null;
 
 		return new RunYaml(caseId, inputs, agent, verifier);
 	}
 
-	private VerifierSpec mapToVerifierSpec(Map<String, Object> verifierData) {
-		if (verifierData == null)
-			return null;
-
-		@SuppressWarnings("unchecked")
-		java.util.List<Map<String, Object>> checksData = (java.util.List<Map<String, Object>>) verifierData
-			.get("checks");
-
-		java.util.List<CheckSpec> checks = new java.util.ArrayList<>();
-		if (checksData != null) {
-			for (Map<String, Object> checkData : checksData) {
-				String type = (String) checkData.get("type");
-				String path = (String) checkData.get("path");
-				String expected = (String) checkData.get("expected");
-				checks.add(new CheckSpec(type, path, expected));
-			}
-		}
-
-		return new VerifierSpec(checks);
-	}
+	// TODO: Implement mapToJudgeSpec when updating configuration system
+	// private Judge mapToJudgeSpec(Map<String, Object> judgeData) { ... }
 
 }

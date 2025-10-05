@@ -13,9 +13,9 @@ public class CaseSpec {
 
 	private final Map<String, Object> inputs;
 
-	private final VerifierSpec verifier;
+	private final Object verifier;
 
-	public CaseSpec(String id, String description, Map<String, Object> inputs, VerifierSpec verifier) {
+	public CaseSpec(String id, String description, Map<String, Object> inputs, Object verifier) {
 		this.id = id;
 		this.description = description;
 		this.inputs = inputs;
@@ -34,7 +34,7 @@ public class CaseSpec {
 		return inputs;
 	}
 
-	public VerifierSpec getVerifier() {
+	public Object getVerifier() {
 		return verifier;
 	}
 

@@ -16,7 +16,7 @@
 package org.springaicommunity.bench.agents.hello;
 
 import org.springaicommunity.bench.agents.runner.AgentModelAdapter;
-import org.springaicommunity.bench.agents.verifier.HelloWorldVerifier;
+import org.springaicommunity.bench.agents.judge.HelloWorldJudge;
 
 /**
  * Specific agent runner for the Hello World deterministic test agent. Extends the generic
@@ -25,7 +25,7 @@ import org.springaicommunity.bench.agents.verifier.HelloWorldVerifier;
 public class HelloWorldAgentRunner extends AgentModelAdapter {
 
 	public HelloWorldAgentRunner() {
-		super(new HelloWorldAgentModel(), new HelloWorldVerifier());
+		super(new HelloWorldAgentModel(), new HelloWorldJudge());
 	}
 
 }

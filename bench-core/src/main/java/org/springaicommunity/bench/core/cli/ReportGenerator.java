@@ -50,9 +50,9 @@ public class ReportGenerator {
 		List<Map<String, Object>> checks = new ArrayList<>();
 		for (BenchRunner.CheckResult checkResult : verificationResult.getCheckResults()) {
 			Map<String, Object> check = new HashMap<>();
-			check.put("name", checkResult.getName());
-			check.put("status", checkResult.isPass() ? "pass" : "fail");
-			check.put("details", checkResult.getDetails());
+			check.put("name", checkResult.getType());
+			check.put("status", checkResult.isPassed() ? "pass" : "fail");
+			check.put("details", checkResult.getMessage());
 			checks.add(check);
 		}
 		report.put("checks", checks);
@@ -144,16 +144,16 @@ public class ReportGenerator {
 		html.append("  <div class=\"card\">\n");
 		html.append("    <h3>Verification Results</h3>\n");
 		for (BenchRunner.CheckResult checkResult : verificationResult.getCheckResults()) {
-			String checkClass = checkResult.isPass() ? "check-pass" : "check-fail";
-			String checkStatus = checkResult.isPass() ? "✅ PASS" : "❌ FAIL";
+			String checkClass = checkResult.isPassed() ? "check-pass" : "check-fail";
+			String checkStatus = checkResult.isPassed() ? "✅ PASS" : "❌ FAIL";
 			html.append("    <p><span class=\"")
 				.append(checkClass)
 				.append("\">")
 				.append(checkStatus)
 				.append("</span> ")
-				.append(checkResult.getName())
+				.append(checkResult.getType())
 				.append(": ")
-				.append(checkResult.getDetails())
+				.append(checkResult.getMessage())
 				.append("</p>\n");
 		}
 		html.append("  </div>\n");

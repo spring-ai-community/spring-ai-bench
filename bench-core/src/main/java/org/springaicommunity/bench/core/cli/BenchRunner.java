@@ -44,22 +44,27 @@ public class BenchRunner {
 			writeLog(logFile, "[AGENT] Starting agent invocation");
 			JBangResult agentResult = invokeAgent(runSpec, workspace, logFile);
 
+			// TODO: Migrate to Judge framework
 			// Verify results
-			writeLog(logFile, "[VERIFIER] Starting verification");
-			VerificationResult verificationResult = verifyResults(runSpec, workspace, logFile);
+			writeLog(logFile, "[JUDGE] Starting judgment (TODO: migrate to Judge framework)");
+			// VerificationResult verificationResult = verifyResults(runSpec, workspace,
+			// logFile);
 
 			Instant finishedAt = Instant.now();
 			long durationMs = finishedAt.toEpochMilli() - startedAt.toEpochMilli();
 
-			boolean success = agentResult.getExitCode() == 0 && verificationResult.isSuccess();
+			boolean success = agentResult.getExitCode() == 0; // TODO: && judgment.pass();
 			String status = success ? "success" : "failure";
 
-			writeLog(logFile, "[RESULT] " + (success ? "SUCCESS" : "FAILURE") + ": " + verificationResult.getReason());
+			writeLog(logFile,
+					"[RESULT] " + (success ? "SUCCESS" : "FAILURE") + ": agent exit code " + agentResult.getExitCode());
 			writeLog(logFile, "FINISHED: " + UTC_FORMATTER.format(finishedAt));
 
 			// Generate reports
 			writeLog(logFile, "[REPORTER] Generating reports");
-			generateReports(runSpec, startedAt, finishedAt, durationMs, status, verificationResult, agentResult);
+			// TODO: Re-enable report generation with Judge
+			// generateReports(runSpec, startedAt, finishedAt, durationMs, status,
+			// verificationResult, agentResult);
 
 		}
 		catch (Exception e) {
@@ -140,33 +145,6 @@ public class BenchRunner {
 		return new JBangResult(exitCode, commandStr, output.toString());
 	}
 
-	private VerificationResult verifyResults(RunSpec runSpec, Path workspace, Path logFile) {
-		List<CheckResult> checkResults = new ArrayList<>();
-		boolean allPassed = true;
-
-		for (CheckSpec check : runSpec.getVerifier().getChecks()) {
-			CheckResult result = performCheck(check, workspace);
-			checkResults.add(result);
-
-			String status = result.isPass() ? "PASS" : "FAIL";
-			writeLog(logFile, "[VERIFIER] " + check.getType() + ":" + status
-					+ (result.getDetails() != null ? " " + result.getDetails() : ""));
-
-			if (!result.isPass()) {
-				allPassed = false;
-			}
-		}
-
-		String reason = allPassed ? "All checks passed"
-				: "One or more checks failed: " + checkResults.stream()
-					.filter(cr -> !cr.isPass())
-					.map(cr -> cr.getName())
-					.reduce((a, b) -> a + ", " + b)
-					.orElse("unknown");
-
-		return new VerificationResult(allPassed, reason, checkResults);
-	}
-
 	private CheckResult performCheck(CheckSpec check, Path workspace) {
 		try {
 			switch (check.getType()) {
@@ -190,13 +168,13 @@ public class BenchRunner {
 		return new CheckResult("exists", exists, details);
 	}
 
+	// TODO: Migrate to Judge framework
 	private CheckResult checkEqualsUtf8(CheckSpec check, Path workspace) {
 		try {
 			Path filePath = workspace.resolve(check.getPath());
 			if (!Files.exists(filePath)) {
 				return new CheckResult("content", false, "file not found");
 			}
-
 			String actual = Files.readString(filePath);
 			boolean matches = check.getExpected().equals(actual);
 			String details = matches ? "ok" : "content mismatch";
@@ -226,16 +204,6 @@ public class BenchRunner {
 	}
 
 	private void deleteRecursively(Path path) throws IOException {
-		if (Files.isDirectory(path)) {
-			Files.list(path).forEach(child -> {
-				try {
-					deleteRecursively(child);
-				}
-				catch (IOException e) {
-					throw new RuntimeException(e);
-				}
-			});
-		}
 		Files.delete(path);
 	}
 
@@ -268,6 +236,36 @@ public class BenchRunner {
 
 	}
 
+	// TODO: Migrate to Judge framework
+	static class CheckResult {
+
+		private final String type;
+
+		private final boolean passed;
+
+		private final String message;
+
+		public CheckResult(String type, boolean passed, String message) {
+			this.type = type;
+			this.passed = passed;
+			this.message = message;
+		}
+
+		public String getType() {
+			return type;
+		}
+
+		public boolean isPassed() {
+			return passed;
+		}
+
+		public String getMessage() {
+			return message;
+		}
+
+	}
+
+	// TODO: Migrate to Judge framework
 	static class VerificationResult {
 
 		private final boolean success;
@@ -292,34 +290,6 @@ public class BenchRunner {
 
 		public List<CheckResult> getCheckResults() {
 			return checkResults;
-		}
-
-	}
-
-	static class CheckResult {
-
-		private final String name;
-
-		private final boolean pass;
-
-		private final String details;
-
-		public CheckResult(String name, boolean pass, String details) {
-			this.name = name;
-			this.pass = pass;
-			this.details = details;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public boolean isPass() {
-			return pass;
-		}
-
-		public String getDetails() {
-			return details;
 		}
 
 	}

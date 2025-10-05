@@ -28,7 +28,7 @@ import org.springaicommunity.agents.gemini.GeminiAgentOptions;
 import org.springaicommunity.agents.geminisdk.GeminiClient;
 import org.springaicommunity.agents.geminisdk.transport.CLIOptions;
 import org.springaicommunity.bench.agents.runner.GeminiAgentRunner;
-import org.springaicommunity.bench.agents.verifier.HelloWorldVerifier;
+import org.springaicommunity.bench.agents.judge.HelloWorldJudge;
 import org.springaicommunity.bench.core.run.AgentResult;
 import org.springaicommunity.bench.core.spec.AgentSpec;
 
@@ -69,7 +69,7 @@ class GeminiIntegrationTest {
 
 		assumeTrue(agentModel.isAvailable(), "GeminiAgentModel not available");
 
-		agentRunner = new GeminiAgentRunner(agentModel, new HelloWorldVerifier());
+		agentRunner = new GeminiAgentRunner(agentModel, new HelloWorldJudge());
 	}
 
 	@AfterEach

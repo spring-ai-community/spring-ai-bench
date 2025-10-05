@@ -18,21 +18,21 @@ package org.springaicommunity.bench.agents.runner;
 import java.nio.file.Path;
 import java.time.Duration;
 import org.springaicommunity.agents.claude.ClaudeAgentModel;
-import org.springaicommunity.bench.agents.verifier.SuccessVerifier;
+import org.springaicommunity.agents.judge.Judge;
 import org.springaicommunity.bench.core.run.AgentResult;
 import org.springaicommunity.bench.core.run.AgentRunner;
 import org.springaicommunity.bench.core.spec.AgentSpec;
 
 /**
- * Agent runner implementation for Claude Code CLI agent. Wraps ClaudeCodeAgentModel with
- * the AgentModelAdapter to bridge between Spring AI Bench and Spring AI Agents APIs.
+ * Agent runner implementation for Claude Code CLI agent. Wraps ClaudeAgentModel with the
+ * AgentModelAdapter to bridge between Spring AI Bench and Spring AI Agents APIs.
  */
 public class ClaudeCodeAgentRunner implements AgentRunner {
 
 	private final AgentModelAdapter adapter;
 
-	public ClaudeCodeAgentRunner(ClaudeAgentModel model, SuccessVerifier verifier) {
-		this.adapter = new AgentModelAdapter(model, verifier);
+	public ClaudeCodeAgentRunner(ClaudeAgentModel model, Judge judge) {
+		this.adapter = new AgentModelAdapter(model, judge);
 	}
 
 	@Override

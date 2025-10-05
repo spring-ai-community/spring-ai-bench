@@ -27,7 +27,7 @@ import org.springaicommunity.agents.claude.ClaudeAgentModel;
 import org.springaicommunity.agents.claude.ClaudeAgentOptions;
 import org.springaicommunity.agents.claude.sdk.ClaudeAgentClient;
 import org.springaicommunity.bench.agents.runner.ClaudeCodeAgentRunner;
-import org.springaicommunity.bench.agents.verifier.HelloWorldVerifier;
+import org.springaicommunity.bench.agents.judge.HelloWorldJudge;
 import org.springaicommunity.bench.core.run.AgentResult;
 import org.springaicommunity.bench.core.spec.AgentSpec;
 
@@ -63,7 +63,7 @@ class ClaudeCodeReportGenerationTest {
 		assumeTrue(agentModel.isAvailable(), "ClaudeAgentModel not available");
 
 		// Create agent runner with HelloWorldVerifier
-		agentRunner = new ClaudeCodeAgentRunner(agentModel, new HelloWorldVerifier());
+		agentRunner = new ClaudeCodeAgentRunner(agentModel, new HelloWorldJudge());
 	}
 
 	@AfterEach
@@ -182,7 +182,7 @@ class ClaudeCodeReportGenerationTest {
 
 		String jsonContent = Files.readString(runDir.resolve("report.json"));
 		assertThat(jsonContent).contains("\"success\" : true");
-		assertThat(jsonContent).contains("\"pass\" : true"); // Verification checks passed
+		assertThat(jsonContent).contains("\"passed\" : true"); // Judge checks passed
 
 		System.out.println("✅ SUCCESS: Verification system works correctly with real Claude agent");
 	}

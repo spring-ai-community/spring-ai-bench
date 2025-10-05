@@ -17,7 +17,7 @@ package org.springaicommunity.bench.agents.runner;
 
 import org.springaicommunity.agents.claude.ClaudeAgentModel;
 import org.springaicommunity.agents.gemini.GeminiAgentModel;
-import org.springaicommunity.bench.agents.verifier.SuccessVerifier;
+import org.springaicommunity.agents.judge.Judge;
 import org.springaicommunity.bench.core.run.AgentRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -36,16 +36,16 @@ public class AgentProviderConfig {
 	@ConditionalOnClass(ClaudeAgentModel.class)
 	@ConditionalOnMissingBean(AgentRunner.class)
 	@ConditionalOnProperty(name = "spring.ai.bench.agent.provider", havingValue = "claude-code")
-	public AgentRunner claudeRunner(ClaudeAgentModel model, SuccessVerifier verifier) {
-		return new ClaudeCodeAgentRunner(model, verifier);
+	public AgentRunner claudeRunner(ClaudeAgentModel model, Judge judge) {
+		return new ClaudeCodeAgentRunner(model, judge);
 	}
 
 	@Bean
 	@ConditionalOnClass(GeminiAgentModel.class)
 	@ConditionalOnMissingBean(AgentRunner.class)
 	@ConditionalOnProperty(name = "spring.ai.bench.agent.provider", havingValue = "gemini")
-	public AgentRunner geminiRunner(GeminiAgentModel model, SuccessVerifier verifier) {
-		return new GeminiAgentRunner(model, verifier);
+	public AgentRunner geminiRunner(GeminiAgentModel model, Judge judge) {
+		return new GeminiAgentRunner(model, judge);
 	}
 
 }

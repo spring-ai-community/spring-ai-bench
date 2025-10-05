@@ -22,21 +22,20 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.springaicommunity.agents.judge.result.Check;
+import org.springaicommunity.agents.judge.result.Judgment;
 import org.springaicommunity.agents.model.AgentResponse;
-import org.springaicommunity.bench.agents.verifier.Check;
-import org.springaicommunity.bench.agents.verifier.VerificationResult;
 
 /**
- * Generates minimal HTML reports for agent execution results. Shows verification checks
- * with clear pass/fail indicators.
+ * Generates minimal HTML reports for agent execution results. Shows judgment checks with
+ * clear pass/fail indicators.
  */
 public class MinimalHtmlReportGenerator {
 
 	public static Path generate(UUID runId, String caseId, boolean success, Instant startedAt, Instant finishedAt,
-			long durationMs, VerificationResult verificationResult, Path runRoot, AgentResponse agentResponse)
-			throws Exception {
+			long durationMs, Judgment judgment, Path runRoot, AgentResponse agentResponse) throws Exception {
 
-		String checksHtml = generateChecksHtml(verificationResult);
+		String checksHtml = generateChecksHtml(judgment);
 		String artifactsHtml = generateArtifactsHtml(runRoot);
 		String logTailHtml = generateLogTailHtml(runRoot);
 		String agentDetailsHtml = generateAgentDetailsHtml(agentResponse);
@@ -193,9 +192,9 @@ public class MinimalHtmlReportGenerator {
 				DateTimeFormatter.ISO_INSTANT.format(startedAt), // started UTC
 				DateTimeFormatter.ISO_INSTANT.format(finishedAt), // finished UTC
 				durationMs, // duration
-				verificationResult != null ? verificationResult.reason() : "No verification", agentDetailsHtml, // agent
-																												// details
-																												// section
+				judgment != null ? judgment.reasoning() : "No judgment", agentDetailsHtml, // agent
+																							// details
+																							// section
 				checksHtml, // checks table
 				artifactsHtml, // artifacts section
 				logTailHtml, // log content
@@ -207,9 +206,9 @@ public class MinimalHtmlReportGenerator {
 		return htmlFile;
 	}
 
-	private static String generateChecksHtml(VerificationResult verificationResult) {
-		if (verificationResult == null || verificationResult.checks().isEmpty()) {
-			return "<p>No verification checks performed.</p>";
+	private static String generateChecksHtml(Judgment judgment) {
+		if (judgment == null || judgment.checks().isEmpty()) {
+			return "<p>No judgment checks performed.</p>";
 		}
 
 		StringBuilder html = new StringBuilder();
@@ -217,14 +216,14 @@ public class MinimalHtmlReportGenerator {
 		html.append("<thead><tr><th>Check</th><th>Status</th><th>Details</th></tr></thead>");
 		html.append("<tbody>");
 
-		for (Check check : verificationResult.checks()) {
-			String statusClass = check.pass() ? "check-pass" : "check-fail";
-			String statusText = check.pass() ? "✅ PASS" : "❌ FAIL";
+		for (Check check : judgment.checks()) {
+			String statusClass = check.passed() ? "check-pass" : "check-fail";
+			String statusText = check.passed() ? "✅ PASS" : "❌ FAIL";
 
 			html.append("<tr>");
 			html.append("<td>").append(check.name()).append("</td>");
 			html.append("<td class=\"").append(statusClass).append("\">").append(statusText).append("</td>");
-			html.append("<td>").append(check.info()).append("</td>");
+			html.append("<td>").append(check.message()).append("</td>");
 			html.append("</tr>");
 		}
 

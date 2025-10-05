@@ -28,8 +28,12 @@
       <artifactId>jackson-databind</artifactId>
     </dependency>
 
-
-
+    <!-- Judge Framework -->
+    <dependency>
+      <groupId>org.springaicommunity.agents</groupId>
+      <artifactId>spring-ai-agents-judge</artifactId>
+      <version>0.1.0-SNAPSHOT</version>
+    </dependency>
 
 
 

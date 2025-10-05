@@ -13,9 +13,9 @@ public class RunYaml {
 
 	private final AgentConfig agent;
 
-	private final VerifierSpec verifier;
+	private final Object verifier;
 
-	public RunYaml(String caseId, Map<String, Object> inputs, AgentConfig agent, VerifierSpec verifier) {
+	public RunYaml(String caseId, Map<String, Object> inputs, AgentConfig agent, Object verifier) {
 		this.caseId = caseId;
 		this.inputs = inputs;
 		this.agent = agent;
@@ -38,7 +38,7 @@ public class RunYaml {
 		return agent;
 	}
 
-	public VerifierSpec getVerifier() {
+	public Object getVerifier() {
 		return verifier;
 	}
 

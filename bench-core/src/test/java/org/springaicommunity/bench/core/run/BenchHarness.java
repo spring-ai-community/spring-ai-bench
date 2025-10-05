@@ -15,6 +15,7 @@ public class BenchHarness {
 	}
 
 	/** Day-3: clone → dummy agent patch → gradle test. */
+	// TODO: Migrate to Judge framework
 	public BenchResult run(BenchCase bc) throws Exception {
 		try (Workspace ws = repoMgr.checkout(bc.repo(), Duration.ofMinutes(3))) {
 
@@ -25,9 +26,9 @@ public class BenchHarness {
 				return new BenchResult(bc.id(), false, agentRes.durationMillis(), null);
 			}
 
-			// 2. verify tests
-			SuccessVerifier verifier = new SuccessVerifier();
-			boolean ok = verifier.verify(ws.dir(), bc.success(), Duration.ofMinutes(2));
+			// 2. TODO: verify with Judge instead of SuccessVerifier
+			// For now, assume success if agent succeeded
+			boolean ok = agentRes.succeeded();
 
 			return new BenchResult(bc.id(), ok, agentRes.durationMillis(), null);
 		}

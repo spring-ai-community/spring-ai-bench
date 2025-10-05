@@ -18,7 +18,7 @@ package org.springaicommunity.bench.agents.runner;
 import java.nio.file.Path;
 import java.time.Duration;
 import org.springaicommunity.agents.gemini.GeminiAgentModel;
-import org.springaicommunity.bench.agents.verifier.SuccessVerifier;
+import org.springaicommunity.agents.judge.Judge;
 import org.springaicommunity.bench.core.run.AgentResult;
 import org.springaicommunity.bench.core.run.AgentRunner;
 import org.springaicommunity.bench.core.spec.AgentSpec;
@@ -31,8 +31,8 @@ public class GeminiAgentRunner implements AgentRunner {
 
 	private final AgentModelAdapter adapter;
 
-	public GeminiAgentRunner(GeminiAgentModel model, SuccessVerifier verifier) {
-		this.adapter = new AgentModelAdapter(model, verifier);
+	public GeminiAgentRunner(GeminiAgentModel model, Judge judge) {
+		this.adapter = new AgentModelAdapter(model, judge);
 	}
 
 	@Override

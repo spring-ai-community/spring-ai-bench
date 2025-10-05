@@ -25,47 +25,50 @@ import java.util.UUID;
 import org.springaicommunity.agents.claude.ClaudeAgentModel;
 import org.springaicommunity.agents.gemini.GeminiAgentModel;
 import org.springaicommunity.agents.gemini.GeminiAgentOptions;
+import org.springaicommunity.agents.judge.Judge;
+import org.springaicommunity.agents.judge.context.AgentExecutionStatus;
+import org.springaicommunity.agents.judge.context.JudgmentContext;
+import org.springaicommunity.agents.judge.result.Judgment;
 import org.springaicommunity.agents.model.*;
 import org.springaicommunity.bench.agents.support.SimpleLogCapture;
-import org.springaicommunity.bench.agents.verifier.*;
 import org.springaicommunity.bench.core.run.AgentResult;
 import org.springaicommunity.bench.core.run.AgentRunner;
 import org.springaicommunity.bench.core.spec.AgentSpec;
 
 /**
- * Adapter that bridges between Spring AI Bench and Spring AI Agents APIs. Uses
- * verification system to determine success and captures detailed logs.
+ * Adapter that bridges between Spring AI Bench and Spring AI Agents APIs. Uses judge
+ * framework to determine success and captures detailed logs.
  */
 public class AgentModelAdapter implements AgentRunner {
 
 	private final AgentModel agentModel;
 
-	private final SuccessVerifier verifier;
+	private final Judge judge;
 
 	private final WorkspaceService workspaceService;
 
 	private final ReportService reportService;
 
-	public AgentModelAdapter(AgentModel agentModel, SuccessVerifier verifier, WorkspaceService workspaceService,
+	public AgentModelAdapter(AgentModel agentModel, Judge judge, WorkspaceService workspaceService,
 			ReportService reportService) {
 		this.agentModel = agentModel;
-		this.verifier = verifier;
+		this.judge = judge;
 		this.workspaceService = workspaceService;
 		this.reportService = reportService;
 	}
 
-	// Constructor for backward compatibility with verifier
-	public AgentModelAdapter(AgentModel agentModel, SuccessVerifier verifier) {
+	// Constructor with judge
+	public AgentModelAdapter(AgentModel agentModel, Judge judge) {
 		this.agentModel = agentModel;
-		this.verifier = verifier;
+		this.judge = judge;
 		this.workspaceService = new WorkspaceService();
 		this.reportService = new ReportService();
 	}
 
-	// Constructor for backward compatibility without verifier
+	// Constructor without judge
 	public AgentModelAdapter(AgentModel agentModel) {
 		this.agentModel = agentModel;
-		this.verifier = null; // Will use old fallback logic
+		this.judge = null; // Will use fallback logic
 		this.workspaceService = new WorkspaceService();
 		this.reportService = new ReportService();
 	}
@@ -113,27 +116,39 @@ public class AgentModelAdapter implements AgentRunner {
 						+ firstGen.getOutput().substring(0, Math.min(100, firstGen.getOutput().length())));
 			}
 
-			// Verify results
+			// Verify results using Judge
 			boolean success;
-			VerificationResult verificationResult = null;
+			Judgment judgment = null;
 
-			if (verifier != null) {
-				logger.log("VERIFIER", "Starting verification");
-				VerificationContext context = new VerificationContext(absoluteWorkspace.getParent(),
-						absoluteWorkspace.getFileName(), startedAt);
-				verificationResult = verifier.verify(context);
-				success = verificationResult.success();
+			if (judge != null) {
+				logger.log("JUDGE", "Starting judgment");
 
-				String checkSummary = verificationResult.checks()
+				// Create judgment context
+				Instant finishedAt = Instant.now();
+				Duration executionTime = Duration.between(startedAt, finishedAt);
+
+				JudgmentContext context = JudgmentContext.builder()
+					.goal(spec.prompt())
+					.workspace(absoluteWorkspace)
+					.executionTime(executionTime)
+					.startedAt(startedAt)
+					.agentOutput(!response.getResults().isEmpty() ? response.getResults().get(0).getOutput() : null)
+					.status(AgentExecutionStatus.SUCCESS)
+					.build();
+
+				judgment = judge.judge(context);
+				success = judgment.pass();
+
+				String checkSummary = judgment.checks()
 					.stream()
-					.map(check -> check.name() + ":" + (check.pass() ? "PASS" : "FAIL"))
+					.map(check -> check.name() + ":" + (check.passed() ? "PASS" : "FAIL"))
 					.reduce((a, b) -> a + " " + b)
 					.orElse("no checks");
-				logger.log("VERIFIER", checkSummary);
+				logger.log("JUDGE", checkSummary);
 			}
 			else {
 				success = isSuccessfulResponse(response);
-				logger.log("VERIFIER", "Using fallback heuristic: " + (success ? "PASS" : "FAIL"));
+				logger.log("JUDGE", "Using fallback heuristic: " + (success ? "PASS" : "FAIL"));
 			}
 
 			Instant finishedAt = Instant.now();
@@ -143,7 +158,7 @@ public class AgentModelAdapter implements AgentRunner {
 			}
 
 			logger.log("RESULT", (success ? "SUCCESS" : "FAILURE") + ": "
-					+ (verificationResult != null ? verificationResult.reason() : "heuristic check"));
+					+ (judgment != null ? judgment.reasoning() : "heuristic check"));
 			logger.log("FINAL", "Exit code: " + (success ? 0 : 1) + ", Duration: " + duration + "ms");
 
 			if (logger != null) {
@@ -151,8 +166,8 @@ public class AgentModelAdapter implements AgentRunner {
 			}
 
 			// Generate reports using service
-			reportService.generateReports(runId, spec.kind(), success, startedAt, finishedAt, duration,
-					verificationResult, runRoot, actualWorkspace, response, effectiveAgentModel);
+			reportService.generateReports(runId, spec.kind(), success, startedAt, finishedAt, duration, judgment,
+					runRoot, actualWorkspace, response, effectiveAgentModel);
 
 			return new AgentResult(success ? 0 : 1, runRoot.resolve("run.log"), duration);
 

@@ -20,12 +20,12 @@ public class RunSpec {
 
 	private final Map<String, Object> inputs;
 
-	private final VerifierSpec verifier;
+	private final Object verifier;
 
 	private final boolean force;
 
 	public RunSpec(String caseId, String description, String runId, Path outputDir, AgentConfig agent,
-			Map<String, Object> inputs, VerifierSpec verifier, boolean force) {
+			Map<String, Object> inputs, Object verifier, boolean force) {
 		this.caseId = caseId;
 		this.description = description;
 		this.runId = runId;
@@ -60,7 +60,7 @@ public class RunSpec {
 		return inputs;
 	}
 
-	public VerifierSpec getVerifier() {
+	public Object getVerifier() {
 		return verifier;
 	}
 

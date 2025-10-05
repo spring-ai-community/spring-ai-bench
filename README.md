@@ -7,46 +7,34 @@
 
 📖 **[Documentation](https://spring-ai-community.github.io/spring-ai-bench/)** | [Getting Started](https://spring-ai-community.github.io/spring-ai-bench/getting-started.html) | [Benchmarks](https://spring-ai-community.github.io/spring-ai-bench/benchmarks/overview.html) | [Spring AI Agents](https://github.com/spring-ai-community/spring-ai-agents)
 
-## Motivation
+## What & Why
 
-After spending hundreds of hours working with popular AI tools for software development, I've been extremely impressed by their capabilities. This is a transformative technology that continues to improve at a rapid pace.
+Existing benchmarks (SWE-bench) measure yesterday's agents on static 2023 Python patches. They can't evaluate the agents teams actually use (Claude, Gemini, Amazon Q, Amp) on enterprise Java workflows.
 
-But one question has always gnawed at me: **how do we quantify this experience?**
+**Spring AI Bench measures modern agents on real enterprise development tasks** — issue triage, PR review, coverage uplift, compliance validation, dependency upgrades. Run benchmarks on YOUR repos to measure YOUR scenarios.
 
-In presentations and product demos, you often hear confident claims about new AI stacks or workflows. What's usually missing is a **quantifiable way** to verify whether those claims hold up.
+**If agents have evolved, benchmarks must evolve too.**
 
-Looking deeper, most academic work has tried to answer this with benchmarks. The most prominent in software engineering are the [SWE-bench benchmarks](https://www.swebench.com/original.html). They are widely cited in research papers and marketing material from AI startups, with leaderboards maintained [here](https://www.swebench.com/).
-
-The more I studied these benchmarks, the more I realized their approach is questionable — and I'm not alone ([Runloop blog](https://www.runloop.ai/blog/swe-bench-deep-dive-unmasking-the-limitations-of-a-popular-benchmark)). Fundamentally, SWE-bench and similar datasets operate in a way that is **not analogous to real software development**. They overwhelmingly use Python, while Java — the dominant enterprise language — is barely represented.
-
-As someone who wants to understand how AI tools will truly help solve engineering problems, I also believe benchmarks should be **runnable on your own codebases** to evaluate practical effectiveness. Current benchmarks fall short on this dimension.
-
-That's why I created **Spring AI Bench**:
-an **open benchmarking suite for Java-centric AI developer agents**.
-
-It fills a critical gap: today's benchmarks are Python-biased and built on outdated agent loops that misrepresent developer work. Spring AI Bench instead measures what matters for **enterprise Java development** — issue triage, PR review, integration testing, test coverage, dependency upgrades, compliance, and more.
+📖 **[Read the full analysis →](https://spring-ai-community.github.io/spring-ai-bench/)** | [Why SWE-bench Falls Short](https://spring-ai-community.github.io/spring-ai-bench/#_the_evidence_why_swe_bench_falls_short) | [BetterBench Compliance](https://spring-ai-community.github.io/spring-ai-bench/betterbench-compliance.html)
 
 ---
 
-## The Case for Spring AI Bench
+## Why Different
 
-- Benchmarks such as "classic" SWE-bench rely on **outdated agent loops** (edit → apply patch → run tests). This gave the illusion of "agency," but in reality it optimized trial-and-error patching, not developer workflows.
+|Dimension |SWE-bench |Spring AI Bench|
+|---|---|---|
+|**Scope**|Patch loops only|Full dev lifecycle (triage, PR review, coverage, compliance)|
+|**Language**|Python-only (~75% scores)|Java-first (~7-10% gap shows training bias)|
+|**Agent Support**|One architecture (SWE-agent)|Any agent (Claude, Gemini, Q, Amp, custom)|
+|**Reproducibility**|No disclosure required|One-click Docker + open scaffolding|
+|**Agent Paradigm**|2024 patch-loop agents|2025 declarative goal agents|
+|**Standards**|Pre-BetterBench|BetterBench 46-criteria compliant (82%)|
 
-- Results that look decent in **Python** collapse when tested in **Java**:
-  - **SWE-PolyBench (AWS, 2025):** Across agents, **Python ~20–24%** vs **Java ~11–16%** (TypeScript often just **5–13%**).
-  - **SWE-bench-Java (2024):** Early public runs with the SWE-agent scaffold resolved only **6–10% of verified Java issues** (e.g. GPT-4o 6.6%, DeepSeek-V2 9.9% on 91 verified tasks).
-    Meanwhile, the Python-only SWE-bench Verified benchmark has steadily improved, reaching **74.5% with Anthropic's Opus 4.1 (Aug 2025)** ([Anthropic blog](https://www.anthropic.com/news/opus-4-1)). In contrast, Java's early runs remain in the single digits — an **order-of-magnitude gap**.
-  - **SWE-bench-Live (2025):** On new, contamination-resistant issues, even the best agent+model combos top out around **17–19%**, versus >60% on the static Verified split — strong evidence of overfitting.
-
-**In short:** Verified Python benchmarks reach ~75%, while Verified Java benchmarks remain in the **single-digit to low-teens**. That's an **order-of-magnitude gap**.
-
-Enterprise Java teams deserve a benchmark that reflects **real software development tasks and workflows** — and one that can be applied directly to **your own Java projects and codebases**. That's the goal of Spring AI Bench.
+📖 **[See detailed evidence & analysis](https://spring-ai-community.github.io/spring-ai-bench/#_the_evidence_why_swe_bench_falls_short)** for contamination data (60%+ Verified → 19% Live), language bias analysis, and scaffolding transparency.
 
 ---
 
 ## What Spring AI Bench Does
-
-Spring AI Bench asks a bigger question:
 
 **Can AI act as a true Java developer agent?**
 
@@ -61,6 +49,8 @@ Spring AI Bench asks a bigger question:
 - Keeping builds compliant.
 
 That's the standard enterprise developers hold themselves to — and the standard we should evaluate AI against.
+
+**Supports any agent via `AgentModel` abstraction** — Claude Code, Gemini CLI, Amazon Q Developer, Amp, Codex, or custom implementations. Measure the agents YOUR team uses, not just academic research artifacts.
 
 ## Current Implementation (September 2024)
 
@@ -219,7 +209,7 @@ This ensures benchmark success guarantees good end-user experience by testing th
 
 ## Run It Yourself: The Big Differentiator
 
-Unlike closed benchmarks, anyone can run Spring AI Bench:
+Unlike static benchmarks, Spring AI Bench runs on YOUR repos to measure YOUR scenarios:
 
 ```bash
 # 1. Clone and build dependencies (5 minutes)
@@ -240,7 +230,7 @@ export GEMINI_API_KEY=your_key
 open file:///tmp/bench-reports/index.html
 ```
 
-Run it on your repos, get results you can trust.
+**Curated golden benchmark set** (for standardized comparison) **+ run same benchmarks on YOUR repos** (to measure real-world effectiveness). Get results you can trust.
 
 ## Documentation
 

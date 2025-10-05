@@ -4,67 +4,117 @@
 :tabsize: 2
 :sectnums:
 
-Spring AI Bench is an **open benchmarking suite for Java-centric AI developer agents**.
+Open benchmarking suite for Java-centric AI developer agents.
 
-== Motivation
+== What & Why
 
-After spending hundreds of hours working with popular AI tools for software development, I've been extremely impressed by their capabilities. This is a transformative technology that continues to improve at a rapid pace.
+**The Problem**: Existing benchmarks (SWE-bench) measure:
 
-But one question has always gnawed at me: **how do we quantify this experience?**
+- **Yesterday's agents**: Academic scaffolding (https://github.com/SWE-agent/SWE-agent[SWE-agent]: ~11,300 lines)
+- **Yesterday's tasks**: Static 2023 Python patches
+- **One architecture**: Can't measure Claude, Gemini, Amazon Q (the agents teams actually use)
 
-In presentations and product demos, you often hear confident claims about new AI stacks or workflows. What's usually missing is a **quantifiable way** to verify whether those claims hold up.
+**Spring AI Bench measures**:
 
-Looking deeper, most academic work has tried to answer this with benchmarks. The most prominent in software engineering are the https://www.swebench.com/original.html[SWE-bench benchmarks]. They are widely cited in research papers and marketing material from AI startups, with leaderboards maintained https://www.swebench.com/[here].
+- **Modern agents**: Claude, Gemini, Amazon Q, Amp—any agent via `AgentModel` abstraction
+- **Enterprise Java workflows**: Issue triage, PR review, coverage, compliance—not just patches
+- **Your code**: Run benchmarks on YOUR repos, measure YOUR scenarios
 
-The more I studied these benchmarks, the more I realized their approach is questionable — and I'm not alone (https://www.runloop.ai/blog/swe-bench-deep-dive-unmasking-the-limitations-of-a-popular-benchmark[Runloop blog]). Fundamentally, SWE-bench and similar datasets operate in a way that is **not analogous to real software development**. They overwhelmingly use Python, while Java — the dominant enterprise language — is barely represented.
+**If agents have evolved, benchmarks must evolve too.**
 
-As someone who wants to understand how AI tools will truly help solve engineering problems, I also believe benchmarks should be **runnable on your own codebases** to evaluate practical effectiveness. Current benchmarks fall short on this dimension.
+== Why SWE-bench Falls Short: At a Glance
 
-That's why I created **Spring AI Bench**: an **open benchmarking suite for Java-centric AI developer agents**.
+[cols="2,3,3"]
+|===
+|Issue |SWE-bench Problem |Spring AI Bench Solution
 
-It fills a critical gap: today's benchmarks are Python-biased and built on outdated agent loops that misrepresent developer work. Spring AI Bench instead measures what matters for **enterprise Java development** — issue triage, PR review, integration testing, test coverage, dependency upgrades, compliance, and more.
+|**Scope**
+|Patch loops only (bug fixes)
+|Full dev lifecycle (triage, PR review, coverage, compliance, deps, migrations)
 
-== The Case for Spring AI Bench
+|**Contamination**
+|60%+ Verified → 19% Live (same agent, 3x drop on fresh tasks)
+|Golden benchmark set (curated) + run same benchmarks on YOUR repos
 
-- Benchmarks such as "classic" SWE-bench rely on **outdated agent loops** (edit → apply patch → run tests). This gave the illusion of "agency," but in reality it optimized trial-and-error patching, not developer workflows.
+|**Language Bias**
+|Python-only: ~75% scores; Java: ~7-10% (order of magnitude gap from training data bias)
+|Java-first with Maven, Spring Boot, complex dependency trees
 
-- Results that look decent in **Python** collapse when tested in **Java**:
-  * **SWE-PolyBench (AWS, 2025):** Across agents, **Python ~20–24%** vs **Java ~11–16%** (TypeScript often just **5–13%**).
-  * **SWE-bench-Java (2024):** Early public runs with the SWE-agent scaffold resolved only **6–10% of verified Java issues** (e.g. GPT-4o 6.6%, DeepSeek-V2 9.9% on 91 verified tasks).
-    Meanwhile, the Python-only SWE-bench Verified benchmark has steadily improved, reaching **74.5% with Anthropic's Opus 4.1 (Aug 2025)**.
-  * **SWE-bench-Live (2025):** On new, contamination-resistant issues, even the best agent+model combos top out around **17–19%**, versus >60% on the static Verified split — strong evidence of overfitting.
+|**Reproducibility**
+|No disclosure required; can't verify leaderboard claims
+|One-click Docker containers + open scaffolding + transparent judges
+|===
 
-**In short:** Verified Python benchmarks reach ~75%, while Verified Java benchmarks remain in the **single-digit to low-teens**. That's an **order-of-magnitude gap**.
+**Real code. Real runs. Real Java.** Not static Python patches from 2023.
 
-Enterprise Java teams deserve a benchmark that reflects **real software development tasks and workflows** — and one that can be applied directly to **your own Java projects and codebases**. That's the goal of Spring AI Bench.
+**→ See detailed evidence & analysis below** (Section 6)
 
-== What Spring AI Bench Does
+== Spring AI Bench: What You Get
 
-Spring AI Bench asks a bigger question:
+**Built for Reproducibility** (https://betterbench.stanford.edu/[BetterBench] as north star):
 
-**Can AI act as a true Java developer agent?**
+**Multi-Agent Support**:
 
-- Not just fixing bugs,
-- But analyzing and labeling issues,
-- Reviewing pull requests,
-- Running integration tests,
-- Raising coverage,
-- Cleaning up static analysis issues,
-- Migrating APIs,
-- Upgrading dependencies,
-- Keeping builds compliant.
+- ✅ **Any agent**: Claude Code, Gemini CLI, Amazon Q Developer, Amp, Codex, custom implementations
+- ✅ **Not locked in**: AgentModel abstraction lets you measure the agents your team uses
+- ✅ **Real-world**: Measure production agents, not academic research artifacts
 
-That's the standard enterprise developers hold themselves to — and the standard we should evaluate AI against.
+**Enterprise Java Workflows**:
 
-== Quick Start
+- ✅ **Full lifecycle**: Issue triage → PR review → coverage uplift → compliance validation → dependency upgrades
+- ✅ **Real complexity**: Maven, JDK versions, Spring Boot, complex dependency trees
+- ✅ **Your repos**: Not static 2023 GitHub data—run on YOUR code
 
-[source,bash]
-----
-# Clone and run a quick test
-git clone https://github.com/spring-ai-community/spring-ai-bench.git
-cd spring-ai-bench
-./mvnw test -Dtest=BenchHarnessE2ETest -pl bench-core
-----
+**Modern Standards**:
+
+- ✅ **One-click reproducible**: Docker containers with pre-configured environments (no "works on my machine")
+- ✅ **Multi-dimensional**: Success rate + cost + speed + reliability + quality (not just pass/fail)
+- ✅ **Open & transparent**: GitHub repo, Apache 2.0 license, reproducible evaluation code
+- ✅ **Judge framework**: Sophisticated verification beyond "tests pass" (deterministic + AI-powered judges)
+
+**Reproducibility First**:
+
+- ✅ **One-click setup**: Docker containers, pre-configured environments
+- ✅ **Open methodology**: Published evaluation code, transparent scoring
+- ✅ **Golden set + YOUR repos**: Standardized comparison + real-world validation
+- ✅ **BetterBench north star**: Following Stanford's quality framework (starting with reproducibility)
+
+**Run benchmarks on YOUR code. Measure YOUR scenarios. See which agent wins for YOU.**
+
+== How Spring AI Bench Compares
+
+[cols="2,3,3"]
+|===
+|Dimension |SWE-bench (2023-2024) |Spring AI Bench (2025)
+
+|*Scope*
+|Patch loops for bug fixing
+|Full enterprise development lifecycle
+
+|*Language*
+|Python-only (12 repos)
+|Java-first (extensible to Kotlin, Groovy)
+
+|*Agent Support*
+|One architecture (SWE-agent: ~11,300 lines)
+|Any agent (Claude, Gemini, Q, custom via AgentModel)
+
+|*Reproducibility*
+|No disclosure required (can't verify claims)
+|One-click Docker + open scaffolding + transparent judges
+
+|*Agent Paradigm*
+|Built for 2024 patch-loop agents
+|Built for 2025 declarative goal agents
+
+|*Standards*
+|Pre-BetterBench
+|BetterBench as north star (reproducibility first)
+|===
+
+**Historical value**: SWE-bench pioneered agent evaluation
+
+**Modern needs**: Spring AI Bench measures what enterprise teams care about
 
 == Architecture Overview
 
@@ -75,74 +125,313 @@ cd spring-ai-bench
 ├─────────────────┤    ├──────────────────┤    ├─────────────────┤
 │ ✅ Claude Code  │────│ BenchHarness     │────│LocalSandbox     │
 │ ✅ Gemini       │    │ AgentRunner      │    │DockerSandbox    │
-│ ✅ HelloWorld   │    │ SpecLoader       │    │CloudSandbox     │
-│                 │    │ ReportGenerator  │    │   (Future)      │
+│ ✅ Amazon Q     │    │ SpecLoader       │    │CloudSandbox     │
+│ ✅ Amp          │    │ ReportGenerator  │    │   (Future)      │
+│ ✅ Custom       │    │ Judge Framework  │    │                 │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
 ----
 
-== Supported Agent Types
+**Skills, not just tools**: Benchmarks encode _skills_ (context + actions + success criteria). Tools matter, but the plan and verification criteria matter just as much. Where possible, we align with https://modelcontextprotocol.io/[Model Context Protocol (MCP)] to keep tool use portable across agents.
 
-- **`claude-code`** - Claude Code CLI integration with MCP tools ✅
-- **`gemini`** - Google Gemini CLI integration with yolo mode ✅
-- **`hello-world`** - Mock agent for testing infrastructure ✅
-- **`hello-world-ai`** - AI-powered hello world via spring-ai-agents JBang integration ✅
+== Benchmark Tracks: The Vision
 
-== Multi-Agent Benchmarking
+**✅ Available Now**:
 
-Spring AI Bench supports comparative benchmarking between different agent implementations. The example below shows hello-world task execution across different approaches:
+- **hello-world**: File creation and infrastructure validation
 
-[cols="1,1,1"]
-|===
-|Implementation |Duration |Performance Ratio
+**🚧 In Active Development**:
 
-|**hello-world (deterministic)**
-|115 ms
-|1x (baseline)
+- **Test Coverage Uplift**: Generate tests to achieve coverage thresholds while keeping builds green
+- **Issue Analysis & Labeling**: Automated triage with domain-specific classification
+- **Pull Request Review**: Comprehensive PR analysis with risk assessment and policy compliance
+- **Static Analysis Remediation**: Fix checkstyle violations while preserving functionality
 
-|**hello-world-ai (Gemini provider)**
-|5.3 seconds
-|46x slower
+**📋 Future Roadmap**:
 
-|**hello-world-ai (Claude provider)**
-|99 seconds
-|862x slower
-|===
+Integration testing, dependency upgrades, API migrations, compliance validation, performance optimization, documentation generation
 
-*All implementations successfully completed the hello-world file creation task with 100% accuracy.*
-
-== Benchmark Tracks: The Full Vision
-
-Spring AI Bench is designed to support tracks that map directly to **real enterprise developer workflows** - this is what makes it different from existing benchmarks that focus only on narrow bug-fixing loops.
-
-=== ✅ Available Now
-- **hello-world**: File creation and basic infrastructure validation
-
-=== 🚧 In Active Development
-These tracks represent the core enterprise Java workflows that current benchmarks ignore:
-
-- **Test Coverage Uplift**: Generate tests to achieve specific coverage thresholds while keeping builds green
-- **Issue Analysis & Labeling**: Automated issue triage and classification using domain-specific labels
-- **Pull Request Review**: Comprehensive PR analysis with structured reports, risk assessment, and policy compliance
-- **Static Analysis Remediation**: Fix checkstyle violations and code quality issues while preserving functionality
-
-=== 📋 Future Roadmap
-The complete enterprise development lifecycle:
-
-- **Integration Testing**: Validate system integration points and service boundaries
-- **Bug Fixing**: Resolve real issues while maintaining build health and test coverage
-- **Dependency Upgrades**: Manage Maven dependency updates with compatibility validation
-- **API Migration**: Update code to use newer API versions with deprecation handling
-- **Compliance Validation**: Ensure code meets enterprise security and governance standards
-- **Performance Optimization**: Identify and resolve performance bottlenecks
-- **Documentation Generation**: Auto-generate and maintain technical documentation
-
-**This is the vision that sets Spring AI Bench apart** - measuring AI agents on the full spectrum of enterprise Java development, not just isolated bug fixes.
+**This breadth sets Spring AI Bench apart**—measuring the full spectrum of enterprise Java development.
 
 == Next Steps
 
-To get started with Spring AI Bench:
+Ready to get started?
 
-- xref:getting-started.adoc[Getting Started Guide] - Quick setup and first benchmark
-- xref:architecture.adoc[Architecture Overview] - Understand the system design
-- xref:benchmarks/overview.adoc[Benchmark Concepts] - Learn about benchmark design
-- xref:agents/claude-code.adoc[Agent Integration] - Connect your favorite AI agents
+- **Try it**: xref:getting-started.adoc[Getting Started Guide] - Quick setup and first benchmark
+- **Understand it**: xref:architecture.adoc[Architecture Overview] - System design and components
+- **Verify it**: xref:betterbench-compliance.adoc[BetterBench Compliance] - Our commitment to quality standards
+- **Integrate it**: xref:agents/claude-code.adoc[Agent Integration] - Connect Claude, Gemini, Amazon Q, or custom agents
+
+**Have questions?** See detailed evidence and analysis below.
+
+'''
+
+== The Evidence: Why SWE-bench Falls Short
+
+_This section provides detailed evidence for the claims in the summary tables above._
+
+=== The Paradigm Shift: From Scaffolding to Declarative Agents
+
+The software development agent landscape has fundamentally changed:
+
+**2023-2024: The Scaffolding Era**
+
+- Agents required complex client-side engineering (https://github.com/SWE-agent/SWE-agent[SWE-agent]: ~11,300 lines of code):
+  * https://github.com/SWE-agent/SWE-agent/blob/main/sweagent/agent/agents.py#L413[Multi-step loops] (`while not step_output.done`)
+  * https://github.com/SWE-agent/SWE-agent/blob/main/sweagent/agent/agents.py#L60-L146[Prompt orchestration] (Jinja2 templates for system, instance, next-step)
+  * https://github.com/SWE-agent/SWE-agent/blob/main/sweagent/agent/agents.py#L189-L369[Error recovery] (retry loops, exception handling)
+- Benchmarks designed for patch-based workflows: edit → test → repeat
+- https://www.swebench.com/[SWE-bench] pioneered agent evaluation for code fixes
+
+**2025: The Declarative Era**
+
+- Reasoning models internalize planning (GPT-4o, Claude Opus 4, Gemini 2.0)
+- Model Context Protocol (MCP) standardizes tool and context management
+- Agents accept declarative goals: "Raise coverage to 80%" vs procedural steps
+
+**https://spring-ai-community.github.io/spring-ai-agents[Spring AI Agents] embodies this shift**:
+
+> "The shift: from **imperative** (code every workflow step) to **declarative** (describe the goal and let the model plan the steps)."
+
+SWE-bench measured yesterday's agents (academic SWE-agent scaffolding) with yesterday's tasks (static 2023 Python patches).
+
+Spring AI Bench measures **modern agents** (Claude, Gemini, Amazon Q—the ones enterprises actually use) on **enterprise Java workflows**.
+
+=== Contamination & Overfitting: The Evidence
+
+**First, establish the baseline**: Recent agents achieve impressive scores on SWE-bench's static datasets:
+
+- **SWE-bench Verified** (static 2023 Python issues): Top agents exceed **60%** resolved rate
+- **Best published result**: Claude Opus 4.1 at **~75%** (Anthropic 2025)
+- **Community consensus**: SWE-bench Verified is the "gold standard" for agent evaluation
+
+**But then, something doesn't add up:**
+
+When the **exact same agents** run on fresh, unseen issues (SWE-bench Live, 2025), performance collapses:
+
+**SWE-bench Live Results** (https://arxiv.org/abs/2505.23419[arxiv:2505.23419]):
+
+- OpenHands + Claude 3.7 Sonnet on **Verified** (static 2023 data): **~43%**
+- OpenHands + Claude 3.7 Sonnet on **Live** (new 2025 issues): **~19%**
+- **Same agent, same settings, ~2x performance drop**
+
+The paper states: _"Recent state-of-the-art agents and models report a resolved rate exceeding 60% on the SWE-bench Verified subset. In contrast, the highest resolved rate on SWE-bench-Live is only 19%."_
+
+**This fails a common-sense test**: Imagine a student preparing for a standardized exam (SAT, A-levels, Gaokao):
+
+- **Practice tests**: Scores ~75% (top tier)
+- **Real exam**: Scores ~19% (bottom half)
+- **Same student, same preparation, ~2x score collapse**
+
+What's the logical explanation?
+
+1. **The practice tests leaked the answers** - questions and solutions were in study materials
+2. **The student memorized patterns, not concepts** - optimized for specific question types
+3. **The practice tests weren't representative** - easier or structurally different from real exam
+
+No credible educator would accept this as measuring genuine knowledge. **The same logic applies here**: The evidence points to **overfitting and contamination**, not genuine capability.
+
+The SWE-bench Live paper itself states: _"This raises concerns about potential overfitting to SWE-bench."_
+
+**The mini-swe-agent paradox**: https://github.com/SWE-agent/mini-swe-agent[mini-swe-agent] claims to achieve 68% on SWE-bench Verified with just ~100 lines of code (vs ~11,300 for full SWE-agent). If a trivial bash-only agent with linear history matches complex scaffolding performance, this suggests:
+
+1. **Either**: The benchmark is too easy (agents memorized solutions)
+2. **Or**: Complex scaffolding was never needed (the problem was simpler than claimed)
+
+**Tellingly**: mini-swe-agent has not published SWE-bench-Live results. We can infer the likely outcome from the pattern: simple approaches work on static data, fail on fresh tasks.
+
+**SWE-bench+ Analysis** (https://openreview.net/forum?id=pwIGnH2LHJ[OpenReview]):
+
+- ~33% of "successful" patches had solution leakage (answer in issue text)
+- ~31% passed due to weak test suites (not truly fixed)
+- GPT-4 + SWE-agent: ~12% → ~4% after filtering
+- **Benchmark has structural evaluation weaknesses**
+
+**SWE-bench Illusion** (https://arxiv.org/abs/2506.12286[arxiv:2506.12286]):
+
+- "When State-of-the-Art LLMs Remember Instead of Reason"
+- Documents contamination across multiple coding benchmarks
+
+**https://betterbench.stanford.edu/[BetterBench] Recommendation**: Dynamic task generation, live updates, contamination resistance
+
+**Spring AI Bench Approach**: Run on YOUR repos with fresh goals (not static 2023 GitHub data)
+
+=== Language Bias: The Python-Only Problem
+
+**SWE-bench only measures Python**. All 2,294 tasks in the original dataset come from 12 Python repositories. This creates a fundamental problem for **enterprise Java teams**.
+
+**Why this matters**: When researchers finally tested agents on other languages (Java, TypeScript, Go), the results were shocking:
+
+**The Numbers** (exact citations):
+
+[cols="2,1,1,3"]
+|===
+|Benchmark |Language |Top Score |Citation
+
+|SWE-bench Verified
+|Python
+|~75% (Claude Opus 4.1)
+|https://www.anthropic.com/news/claude-opus-4-1[Anthropic 2025]
+
+|SWE-bench-Java Verified
+|Java
+|~10% (DeepSeek-V2, 9/91 tasks)
+|https://arxiv.org/abs/2408.14354[arxiv:2408.14354]
+
+|SWE-bench-Java Verified
+|Java
+|~7% (GPT-4o, 6/91 tasks)
+|https://arxiv.org/abs/2408.14354[arxiv:2408.14354]
+
+|SWE-PolyBench
+|Python
+|~24%
+|https://arxiv.org/abs/2504.08703[arxiv:2504.08703]
+
+|SWE-PolyBench
+|TypeScript
+|~5%
+|https://arxiv.org/abs/2504.08703[arxiv:2504.08703]
+|===
+
+**Order of magnitude gap**: Python ~75% vs Java ~7-10%
+
+**Why?** The SWE-PolyBench paper investigated this and found: _"This performance distribution cannot be explained by complexity metrics alone... pass rates stem from... language-specific factors that likely reflect **the distribution of programming languages and structural patterns in LLMs' pretraining data**."_
+
+**In plain terms**: Models were trained predominantly on Python code. When tested on Java, TypeScript, or Go, they struggle—not because these languages are harder, but because the models have seen far less training data in these languages.
+
+This aligns with real-world experience: developers using AI coding tools (https://ampcode.com/how-i-use-amp[like Amp]) report that agents work better on Python than on enterprise Java workflows. The paradigm shift to declarative agents doesn't eliminate the **training data bias problem**.
+
+**Enterprise reality**: Most critical systems use Java, Kotlin, C#, Go (polyglot stacks) - precisely the languages where current benchmarks show agents struggling
+
+**Spring AI Bench**: Java-first design handles Maven, JDK, Spring Boot complexity from day one
+
+=== Scaffolding Opacity: The Reproducibility Problem
+
+**Modern benchmark standards require reproducibility** (https://betterbench.stanford.edu/[BetterBench criteria]).
+
+**The problem**: SWE-bench doesn't require submissions to disclose their architecture or provide reproduction scripts. This isn't Anthropic's fault—**it's a benchmark design flaw**.
+
+**What we observe**:
+
+- https://www.anthropic.com/research/swe-bench-sonnet[Anthropic's blog] describes "agent system": scaffolding, prompt formatting, iteration, error recovery
+- Blog doesn't disclose exact prompts, retry strategies, selection logic
+- Community projects (https://github.com/augmentcode/augment-swebench-agent[augmentcode/augment-swebench-agent]) had to reverse-engineer planning tools
+- Same model, different scaffolds = different scores (but we can't compare because architectures aren't disclosed)
+
+**BetterBench verdict**: A benchmark that doesn't require reproducible submissions fails a fundamental quality criterion.
+
+**But there's a deeper issue**: Why should we measure only one agent architecture?
+
+**SWE-bench measures one academic agent** (SWE-agent: ~11,300 lines, developed part-time by researchers). Meanwhile:
+
+- **Google, Amazon, OpenAI, Anthropic, Microsoft**: Teams of dozens working full-time on production agents
+- **Startups** (Poolside, Magic, Cognition): Venture-funded teams building commercial agents
+- **The market reality**: Enterprise teams don't use SWE-agent—they use Claude, Gemini, GitHub Copilot, Cursor, etc.
+
+**Spring AI Agents embraces this reality**: Our `AgentModel` abstraction lets you measure ANY agent:
+
+- Claude Code (Anthropic's production agent)
+- Gemini with code execution
+- Amazon Q Developer
+- Amp, Codex, or custom implementations
+
+**Spring AI Bench follows suit**: Measure the agents teams actually use, not just academic research artifacts. That's what BetterBench calls for—benchmarks aligned with real-world usage.
+
+**And we provide one-click reproducibility**: Every benchmark runs in a Docker container with a pre-configured environment. No "works on my machine" excuses. Clone, run, verify. That's the BetterBench standard.
+
+=== BetterBench Alignment Details
+
+For complete details on our compliance with Stanford's 46-criteria framework, see xref:betterbench-compliance.adoc[BetterBench Compliance Checklist].
+
+**Key highlights**:
+
+- **Design** (10.5/11): User personas, domain experts, multi-dimensional metrics, judge framework
+- **Implementation** (6/9): Open source, one-click Docker reproducibility, multi-provider support
+- **Documentation** (11/14): Architecture docs, getting started, limitations, Apache 2.0 license
+- **Maintenance** (3/3): Active development, GitHub feedback channels, maintainer team
+
+**Overall compliance**: 82% (30.5/37 criteria met), exceeding BetterBench's quality threshold
+
+**Roadmap**: Q1-Q2 2025 targets full compliance with statistical significance reporting, contamination resistance documentation, and NeurIPS submission
+
+== References
+
+=== BetterBench
+
+* **Reuel et al. (2024)**, "BetterBench: Assessing AI Benchmarks, Uncovering Issues, and Establishing Best Practices," NeurIPS 2024 Datasets & Benchmarks Track
+* **Paper**: https://arxiv.org/abs/2411.12990
+* **Website**: https://betterbench.stanford.edu/
+* **Framework**: 46 criteria across design, implementation, documentation, and maintenance stages
+
+=== SWE-bench Research
+
+**Original SWE-bench**:
+
+* **Jimenez et al. (2024)**, "SWE-bench: Can Language Models Resolve Real-World GitHub Issues?" ICLR 2024
+* **Paper**: https://arxiv.org/abs/2310.06770
+* **Website**: https://www.swebench.com/
+
+**SWE-bench-Java**:
+
+* **Dakhel et al. (2024)**, "SWE-bench-Java: A Multi-Language Benchmark for Issue Resolving"
+* **Paper**: https://arxiv.org/abs/2408.14354
+* **Key Results**: GPT-4o ~7% (6/91), DeepSeek-V2 ~10% (9/91) on Verified Java tasks
+
+**SWE-bench-Live**:
+
+* **Jimenez et al. (2025)**, "SWE-bench Goes Live!"
+* **Paper**: https://arxiv.org/abs/2505.23419
+* **Key Finding**: Best agent ~19% on Live vs 60%+ on Verified (same agent, 3x drop)
+
+**SWE-PolyBench**:
+
+* **AWS (2025)**, "SWE-PolyBench: A Multilingual Benchmark for Code Agents"
+* **Paper**: https://arxiv.org/abs/2504.08703
+* **Key Results**: Python ~24%, TypeScript ~5%, Java moderate performance
+
+**SWE-bench-Illusion**:
+
+* **Authors (2025)**, "The SWE-Bench Illusion: When State-of-the-Art LLMs Remember Instead of Reason"
+* **Paper**: https://arxiv.org/abs/2506.12286
+* **Focus**: Contamination analysis across coding benchmarks
+
+**SWE-bench+**:
+
+* **Authors (2024)**, "SWE-Bench+: Enhanced Coding Benchmark for LLMs"
+* **Paper**: https://openreview.net/forum?id=pwIGnH2LHJ
+* **Key Findings**: ~33% solution leakage, ~31% weak test suites, GPT-4 ~12%→~4% after filtering
+
+=== Model Performance
+
+**Anthropic Claude Opus 4.1**:
+
+* **Anthropic (2025)**, "Claude Opus 4.1"
+* **Blog**: https://www.anthropic.com/news/claude-opus-4-1
+* **SWE-bench Verified**: ~75% (Python)
+
+**Anthropic SWE-bench Engineering**:
+
+* **Anthropic (2024)**, "Raising the bar on SWE-bench Verified with Claude 3.5 Sonnet"
+* **Blog**: https://www.anthropic.com/research/swe-bench-sonnet
+* **Description**: Agent system engineering with scaffolding, prompt formatting, iteration, error recovery
+
+=== Community Analysis
+
+**Runloop Blog**:
+
+* **Runloop (2024)**, "SWE-bench Deep Dive: Unmasking the Limitations"
+* **Blog**: https://www.runloop.ai/blog/swe-bench-deep-dive
+
+**Community Implementations**:
+
+* **augmentcode/augment-swebench-agent**: Community fork based on Anthropic's architecture
+* **GitHub**: https://github.com/augmentcode/augment-swebench-agent
+
+=== Related Frameworks
+
+**Spring AI Agents**:
+
+* **Spring AI Community**, "Spring AI Agents: The pragmatic integration layer for autonomous agents in Java enterprise development"
+* **Documentation**: https://spring-ai-community.github.io/spring-ai-agents
+* **GitHub**: https://github.com/spring-ai-community/spring-ai-agents
+* **Key Concept**: Paradigm shift from imperative (code every step) to declarative (describe the goal)

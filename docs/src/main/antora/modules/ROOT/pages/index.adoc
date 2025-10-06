@@ -77,7 +77,7 @@ Open benchmarking suite for Java-centric AI developer agents.
 - ✅ **One-click setup**: Docker containers, pre-configured environments
 - ✅ **Open methodology**: Published evaluation code, transparent scoring
 - ✅ **Golden set + YOUR repos**: Standardized comparison + real-world validation
-- ✅ **BetterBench north star**: Following Stanford's quality framework (starting with reproducibility)
+- ✅ **BetterBench inspiration**: Following Stanford's quality framework principles (starting with reproducibility)
 
 **Run benchmarks on YOUR code. Measure YOUR scenarios. See which agent wins for YOU.**
 
@@ -109,7 +109,7 @@ Open benchmarking suite for Java-centric AI developer agents.
 
 |*Standards*
 |Pre-BetterBench
-|BetterBench as north star (reproducibility first)
+|Following BetterBench principles (reproducibility first)
 |===
 
 **Historical value**: SWE-bench pioneered agent evaluation
@@ -158,7 +158,7 @@ Ready to get started?
 
 - **Try it**: xref:getting-started.adoc[Getting Started Guide] - Quick setup and first benchmark
 - **Understand it**: xref:architecture.adoc[Architecture Overview] - System design and components
-- **Verify it**: xref:betterbench-compliance.adoc[BetterBench Compliance] - Our commitment to quality standards
+- **Verify it**: xref:betterbench-compliance.adoc[BetterBench Alignment] - Our commitment to quality standards
 - **Integrate it**: xref:agents/claude-code.adoc[Agent Integration] - Connect Claude, Gemini, Amazon Q, or custom agents
 
 **Have questions?** See detailed evidence and analysis below.
@@ -339,20 +339,18 @@ This aligns with real-world experience: developers using AI coding tools (https:
 
 **And we provide one-click reproducibility**: Every benchmark runs in a Docker container with a pre-configured environment. No "works on my machine" excuses. Clone, run, verify. That's the BetterBench standard.
 
-=== BetterBench Alignment Details
+=== BetterBench Alignment Roadmap
 
-For complete details on our compliance with Stanford's 46-criteria framework, see xref:betterbench-compliance.adoc[BetterBench Compliance Checklist].
+For our roadmap toward alignment with Stanford's 46-criteria framework, see xref:betterbench-compliance.adoc[BetterBench Alignment Roadmap].
 
-**Key highlights**:
+**Current focus areas**:
 
-- **Design** (10.5/11): User personas, domain experts, multi-dimensional metrics, judge framework
-- **Implementation** (6/9): Open source, one-click Docker reproducibility, multi-provider support
-- **Documentation** (11/14): Architecture docs, getting started, limitations, Apache 2.0 license
-- **Maintenance** (3/3): Active development, GitHub feedback channels, maintainer team
+- **Design**: User personas, domain experts, multi-dimensional metrics, judge framework
+- **Implementation**: Open source, one-click Docker reproducibility, multi-provider support
+- **Documentation**: Architecture docs, getting started, limitations, Apache 2.0 license
+- **Maintenance**: Active development, GitHub feedback channels, maintainer team
 
-**Overall compliance**: 82% (30.5/37 criteria met), exceeding BetterBench's quality threshold
-
-**Roadmap**: Q1-Q2 2025 targets full compliance with statistical significance reporting, contamination resistance documentation, and NeurIPS submission
+**Note**: This is a self-assessment roadmap, not a validated BetterBench certification. We're working toward alignment with these quality standards.
 
 == References
 

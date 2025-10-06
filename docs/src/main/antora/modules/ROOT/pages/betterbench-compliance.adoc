@@ -1,10 +1,10 @@
-= BetterBench Compliance Checklist
-:page-title: BetterBench Compliance
+= BetterBench Alignment Roadmap
+:page-title: BetterBench Alignment
 :toc: left
 :tabsize: 2
 :sectnums:
 
-Spring AI Bench commits to following Stanford's https://betterbench.stanford.edu/[BetterBench] 46-criteria framework for benchmark quality assessment.
+Spring AI Bench is working toward alignment with Stanford's https://betterbench.stanford.edu/[BetterBench] 46-criteria framework for benchmark quality assessment. This is a self-assessment roadmap, not a validated certification.
 
 == Overview
 
@@ -275,9 +275,9 @@ This document tracks Spring AI Bench's compliance with each criterion.
 |30.5/37 (82%)
 |===
 
-NOTE: BetterBench considers a mean score of **10 or higher** (on 0/5/10/15 scale) to indicate a reasonably good benchmark. Spring AI Bench scores **12.3 average** across all criteria (82% of maximum), exceeding the threshold.
+NOTE: These scores represent our self-assessment against BetterBench criteria. This is not a validated BetterBench certification, but a roadmap for continuous improvement.
 
-== Roadmap to Full Compliance
+== Roadmap to Full Alignment
 
 === Q1 2025 (Priority: High)
 
@@ -327,14 +327,15 @@ NOTE: BetterBench considers a mean score of **10 or higher** (on 0/5/10/15 scale
   * Expert human performance ceiling
   * Continuous monitoring
 
-== Compliance Verification
+== Self-Assessment Updates
 
-This checklist is maintained as a living document and updated quarterly:
+This alignment roadmap is maintained as a living document and updated quarterly:
 
-- **Last Updated**: 2025-10-05
-- **Next Review**: 2026-01-05
+- **Last Updated**: 2025-10-06
+- **Next Review**: 2026-01-06
 - **Maintainer**: Spring AI Bench Team
-- **Contact**: https://github.com/spring-ai-community/spring-ai-bench/discussions[GitHub Discussions]
+- **Contact**: https://github.com/spring-ai-community/spring-ai-bench/issues[GitHub Issues]
+- **Important**: This is self-assessment, not official BetterBench validation
 
 == BetterBench Resources
 
@@ -347,10 +348,11 @@ This checklist is maintained as a living document and updated quarterly:
 
 Spring AI Bench commits to:
 
-1. **Following BetterBench standards** as the benchmark quality framework
+1. **Working toward BetterBench alignment** as a quality improvement goal
 2. **Transparency** in methodology, scoring, and limitations
-3. **Continuous improvement** toward full compliance
+3. **Continuous improvement** using BetterBench principles as guidance
 4. **Community engagement** to refine criteria and implementation
-5. **Quarterly reviews** of this compliance checklist
+5. **Quarterly reviews** of this self-assessment roadmap
+6. **Honest representation**: This is aspiration and self-assessment, not official validation
 
-We welcome community feedback on our compliance efforts. Please use https://github.com/spring-ai-community/spring-ai-bench/discussions[GitHub Discussions] to suggest improvements or identify gaps.
+We welcome community feedback on our alignment efforts. Please use https://github.com/spring-ai-community/spring-ai-bench/issues[GitHub Issues] to suggest improvements or identify gaps.

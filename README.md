@@ -15,7 +15,7 @@ Existing benchmarks (SWE-bench) measure yesterday's agents on static 2023 Python
 
 **If agents have evolved, benchmarks must evolve too.**
 
-📖 **[Read the full analysis →](https://spring-ai-community.github.io/spring-ai-bench/)** | [Why SWE-bench Falls Short](https://spring-ai-community.github.io/spring-ai-bench/#_the_evidence_why_swe_bench_falls_short) | [BetterBench Compliance](https://spring-ai-community.github.io/spring-ai-bench/betterbench-compliance.html)
+📖 **[Read the full analysis →](https://spring-ai-community.github.io/spring-ai-bench/)** | [Why SWE-bench Falls Short](https://spring-ai-community.github.io/spring-ai-bench/#_the_evidence_why_swe_bench_falls_short)
 
 ---
 
@@ -28,7 +28,7 @@ Existing benchmarks (SWE-bench) measure yesterday's agents on static 2023 Python
 |**Agent Support**|One architecture (SWE-agent)|Any agent (Claude, Gemini, Q, Amp, custom)|
 |**Reproducibility**|No disclosure required|One-click Docker + open scaffolding|
 |**Agent Paradigm**|2024 patch-loop agents|2025 declarative goal agents|
-|**Standards**|Pre-BetterBench|BetterBench 46-criteria compliant (82%)|
+|**Standards**|Pre-BetterBench|Following BetterBench principles|
 
 📖 **[See detailed evidence & analysis](https://spring-ai-community.github.io/spring-ai-bench/#_the_evidence_why_swe_bench_falls_short)** for contamination data (60%+ Verified → 19% Live), language bias analysis, and scaffolding transparency.
 
@@ -265,7 +265,6 @@ For comprehensive documentation, visit:
 ## Support
 
 - **Issues**: [GitHub Issues](https://github.com/spring-ai-community/spring-ai-bench/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/spring-ai-community/spring-ai-bench/discussions)
 - **Documentation**: [Documentation Site](https://spring-ai-community.github.io/spring-ai-bench/)
 
 ## License

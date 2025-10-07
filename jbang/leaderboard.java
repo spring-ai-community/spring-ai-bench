@@ -24,6 +24,8 @@ public class leaderboard {
 
 		String provider;
 
+		String model;
+
 		int totalRuns;
 
 		int successfulRuns;
@@ -42,7 +44,9 @@ public class leaderboard {
 
 		List<Long> durations = new ArrayList<>();
 
-		public void addRun(long duration, boolean success) {
+		List<String> runIds = new ArrayList<>();
+
+		public void addRun(long duration, boolean success, String runId) {
 			totalRuns++;
 			if (success) {
 				successfulRuns++;
@@ -51,6 +55,7 @@ public class leaderboard {
 				failedRuns++;
 			}
 			durations.add(duration);
+			runIds.add(runId);
 			calculateStats();
 		}
 
@@ -103,19 +108,27 @@ public class leaderboard {
 				if (Files.exists(reportFile)) {
 					JsonNode report = objectMapper.readTree(reportFile.toFile());
 
-					String agentType = report.path("agentMetadata").path("agentType").asText("unknown");
-					String provider = report.path("agentMetadata").path("provider").asText("unknown");
+					String agentType = report.path("agentMetadata").path("agentType").asText(null);
+					String provider = report.path("agentMetadata").path("provider").asText(null);
+					String model = report.path("model").path("name").asText("N/A");
 					long duration = report.path("durationMs").asLong(0);
 					boolean success = "success".equals(report.path("status").asText(""));
+					String runId = report.path("runId").asText(dir.getFileName().toString());
+
+					// Skip old schema reports
+					if (agentType == null || provider == null) {
+						return;
+					}
 
 					String key = agentType + "-" + provider;
 					AgentStats stats = agentStatsMap.computeIfAbsent(key, k -> {
 						AgentStats s = new AgentStats();
 						s.agentType = agentType;
 						s.provider = provider;
+						s.model = model;
 						return s;
 					});
-					stats.addRun(duration, success);
+					stats.addRun(duration, success, runId);
 				}
 			}
 			catch (IOException e) {
@@ -177,6 +190,7 @@ public class leaderboard {
 		html.append("          <th>Rank</th>\n");
 		html.append("          <th>Agent</th>\n");
 		html.append("          <th>Provider</th>\n");
+		html.append("          <th>Model</th>\n");
 		html.append("          <th>Success Rate</th>\n");
 		html.append("          <th>Mean Duration</th>\n");
 		html.append("          <th>Median Duration</th>\n");
@@ -187,7 +201,11 @@ public class leaderboard {
 
 		int rank = 1;
 		for (AgentStats stats : sortedAgents) {
-			html.append("        <tr>\n");
+			// Make entire row clickable to first run
+			String firstRunId = stats.runIds.isEmpty() ? "" : stats.runIds.get(0);
+			String rowClass = firstRunId.isEmpty() ? "" : " style=\"cursor: pointer;\" onclick=\"window.location='" + firstRunId + "/report.html'\"";
+
+			html.append("        <tr" + rowClass + ">\n");
 
 			// Rank with medals
 			html.append("          <td class=\"rank\">");
@@ -201,8 +219,16 @@ public class leaderboard {
 				html.append(rank);
 			html.append("</td>\n");
 
-			// Agent Type
-			html.append("          <td><strong>").append(stats.agentType).append("</strong></td>\n");
+			// Agent Type - clickable
+			html.append("          <td><strong>");
+			if (!firstRunId.isEmpty()) {
+				html.append("<a href=\"" + firstRunId + "/report.html\" style=\"color: inherit; text-decoration: none;\">");
+			}
+			html.append(stats.agentType);
+			if (!firstRunId.isEmpty()) {
+				html.append("</a>");
+			}
+			html.append("</strong></td>\n");
 
 			// Provider Badge
 			html.append("          <td>");
@@ -213,6 +239,9 @@ public class leaderboard {
 				html.append("<span class=\"badge badge-ai\">").append(stats.provider.toUpperCase()).append("</span>");
 			}
 			html.append("</td>\n");
+
+			// Model
+			html.append("          <td>").append(stats.model).append("</td>\n");
 
 			// Success Rate
 			html.append("          <td><span class=\"");

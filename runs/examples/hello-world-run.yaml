@@ -13,16 +13,16 @@ agent:
 
 inputs:
   # Optional overrides to the case inputs (merged: run.inputs overrides case.inputs)
-  path: "workspace/hello.txt"
+  path: "hello.txt"
   content: "Hello World!"
 
 verifier:
   # Optional overrides to the case verifier (merged)
   checks:
     - type: exists
-      path: "workspace/hello.txt"
+      path: "hello.txt"
     - type: equalsUtf8
-      path: "workspace/hello.txt"
+      path: "hello.txt"
       expected: "Hello World!"
 
 environment:

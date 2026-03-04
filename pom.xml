@@ -3,32 +3,37 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.springaicommunity</groupId>
+	<parent>
+		<groupId>org.springaicommunity</groupId>
+		<artifactId>spring-ai-community-parent</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+		<relativePath/>
+	</parent>
+
 	<artifactId>spring-ai-bench-parent</artifactId>
 	<version>0.2.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>spring-ai-bench</name>
 	<description>Benchmark for Java focused Agents to determine how well they solve a range of problems</description>
-	<url/>
+	<url>https://github.com/spring-ai-community/spring-ai-bench</url>
+
 	<licenses>
-		<license/>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0</url>
+		</license>
 	</licenses>
-	<developers>
-		<developer/>
-	</developers>
+
 	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
+		<url>https://github.com/spring-ai-community/spring-ai-bench</url>
+		<connection>scm:git:git://github.com/spring-ai-community/spring-ai-bench.git</connection>
+		<developerConnection>scm:git:git@github.com:spring-ai-community/spring-ai-bench.git</developerConnection>
 	</scm>
 	<properties>
-		<java.version>17</java.version>
 		<spring.boot.version>3.3.0</spring.boot.version>
 		<jackson.version>2.17.0</jackson.version>
 		<github.api.version>1.318</github.api.version>
-		<maven.compiler.release>${java.version}</maven.compiler.release>
 	</properties>
 
 	<dependencyManagement>
@@ -44,42 +49,9 @@
 		</dependencies>
 	</dependencyManagement>
 
-	<build>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-compiler-plugin</artifactId>
-					<version>3.11.0</version>
-					<configuration>
-						<source>${java.version}</source>
-						<target>${java.version}</target>
-						<release>${java.version}</release>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>io.spring.javaformat</groupId>
-					<artifactId>spring-javaformat-maven-plugin</artifactId>
-					<version>0.0.42</version>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-		<plugins>
-			<plugin>
-				<groupId>io.spring.javaformat</groupId>
-				<artifactId>spring-javaformat-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<phase>validate</phase>
-						<inherited>true</inherited>
-						<goals>
-							<goal>validate</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
+	<!-- build plugins inherited from spring-ai-community-parent:
+	     maven-compiler-plugin, spring-javaformat-maven-plugin, etc. -->
+
 
 	<modules>
 		<module>bench-core</module>

@@ -22,8 +22,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import org.springaicommunity.agents.judge.result.Check;
-import org.springaicommunity.agents.judge.result.Judgment;
+import org.springaicommunity.judge.result.Check;
+import org.springaicommunity.judge.result.Judgment;
 import org.springaicommunity.agents.model.AgentResponse;
 
 /**

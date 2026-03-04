@@ -25,10 +25,10 @@ import java.util.UUID;
 import org.springaicommunity.agents.claude.ClaudeAgentModel;
 import org.springaicommunity.agents.gemini.GeminiAgentModel;
 import org.springaicommunity.agents.gemini.GeminiAgentOptions;
-import org.springaicommunity.agents.judge.Judge;
-import org.springaicommunity.agents.judge.context.AgentExecutionStatus;
-import org.springaicommunity.agents.judge.context.JudgmentContext;
-import org.springaicommunity.agents.judge.result.Judgment;
+import org.springaicommunity.judge.Judge;
+import org.springaicommunity.judge.context.ExecutionStatus;
+import org.springaicommunity.judge.context.JudgmentContext;
+import org.springaicommunity.judge.result.Judgment;
 import org.springaicommunity.agents.model.*;
 import org.springaicommunity.bench.agents.support.SimpleLogCapture;
 import org.springaicommunity.bench.core.run.AgentResult;
@@ -133,7 +133,7 @@ public class AgentModelAdapter implements AgentRunner {
 					.executionTime(executionTime)
 					.startedAt(startedAt)
 					.agentOutput(!response.getResults().isEmpty() ? response.getResults().get(0).getOutput() : null)
-					.status(AgentExecutionStatus.SUCCESS)
+					.status(ExecutionStatus.SUCCESS)
 					.build();
 
 				judgment = judge.judge(context);
@@ -188,17 +188,10 @@ public class AgentModelAdapter implements AgentRunner {
 	/** Configures the agent model for workspace-specific execution. */
 	private AgentModel configureAgentForWorkspace(AgentModel model, Path workspace, Duration timeout,
 			SimpleLogCapture logger) {
-		if (model instanceof ClaudeAgentModel) {
-			logger.log("AGENT", "Creating workspace-specific ClaudeAgentModel");
-			try {
-				return ClaudeAgentModel.createWithWorkspaceSetup(workspace, timeout);
-			}
-			catch (RuntimeException e) {
-				logger.log("AGENT", "Failed to create workspace-specific model, using original: " + e.getMessage());
-				return model; // Fall back to original model
-			}
-		}
-		return model; // For other agent types, return as-is
+		// Agent models are now configured via their builders at construction time.
+		// Workspace and timeout are passed through AgentOptions instead.
+		logger.log("AGENT", "Using pre-configured " + model.getClass().getSimpleName());
+		return model;
 	}
 
 	private AgentOptions createAgentOptions(AgentSpec spec, Duration timeout, Path workspace) {

@@ -18,7 +18,7 @@ package org.springaicommunity.bench.agents.runner;
 import java.nio.file.Path;
 import java.time.Duration;
 import org.springaicommunity.agents.gemini.GeminiAgentModel;
-import org.springaicommunity.agents.judge.Judge;
+import org.springaicommunity.judge.Judge;
 import org.springaicommunity.bench.core.run.AgentResult;
 import org.springaicommunity.bench.core.run.AgentRunner;
 import org.springaicommunity.bench.core.spec.AgentSpec;

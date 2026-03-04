@@ -21,7 +21,7 @@ import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
-import org.springaicommunity.agents.judge.result.Judgment;
+import org.springaicommunity.judge.result.Judgment;
 
 /**
  * Generates minimal JSON reports for agent execution results. Uses the judge framework.

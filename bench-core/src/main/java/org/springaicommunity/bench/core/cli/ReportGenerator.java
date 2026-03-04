@@ -12,8 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springaicommunity.agents.judge.result.Check;
-import org.springaicommunity.agents.judge.result.Judgment;
+import org.springaicommunity.judge.result.Check;
+import org.springaicommunity.judge.result.Judgment;
 
 /**
  * Generates JSON and HTML reports using Judge framework's Judgment.

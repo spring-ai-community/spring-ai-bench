@@ -15,13 +15,13 @@
  */
 package org.springaicommunity.bench.agents.judge;
 
-import org.springaicommunity.agents.judge.DeterministicJudge;
-import org.springaicommunity.agents.judge.context.JudgmentContext;
-import org.springaicommunity.agents.judge.fs.FileContentJudge;
-import org.springaicommunity.agents.judge.fs.FileExistsJudge;
-import org.springaicommunity.agents.judge.result.Judgment;
-import org.springaicommunity.agents.judge.result.JudgmentStatus;
-import org.springaicommunity.agents.judge.score.BooleanScore;
+import org.springaicommunity.judge.DeterministicJudge;
+import org.springaicommunity.judge.context.JudgmentContext;
+import org.springaicommunity.judge.fs.FileContentJudge;
+import org.springaicommunity.judge.fs.FileExistsJudge;
+import org.springaicommunity.judge.result.Judgment;
+import org.springaicommunity.judge.result.JudgmentStatus;
+import org.springaicommunity.judge.score.BooleanScore;
 
 /**
  * Judge for Hello World benchmark case. Verifies that hello.txt exists and contains

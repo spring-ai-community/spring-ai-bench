@@ -1,9 +1,9 @@
 package org.springaicommunity.bench.core.cli;
 
-import org.springaicommunity.agents.judge.Judge;
-import org.springaicommunity.agents.judge.Judges;
-import org.springaicommunity.agents.judge.fs.FileContentJudge;
-import org.springaicommunity.agents.judge.fs.FileExistsJudge;
+import org.springaicommunity.judge.Judge;
+import org.springaicommunity.judge.Judges;
+import org.springaicommunity.judge.fs.FileContentJudge;
+import org.springaicommunity.judge.fs.FileExistsJudge;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

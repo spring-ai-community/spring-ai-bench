@@ -17,7 +17,7 @@ package org.springaicommunity.bench.agents.runner;
 
 import org.springaicommunity.agents.claude.ClaudeAgentModel;
 import org.springaicommunity.agents.gemini.GeminiAgentModel;
-import org.springaicommunity.agents.judge.Judge;
+import org.springaicommunity.judge.Judge;
 import org.springaicommunity.bench.core.run.AgentRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

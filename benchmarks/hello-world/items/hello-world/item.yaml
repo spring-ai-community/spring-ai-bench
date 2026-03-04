@@ -1,0 +1,5 @@
+schema: bench.item.v1
+id: hello-world
+instruction: |
+  Create a file named `hello.txt` in the current directory
+  with the exact content: Hello World!

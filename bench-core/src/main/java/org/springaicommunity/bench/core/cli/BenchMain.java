@@ -5,14 +5,14 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springaicommunity.agents.judge.Judge;
-import org.springaicommunity.agents.judge.Judges;
-import org.springaicommunity.agents.judge.fs.FileContentJudge;
-import org.springaicommunity.agents.judge.fs.FileExistsJudge;
+import org.springaicommunity.judge.Judge;
+import org.springaicommunity.judge.Judges;
+import org.springaicommunity.judge.fs.FileContentJudge;
+import org.springaicommunity.judge.fs.FileExistsJudge;
 
 /**
- * CLI entry point for Spring AI Bench following the genesis plan. Supports the new
- * YAML-based case/run configuration system.
+ * CLI entry point for Spring AI Bench. Dispatches to command handlers for the new
+ * benchmark architecture (list, items, provide, grade, run) and legacy run support.
  */
 public class BenchMain {
 
@@ -24,13 +24,17 @@ public class BenchMain {
 			}
 
 			String command = args[0];
-			if ("run".equals(command)) {
-				handleRunCommand(args);
-			}
-			else {
-				System.err.println("Unknown command: " + command);
-				printUsage();
-				System.exit(1);
+			switch (command) {
+				case "list" -> new ListCommand().listBenchmarks();
+				case "items" -> handleItemsCommand(args);
+				case "provide" -> handleProvideCommand(args);
+				case "grade" -> handleGradeCommand(args);
+				case "run" -> handleRunOrLegacyRun(args);
+				default -> {
+					System.err.println("Unknown command: " + command);
+					printUsage();
+					System.exit(1);
+				}
 			}
 		}
 		catch (Exception e) {
@@ -44,24 +48,65 @@ public class BenchMain {
 		System.out.println("Usage: bench <command> [options]");
 		System.out.println();
 		System.out.println("Commands:");
-		System.out.println("  run    Run a benchmark");
+		System.out.println("  list                            List available benchmarks");
+		System.out.println("  items    --benchmark <name>     List items in a benchmark");
+		System.out.println("  provide  --benchmark <name> --item <id> --workspace <dir>");
+		System.out.println("           Set up workspace for an agent");
+		System.out.println("  grade    --benchmark <name> --item <id> --workspace <dir>");
+		System.out.println("           Evaluate agent results");
+		System.out.println("  run      --benchmark <name> [--agent <config>] [--item <id>]");
+		System.out.println("           Run provide + agent + grade end-to-end");
 		System.out.println();
-		System.out.println("Run options:");
-		System.out.println("  --case <id>                     Case ID to run");
-		System.out.println("  --run-file <path>               Path to run YAML file");
-		System.out.println("  --run-id <uuid|auto>            Run ID (auto generates UUID)");
-		System.out.println("  --out <dir>                     Output directory (default: bench-reports)");
-		System.out.println("  --input <key>=<value>           Override input parameter");
-		System.out.println("  --force                         Overwrite existing run");
-		System.out.println();
-		System.out.println("Examples:");
-		System.out.println("  bench run --run-file runs/examples/hello-world-run.yaml");
-		System.out.println("  bench run --case hello-world --run-id test-1 --input content=\"Hello Test!\"");
+		System.out.println("Legacy run options:");
+		System.out.println("  run      --run-file <path>      Run from legacy run YAML");
+		System.out.println("  run      --case <id>            Run legacy case");
 	}
 
-	private static void handleRunCommand(String[] args) throws Exception {
+	private static void handleItemsCommand(String[] args) throws Exception {
+		String benchmark = parseArg(args, "--benchmark");
+		if (benchmark == null) {
+			throw new IllegalArgumentException("--benchmark is required");
+		}
+		new ListCommand().listItems(benchmark);
+	}
+
+	private static void handleProvideCommand(String[] args) throws Exception {
+		String benchmark = parseArg(args, "--benchmark");
+		String item = parseArg(args, "--item");
+		String workspace = parseArg(args, "--workspace");
+		if (benchmark == null || workspace == null) {
+			throw new IllegalArgumentException("--benchmark and --workspace are required");
+		}
+		new ProvideCommand().provide(benchmark, item, Paths.get(workspace));
+	}
+
+	private static void handleGradeCommand(String[] args) throws Exception {
+		String benchmark = parseArg(args, "--benchmark");
+		String item = parseArg(args, "--item");
+		String workspace = parseArg(args, "--workspace");
+		if (benchmark == null || workspace == null) {
+			throw new IllegalArgumentException("--benchmark and --workspace are required");
+		}
+		new GradeCommand().grade(benchmark, item, Paths.get(workspace));
+	}
+
+	private static void handleRunOrLegacyRun(String[] args) throws Exception {
+		// Detect if this is a legacy run (--run-file or --case) or new-style
+		// (--benchmark)
+		String benchmark = parseArg(args, "--benchmark");
+		if (benchmark != null) {
+			String agent = parseArg(args, "--agent");
+			String item = parseArg(args, "--item");
+			new RunCommand().run(benchmark, agent, item);
+		}
+		else {
+			handleLegacyRunCommand(args);
+		}
+	}
+
+	private static void handleLegacyRunCommand(String[] args) throws Exception {
 		// Parse run command arguments
-		RunConfig config = parseRunArgs(args);
+		RunConfig config = parseLegacyRunArgs(args);
 
 		// Load and merge specifications
 		SpecLoader specLoader = new SpecLoader();
@@ -91,7 +136,16 @@ public class BenchMain {
 		return judges;
 	}
 
-	private static RunConfig parseRunArgs(String[] args) {
+	static String parseArg(String[] args, String name) {
+		for (int i = 0; i < args.length - 1; i++) {
+			if (name.equals(args[i])) {
+				return args[i + 1];
+			}
+		}
+		return null;
+	}
+
+	private static RunConfig parseLegacyRunArgs(String[] args) {
 		RunConfig config = new RunConfig();
 		Map<String, String> inputs = new HashMap<>();
 

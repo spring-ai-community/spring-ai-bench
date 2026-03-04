@@ -20,7 +20,7 @@ import java.time.Instant;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springaicommunity.agents.judge.result.Judgment;
+import org.springaicommunity.judge.result.Judgment;
 import org.springaicommunity.agents.model.AgentModel;
 import org.springaicommunity.agents.model.AgentResponse;
 import org.springaicommunity.bench.agents.report.IndexPageGenerator;

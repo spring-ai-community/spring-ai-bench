@@ -1,0 +1,14 @@
+schema: bench.benchmark.v1
+name: hello-world
+version: "1.0"
+description: "Simple benchmark that verifies an agent can create a file with specific content."
+default-timeout: PT2M
+
+jury:
+  checks:
+    - type: file-exists
+      path: hello.txt
+    - type: file-content
+      path: hello.txt
+      expected: "Hello World!"
+      match: EXACT

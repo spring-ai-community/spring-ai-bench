@@ -62,6 +62,15 @@ public class RunCommand {
 	 * @param itemFilter optional item ID to run only a specific item
 	 */
 	public BenchmarkResult run(String benchmarkName, String agentConfig, String itemFilter) throws Exception {
+		return run(benchmarkName, agentConfig, itemFilter, 1);
+	}
+
+	/**
+	 * Runs the benchmark with the specified number of attempts per item. Multiple
+	 * attempts enable pass@k computation.
+	 */
+	public BenchmarkResult run(String benchmarkName, String agentConfig, String itemFilter, int attempts)
+			throws Exception {
 		Benchmark benchmark = findBenchmark(benchmarkName);
 		String runId = UUID.randomUUID().toString();
 		Path runDir = Paths.get("runs", runId);
@@ -91,16 +100,20 @@ public class RunCommand {
 		List<ItemResult> results = new ArrayList<>();
 
 		for (BenchmarkItem item : items) {
-			System.out.printf("Running item: %s%n", item.id());
-			ItemResult result = runItem(benchmark, item, judge, invoker, runDir, runId);
-			results.add(result);
+			for (int attempt = 1; attempt <= attempts; attempt++) {
+				String trialName = attempts > 1 ? item.id() + "__attempt-" + attempt : item.id();
+				System.out.printf("Running: %s%n", trialName);
+				ItemResult result = runItem(benchmark, item, judge, invoker, runDir, runId, trialName);
+				results.add(result);
 
-			// Write individual result
-			Path itemDir = runDir.resolve("items").resolve(item.id());
-			Files.createDirectories(itemDir);
-			jsonMapper.writerWithDefaultPrettyPrinter().writeValue(itemDir.resolve("result.json").toFile(), result);
+				// Write individual result incrementally
+				Path trialDir = runDir.resolve("items").resolve(trialName);
+				Files.createDirectories(trialDir);
+				jsonMapper.writerWithDefaultPrettyPrinter()
+					.writeValue(trialDir.resolve("result.json").toFile(), result);
 
-			System.out.printf("  %s: %s%n", item.id(), result.resolved() ? "RESOLVED" : "FAILED");
+				System.out.printf("  %s: %s%n", trialName, result.resolved() ? "RESOLVED" : "FAILED");
+			}
 		}
 
 		Duration totalDuration = Duration.between(runStart, Instant.now());
@@ -114,6 +127,13 @@ public class RunCommand {
 		System.out.printf("Benchmark: %s%n", benchmarkName);
 		System.out.printf("Accuracy: %.1f%% (%d/%d)%n", benchmarkResult.accuracy() * 100,
 				results.stream().filter(ItemResult::resolved).count(), results.size());
+		if (attempts > 1) {
+			@SuppressWarnings("unchecked")
+			Map<Integer, Double> passAtK = (Map<Integer, Double>) benchmarkResult.aggregateScores()
+				.getOrDefault("passAtK", Map.of());
+			passAtK.forEach(
+					(k, v) -> System.out.printf("Pass@%d: %.1f%%%n", k, v * 100));
+		}
 		System.out.printf("Duration: %s%n", totalDuration);
 		System.out.printf("Results: %s%n", runDir.resolve("result.json"));
 
@@ -121,8 +141,8 @@ public class RunCommand {
 	}
 
 	private ItemResult runItem(Benchmark benchmark, BenchmarkItem item, Judge judge, ExecAgentInvoker invoker,
-			Path runDir, String runId) {
-		Path workspace = runDir.resolve("items").resolve(item.id()).resolve("workspace");
+			Path runDir, String runId, String trialName) {
+		Path workspace = runDir.resolve("items").resolve(trialName).resolve("workspace");
 
 		try {
 			// Provide: set up workspace

@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.springaicommunity.bench.core.cli.BenchRunner;
 import org.springaicommunity.bench.core.run.AgentResult;
 import org.springaicommunity.bench.core.spec.AgentSpec;
 
@@ -184,8 +185,13 @@ class HelloWorldMultiAgentTest {
 	}
 
 	private boolean isSpringAIAgentsBuilt() {
-		Path launcherPath = Path.of("/home/mark/community/agent-client/jbang/launcher.java");
-		return Files.exists(launcherPath);
+		try {
+			BenchRunner.resolveJBangLauncher();
+			return true;
+		}
+		catch (IllegalStateException e) {
+			return false;
+		}
 	}
 
 	private boolean hasClaudeApiKey() {

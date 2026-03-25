@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.springaicommunity.agents.model.*;
+import org.springaicommunity.bench.core.cli.BenchRunner;
 
 /**
  * AI-powered "Hello World" agent model that invokes the hello-world-agent-ai via JBang.
@@ -53,7 +54,7 @@ public class HelloWorldAIAgentModel implements AgentModel {
 			// Build JBang command to invoke hello-world-agent-ai
 			List<String> command = new ArrayList<>();
 			command.add("jbang");
-			command.add("/home/mark/community/agent-client/jbang/launcher.java");
+			command.add(BenchRunner.resolveJBangLauncher());
 			command.add("hello-world-agent-ai");
 			command.add("path=hello.txt");
 			command.add("content=Hello World!");
@@ -141,11 +142,14 @@ public class HelloWorldAIAgentModel implements AgentModel {
 
 			boolean jbangAvailable = process.exitValue() == 0;
 
-			// Check if agent-client launcher exists
-			Path launcherPath = Path.of("/home/mark/community/agent-client/jbang/launcher.java");
-			boolean launcherExists = Files.exists(launcherPath);
-
-			return jbangAvailable && launcherExists;
+			// Check if agent-client launcher is resolvable
+			try {
+				BenchRunner.resolveJBangLauncher();
+			}
+			catch (IllegalStateException e) {
+				return false;
+			}
+			return jbangAvailable;
 		}
 		catch (Exception e) {
 			return false;

@@ -114,8 +114,7 @@ public class BenchRunner {
 		List<String> command = new ArrayList<>();
 		command.add("jbang");
 
-		// Use absolute path for Phase 0-2
-		command.add("/home/mark/community/agent-client/jbang/launcher.java");
+		command.add(resolveJBangLauncher());
 		command.add(runSpec.getAgent().getAlias());
 
 		// Add inputs as key=value pairs
@@ -172,6 +171,30 @@ public class BenchRunner {
 		catch (IOException e) {
 			System.err.println("Failed to write log: " + e.getMessage());
 		}
+	}
+
+	/**
+	 * Resolve the JBang launcher path. Checks in order:
+	 * <ol>
+	 * <li>AGENT_CLIENT_HOME env var → $AGENT_CLIENT_HOME/jbang/launcher.java</li>
+	 * <li>Sibling directory convention → ../agent-client/jbang/launcher.java</li>
+	 * </ol>
+	 */
+	static String resolveJBangLauncher() {
+		String agentClientHome = System.getenv("AGENT_CLIENT_HOME");
+		if (agentClientHome != null) {
+			Path launcher = Path.of(agentClientHome, "jbang", "launcher.java");
+			if (Files.isRegularFile(launcher)) {
+				return launcher.toAbsolutePath().toString();
+			}
+		}
+		Path sibling = Path.of("../agent-client/jbang/launcher.java").toAbsolutePath().normalize();
+		if (Files.isRegularFile(sibling)) {
+			return sibling.toString();
+		}
+		throw new IllegalStateException(
+				"Cannot find agent-client JBang launcher. Set AGENT_CLIENT_HOME env var "
+						+ "or clone agent-client as a sibling directory.");
 	}
 
 	private void deleteRecursively(Path path) throws IOException {

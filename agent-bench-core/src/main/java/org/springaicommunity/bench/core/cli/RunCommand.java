@@ -168,7 +168,7 @@ public class RunCommand {
 		catch (Exception e) {
 			FailureMode mode = FailureMode.AGENT_ERROR;
 			if (e.getMessage() != null && e.getMessage().contains("timed out")) {
-				mode = FailureMode.TIMEOUT;
+				mode = FailureMode.AGENT_TIMEOUT;
 			}
 			return new ItemResult(item.id(), false, Map.of("error", e.getMessage()), mode, null, 0, workspace);
 		}

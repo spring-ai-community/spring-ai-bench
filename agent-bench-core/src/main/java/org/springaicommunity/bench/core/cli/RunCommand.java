@@ -128,14 +128,18 @@ public class RunCommand {
 			// Provide: set up workspace
 			provideCommand.provide(benchmark.name(), item.id(), workspace);
 
-			// Invoke agent (if configured)
+			// Setup scripts (before agent)
+			runScripts(item.setup(), workspace, "setup");
+
+			// Write instruction if the item provides one
+			String instruction = item.instruction();
+			if (instruction != null && !instruction.isBlank()) {
+				Files.writeString(workspace.resolve("INSTRUCTION.md"), instruction);
+			}
+
+			// Invoke agent
 			Instant agentStart = Instant.now();
 			if (invoker != null) {
-				// Write instruction if the item provides one
-				String instruction = item.instruction();
-				if (instruction != null && !instruction.isBlank()) {
-					Files.writeString(workspace.resolve("INSTRUCTION.md"), instruction);
-				}
 				Duration timeout = item.timeout() != null ? item.timeout() : benchmark.defaultTimeout();
 				new ProcessExecutor().command(invoker.command())
 					.directory(workspace.toFile())
@@ -148,9 +152,14 @@ public class RunCommand {
 				System.out.println("  No agent configured. Grade workspace manually.");
 				return new ItemResult(item.id(), false, Map.of(), FailureMode.AGENT_ERROR, Duration.ZERO, 0, workspace);
 			}
-			Duration agentDuration = Duration.between(agentStart, Instant.now());
+			Instant agentEnd = Instant.now();
+			Duration agentDuration = Duration.between(agentStart, agentEnd);
+
+			// Post scripts (after agent, before grading)
+			runScripts(item.post(), workspace, "post");
 
 			// Grade: evaluate result
+			Instant gradeStart = Instant.now();
 			JudgmentContext context = JudgmentContext.builder()
 				.workspace(workspace)
 				.goal(item.instruction())
@@ -161,9 +170,11 @@ public class RunCommand {
 
 			Judgment judgment = judge.judge(context);
 			boolean resolved = judgment.pass();
+			Instant gradeEnd = Instant.now();
 
 			return new ItemResult(item.id(), resolved, Map.of("reasoning", judgment.reasoning()),
-					resolved ? FailureMode.NONE : FailureMode.TEST_FAILURE, agentDuration, 0, workspace);
+					resolved ? FailureMode.NONE : FailureMode.TEST_FAILURE, agentDuration, 0, workspace,
+					agentStart, agentEnd, gradeStart, gradeEnd);
 		}
 		catch (Exception e) {
 			FailureMode mode = FailureMode.AGENT_ERROR;
@@ -171,6 +182,21 @@ public class RunCommand {
 				mode = FailureMode.AGENT_TIMEOUT;
 			}
 			return new ItemResult(item.id(), false, Map.of("error", e.getMessage()), mode, null, 0, workspace);
+		}
+	}
+
+	private void runScripts(List<String> scripts, Path workspace, String phase) throws Exception {
+		if (scripts == null || scripts.isEmpty()) {
+			return;
+		}
+		for (String script : scripts) {
+			System.out.printf("  [%s] %s%n", phase, script);
+			new ProcessExecutor().command("bash", "-c", script)
+				.directory(workspace.toFile())
+				.timeout(5, TimeUnit.MINUTES)
+				.redirectErrorStream(true)
+				.redirectOutput(System.out)
+				.execute();
 		}
 	}
 

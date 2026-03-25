@@ -1,31 +1,62 @@
 package org.springaicommunity.bench.core.benchmark;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.springaicommunity.judge.Judge;
 import org.springaicommunity.judge.Judges;
+import org.springaicommunity.judge.context.JudgmentContext;
+import org.springaicommunity.judge.coverage.CoverageImprovementJudge;
+import org.springaicommunity.judge.coverage.CoveragePreservationJudge;
+import org.springaicommunity.judge.exec.BuildSuccessJudge;
 import org.springaicommunity.judge.fs.FileContentJudge;
 import org.springaicommunity.judge.fs.FileExistsJudge;
-import org.springaicommunity.judge.context.JudgmentContext;
 import org.springaicommunity.judge.jury.CascadedJury;
 import org.springaicommunity.judge.jury.MajorityVotingStrategy;
 import org.springaicommunity.judge.jury.SimpleJury;
 import org.springaicommunity.judge.jury.TierPolicy;
 import org.springaicommunity.judge.jury.Verdict;
-import org.springaicommunity.judge.result.Judgment;
 
 /**
- * Materializes YAML jury configuration into {@link Judge} instances.
+ * Materializes YAML jury configuration into {@link Judge} instances. Supports built-in
+ * check types (file-exists, file-content, maven-build, coverage-preservation,
+ * coverage-improvement) and custom types registered via {@link #register}.
  */
 public class JudgeFactory {
 
+	private final Map<String, Function<Map<String, Object>, Judge>> registry = new HashMap<>();
+
+	public JudgeFactory() {
+		// Built-in types
+		registry.put("file-exists", config -> new FileExistsJudge((String) config.get("path")));
+		registry.put("file-content", config -> {
+			String matchMode = (String) config.getOrDefault("match", "EXACT");
+			return new FileContentJudge((String) config.get("path"), (String) config.get("expected"),
+					FileContentJudge.MatchMode.valueOf(matchMode));
+		});
+		registry.put("maven-build", config -> {
+			@SuppressWarnings("unchecked")
+			List<String> goals = (List<String>) config.getOrDefault("goals", List.of("clean", "test"));
+			return BuildSuccessJudge.maven(goals.toArray(new String[0]));
+		});
+		registry.put("coverage-preservation", config -> new CoveragePreservationJudge());
+		registry.put("coverage-improvement", config -> {
+			double threshold = config.containsKey("min") ? ((Number) config.get("min")).doubleValue() : 50.0;
+			return new CoverageImprovementJudge(threshold);
+		});
+	}
+
 	/**
-	 * Creates a Judge from a jury configuration map parsed from benchmark.yaml.
-	 * @param juryConfig the jury configuration
-	 * @return a Judge instance
+	 * Registers a custom judge type. Use this to add domain-specific judges (e.g.,
+	 * test-quality-llm) from outside agent-bench-core.
 	 */
+	public void register(String type, Function<Map<String, Object>, Judge> factory) {
+		registry.put(type, factory);
+	}
+
 	@SuppressWarnings("unchecked")
 	public Judge createFromConfig(Map<String, Object> juryConfig) {
 		if (juryConfig == null || juryConfig.isEmpty()) {
@@ -66,8 +97,6 @@ public class JudgeFactory {
 		}
 
 		CascadedJury jury = builder.build();
-		// Wrap Jury as Judge by delegating to vote() and extracting the aggregated
-		// judgment
 		return (JudgmentContext ctx) -> {
 			Verdict verdict = jury.vote(ctx);
 			return verdict.aggregated();
@@ -87,16 +116,12 @@ public class JudgeFactory {
 
 		for (Map<String, Object> check : checks) {
 			String type = (String) check.get("type");
-			Judge judge = switch (type) {
-				case "file-exists" -> new FileExistsJudge((String) check.get("path"));
-				case "file-content" -> {
-					String matchMode = (String) check.getOrDefault("match", "EXACT");
-					yield new FileContentJudge((String) check.get("path"), (String) check.get("expected"),
-							FileContentJudge.MatchMode.valueOf(matchMode));
-				}
-				default -> throw new IllegalArgumentException("Unknown check type: " + type);
-			};
-			judges.add(judge);
+			Function<Map<String, Object>, Judge> factory = registry.get(type);
+			if (factory == null) {
+				throw new IllegalArgumentException("Unknown check type: " + type
+						+ ". Available: " + registry.keySet());
+			}
+			judges.add(factory.apply(check));
 		}
 		return judges;
 	}

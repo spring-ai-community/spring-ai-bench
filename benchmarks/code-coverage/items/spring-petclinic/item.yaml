@@ -1,0 +1,16 @@
+schema: bench.item.v1
+id: spring-petclinic
+instruction: |
+  Write JUnit tests for this Spring Boot project to maximize code coverage.
+  Run ./mvnw clean test jacoco:report to measure coverage.
+  Focus on behavioral code — skip Application main classes, records, and config.
+  Use narrow test slices (@WebMvcTest, @DataJpaTest) over @SpringBootTest.
+timeout: PT45M
+metadata:
+  # Pin to a specific commit for reproducibility. Petclinic doesn't tag releases.
+  petclinic-commit: edf4db28affc
+setup:
+  - "git clone https://github.com/spring-projects/spring-petclinic.git . && git checkout edf4db28affc"
+  - "./mvnw clean compile -q -Dspring-javaformat.skip=true -Dcheckstyle.skip=true"
+post:
+  - "./mvnw clean test jacoco:report -q -Dspring-javaformat.skip=true -Dcheckstyle.skip=true"

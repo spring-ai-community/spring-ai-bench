@@ -1,0 +1,29 @@
+schema: bench.benchmark.v1
+name: code-coverage
+version: "1.0"
+description: "Write JUnit tests from scratch to maximize JaCoCo instruction coverage on Spring projects."
+default-timeout: PT45M
+
+jury:
+  tiers:
+    - name: build
+      policy: REJECT_ON_ANY_FAIL
+      checks:
+        - type: maven-build
+          goals: [clean, test]
+    - name: coverage-preservation
+      policy: REJECT_ON_ANY_FAIL
+      checks:
+        - type: coverage-preservation
+    - name: coverage-improvement
+      policy: ACCEPT_ON_ALL_PASS
+      checks:
+        - type: coverage-improvement
+          min: 50.0
+          good: 80.0
+    - name: test-quality
+      policy: FINAL_TIER
+      checks:
+        - type: test-quality-llm
+          prompt: prompts/judge-practice-adherence.txt
+          model: claude-sonnet-4-6

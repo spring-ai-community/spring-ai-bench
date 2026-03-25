@@ -1,0 +1,117 @@
+You are evaluating the practice adherence of a JUnit test suite for a Spring Boot project. You assess whether the tests follow prescribed Spring testing practices — not whether they pass or achieve coverage targets (those are measured separately by deterministic judges).
+
+First, read pom.xml to determine the Spring Boot version (Boot 3.x vs 4.x) from the parent.
+Then navigate src/main/ to understand the production code architecture (controllers, services, repositories, domain objects).
+Then navigate src/test/ to evaluate the test suite.
+
+Score the test suite on these criteria (0.0–1.0 each, equal weight):
+
+1. TEST SLICE SELECTION
+   Does each test class use the narrowest Spring test slice that covers its test objective?
+
+   0.2: Uses @SpringBootTest for everything, including controller-only or repository-only tests.
+   0.5: Uses some slices (@WebMvcTest, @DataJpaTest) but defaults to @SpringBootTest where a slice would suffice. Service-layer tests load a Spring context unnecessarily.
+   0.8: Consistently uses the appropriate slice — @WebMvcTest for controllers, @DataJpaTest for repositories, @WebFluxTest for reactive controllers, plain JUnit+Mockito for services with no Spring dependencies. @SpringBootTest used only for genuine cross-cutting integration tests.
+   1.0: Perfect slice selection with scoped annotations (e.g., @WebMvcTest(SpecificController.class)) and no unnecessary context loading.
+
+2. ASSERTION QUALITY
+   Do assertions verify domain-meaningful values and observable behavior, or just exercise lines?
+
+   0.2: Tests have no assertions or only trivial assertions (assertNotNull, assertTrue(true)). Tests construct objects without verifying behavior. Mocks are verified for internal call sequences rather than observable outcomes.
+   0.5: Assertions exist but are shallow — checking existence (isNotNull, isNotEmpty) rather than specific values. Some verify(mock) calls where HTTP status or response body assertions would be more appropriate.
+   0.8: Assertions check specific domain values (assertEquals on content, jsonPath on response fields, assertThat with extracting for collections). Uses AssertJ fluent assertions. BDDMockito (given/willReturn/then) preferred over classic Mockito (when/thenReturn/verify). Verification limited to observable side effects (emails sent, events published), not internal delegation.
+   1.0: Rich behavioral assertions throughout — AssertJ extracting/filteredOn for collections, assertThatThrownBy for exceptions with message checks, jsonPath for structured response validation, ArgumentCaptor for verifying side-effect payloads. No implementation-coupling verification.
+
+3. ERROR AND EDGE CASE COVERAGE
+   Does the test suite cover error handling paths, validation, and boundary conditions — not just the happy path?
+
+   0.2: Only happy-path tests. No tests for error responses, exception handlers, or invalid input.
+   0.5: Some error paths tested but inconsistently — e.g., tests for 404 but not for validation errors (400), or tests for service exceptions but not for the controller's exception handler mapping.
+   0.8: Error handlers (@ExceptionHandler, @RestControllerAdvice) tested with expected status codes. Validation tested with invalid input. Both branches of conditional logic covered. Unauthenticated (401) and forbidden (403) paths tested where security is present.
+   1.0: Comprehensive negative testing — all exception handlers, validation constraints, boundary values, null/empty inputs, conditional branches. Security tests include unauthenticated, wrong-role, and CSRF scenarios where applicable.
+
+4. DOMAIN-SPECIFIC TEST PATTERNS
+   Does the test suite use the correct testing infrastructure for the domain being tested?
+
+   For JPA/Data tests:
+   - Uses TestEntityManager (not the repository under test) for test data setup
+   - Calls flush() + clear() before read assertions to avoid L1 cache false positives
+   - Tests custom @Query methods and @Modifying queries, not just inherited CRUD
+
+   For MVC/REST tests:
+   - Boot 4.x: Uses MockMvcTester (AssertJ-based, auto-configured by @WebMvcTest) OR MockMvc OR RestTestClient — all are valid, but MockMvcTester is preferred for MVC/Thymeleaf apps
+   - Boot 3.x: Uses MockMvc with jsonPath assertions
+   - Includes contentType on POST/PUT requests
+   - Scopes @WebMvcTest to specific controller
+   - MockMvcTester pattern: @Autowired MockMvcTester mvc; assertThat(mvc.get().uri("/path")).hasStatusOk()
+
+   For WebFlux/Reactive tests:
+   - Uses WebTestClient or StepVerifier, not .block()
+   - Infinite streams use thenCancel()
+
+   For Security tests:
+   - Uses @WithMockUser or security post-processors (jwt(), oauth2Login())
+   - Does not disable security in tests (no addFilters=false)
+   - Includes .with(csrf()) on mutating requests for session-based apps
+
+   For WebSocket/STOMP tests:
+   - Uses @SpringBootTest(RANDOM_PORT) with StompClient (not MockMvc)
+   - Uses BlockingQueue or CountDownLatch for async message assertions
+   - Disconnects sessions and stops StompClient in teardown
+
+   If a domain is not present in the production code (e.g., no WebFlux controllers, no security configuration), mark that domain as "N/A" in the evidence and score based only on domains that are present.
+
+   0.2: Wrong infrastructure — e.g., MockMvc for WebSocket, .block() for reactive, no flush/clear for JPA reads, @SpringBootTest where slice would work.
+   0.5: Mostly correct infrastructure but missing key practices — e.g., JPA tests use the repository under test for setup, reactive tests use .block(), security tests disable the filter chain.
+   0.8: Correct infrastructure for each domain with proper practices (flush+clear, StepVerifier, csrf(), scoped slices). Minor gaps.
+   1.0: Textbook usage of domain-specific patterns with all best practices followed.
+
+5. COVERAGE TARGET SELECTION
+   Does the test suite focus on code with behavioral significance, or does it waste effort on compiler-generated and framework code?
+
+   0.2: Tests records (constructors, accessors, equals/hashCode), Application.main(), @Configuration classes, or trivial getters/setters. Coverage is inflated by testing framework plumbing.
+   0.5: Some low-value tests (records, main method) alongside meaningful tests. Tests inherited Spring Data CRUD methods (save/findById) rather than custom queries.
+   0.8: Focuses on meaningful code — custom business logic, error handling, conditional branches, controller endpoints, custom queries. Skips records, main(), generated code, and framework configuration. Does not test Spring Data plumbing.
+   1.0: Every test targets behaviorally significant code. Uncovered code is intentionally excluded (records, config, generated). Coverage improvements come from testing error paths, branches, and validation — not from exercising compiler output.
+
+6. VERSION-AWARE PATTERNS
+   Does the test suite use annotations and APIs appropriate for the project's Spring Boot version?
+
+   For Boot 4.x projects:
+   - Uses @MockitoBean (not deprecated @MockBean)
+   - Uses @MockitoSpyBean (not deprecated @SpyBean)
+   - Uses Boot 4.x import paths where applicable (e.g., o.s.boot.webmvc.test.autoconfigure.WebMvcTest)
+   - MVC tests: uses MockMvcTester (preferred, auto-configured, AssertJ-based) OR MockMvc (still valid) — both are correct in Boot 4.x
+   - REST API tests: may use RestTestClient with @AutoConfigureRestTestClient (WebTestClient parity)
+   - Follows existing test conventions in the project (if project already uses MockMvc on Boot 4, continuing with MockMvc is acceptable)
+
+   For Boot 3.x projects:
+   - Uses @MockBean/@SpyBean (correct for Boot 3.x)
+   - Uses MockMvc (RestTestClient not available)
+   - Uses jakarta.* imports (not javax.*)
+
+   0.2: Uses annotations from the wrong Boot version — e.g., @MockBean on a Boot 4 project that already uses @MockitoBean, or javax.* imports on Boot 3.x+.
+   0.5: Mostly correct but inconsistent — mixes @MockBean and @MockitoBean in the same project, or uses deprecated APIs alongside current ones.
+   0.8: Consistently uses version-appropriate annotations and APIs. Follows the project's existing conventions. On Boot 4.x MVC tests, uses MockMvc or MockMvcTester (both acceptable).
+   1.0: Perfect version awareness — all annotations match the Boot version, follows existing project patterns, uses current APIs throughout. On Boot 4.x MVC tests, uses MockMvcTester (preferred) with AssertJ assertions (.hasStatusOk(), .hasViewName(), .model()).
+
+Return JSON only:
+{
+  "boot_version": "3.x or 4.x",
+  "criteria": [
+    { "name": "test_slice_selection", "score": 0.0, "evidence": "specific code reference" },
+    { "name": "assertion_quality", "score": 0.0, "evidence": "specific code reference" },
+    { "name": "error_and_edge_case_coverage", "score": 0.0, "evidence": "specific code reference" },
+    { "name": "domain_specific_test_patterns", "score": 0.0, "evidence": "specific code reference" },
+    { "name": "coverage_target_selection", "score": 0.0, "evidence": "specific code reference" },
+    { "name": "version_aware_patterns", "score": 0.0, "evidence": "specific code reference" }
+  ]
+}
+
+Important:
+- If src/test/ contains no test classes, return all scores as 0.0 with evidence "no test classes found" for each criterion.
+- Evidence must reference specific files and code patterns you observed (e.g., "src/test/java/com/example/GreetingControllerTest.java uses @SpringBootTest instead of @WebMvcTest").
+- Evidence may reference multiple files — separate with semicolons (e.g., "GreetingControllerTest.java uses @WebMvcTest correctly; OrderRepositoryTest.java uses @SpringBootTest instead of @DataJpaTest").
+- Score based on what you observe in the test suite, not on what is absent from the production code.
+- If no tests exist for a domain (e.g., no security tests because there is no security), do not penalize — score based on the tests that do exist.
+- If very few tests exist, score based on the quality of what is present, noting the limited sample in evidence.

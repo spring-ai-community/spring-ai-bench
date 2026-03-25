@@ -5,7 +5,7 @@
 
 **Maven Snapshot Artifacts Coming Soon**
 
-📖 **[Documentation](https://spring-ai-community.github.io/agent-bench/)** | [Getting Started](https://spring-ai-community.github.io/agent-bench/getting-started.html) | [Benchmarks](https://spring-ai-community.github.io/agent-bench/benchmarks/overview.html) | [Spring AI Agents](https://github.com/spring-ai-community/spring-ai-agents)
+📖 **[Documentation](https://spring-ai-community.github.io/agent-bench/)** | [Getting Started](https://spring-ai-community.github.io/agent-bench/getting-started.html) | [Benchmarks](https://spring-ai-community.github.io/agent-bench/benchmarks/overview.html) | [Spring AI Agents](https://github.com/spring-ai-community/agent-client)
 
 ## What & Why
 
@@ -60,7 +60,7 @@ Agent Bench provides a comprehensive **execution framework and benchmarking plat
 
 #### Available Agents
 - **hello-world**: Deterministic mock agent for testing infrastructure and baseline comparisons
-- **hello-world-ai**: AI-powered agent via [Spring AI Agents](https://github.com/spring-ai-community/spring-ai-agents) AgentClient integration
+- **hello-world-ai**: AI-powered agent via [Spring AI Agents](https://github.com/spring-ai-community/agent-client) AgentClient integration
   - Supports Claude and Gemini providers
   - Uses JBang launcher pattern for seamless execution
 
@@ -119,12 +119,12 @@ The complete enterprise development lifecycle:
 
 ### Prerequisites
 
-For AI agent integration testing, you'll need to build and install spring-ai-agents locally:
+For AI agent integration testing, you'll need to build and install agent-client locally:
 
 ```bash
-# Build spring-ai-agents first
-git clone https://github.com/spring-ai-community/spring-ai-agents.git
-cd spring-ai-agents
+# Build agent-client first
+git clone https://github.com/spring-ai-community/agent-client.git
+cd agent-client
 ./mvnw clean install -DskipTests
 cd ..
 
@@ -187,18 +187,18 @@ Agent Bench is built around a **Sandbox abstraction** that provides isolated exe
 Key components:
 - `BenchHarness`: End-to-end benchmark execution
 - `AgentRunner`: Agent execution interface with Spring AI Agents integration
-- `SuccessVerifier`: Validation of benchmark results *(temporary implementation - will evolve into judge concept in spring-ai-agents)*
+- `SuccessVerifier`: Validation of benchmark results *(temporary implementation - will evolve into judge concept in agent-client)*
 - `ReportGenerator`: HTML and JSON report generation
 
 For detailed architecture information, see [Architecture Documentation](https://spring-ai-community.github.io/agent-bench/architecture.html).
 
 ## Integration with Spring AI Agents
 
-Agent Bench integrates with the [Spring AI Agents](https://github.com/spring-ai-community/spring-ai-agents) framework via JBang execution:
+Agent Bench integrates with the [Spring AI Agents](https://github.com/spring-ai-community/agent-client) framework via JBang execution:
 
 ```bash
-# Pattern: agent-bench → JBang → spring-ai-agents → AI provider
-jbang /path/to/spring-ai-agents/jbang/launcher.java \
+# Pattern: agent-bench → JBang → agent-client → AI provider
+jbang /path/to/agent-client/jbang/launcher.java \
   hello-world-agent-ai \
   path=hello.txt \
   content="Hello World!" \
@@ -213,8 +213,8 @@ Unlike static benchmarks, Agent Bench runs on YOUR repos to measure YOUR scenari
 
 ```bash
 # 1. Clone and build dependencies (5 minutes)
-git clone https://github.com/spring-ai-community/spring-ai-agents.git
-cd spring-ai-agents && ./mvnw clean install -DskipTests
+git clone https://github.com/spring-ai-community/agent-client.git
+cd agent-client && ./mvnw clean install -DskipTests
 
 git clone https://github.com/spring-ai-community/agent-bench.git
 cd agent-bench
@@ -244,7 +244,7 @@ For comprehensive documentation, visit:
 
 ## Related Projects
 
-- **[Spring AI Agents](https://github.com/spring-ai-community/spring-ai-agents)**: Autonomous CLI agent integrations for the Spring AI ecosystem
+- **[Spring AI Agents](https://github.com/spring-ai-community/agent-client)**: Autonomous CLI agent integrations for the Spring AI ecosystem
 - **[Spring AI](https://github.com/spring-projects/spring-ai)**: The Spring AI framework
 
 ## Contributing

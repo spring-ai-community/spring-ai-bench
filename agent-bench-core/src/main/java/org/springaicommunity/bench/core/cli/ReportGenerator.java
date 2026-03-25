@@ -107,8 +107,8 @@ public class ReportGenerator {
 		Map<String, Object> provenance = new HashMap<>();
 		provenance.put("benchVersion", "0.1.0-SNAPSHOT");
 		provenance.put("agentsVersion", "0.1.0-SNAPSHOT");
-		provenance.put("judge", "spring-ai-agents-judge");
-		provenance.put("generator", "Spring AI Bench");
+		provenance.put("judge", "agent-judge");
+		provenance.put("generator", "Agent Bench");
 		provenance.put("reportFormat", "0.2");
 		provenance.put("generatedAt", UTC_FORMATTER.format(Instant.now()));
 		report.put("provenance", provenance);

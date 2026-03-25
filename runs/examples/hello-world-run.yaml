@@ -8,7 +8,7 @@ outDir: bench-reports             # output root dir
 agent:
   # Abstraction: how to call the agent
   type: jbang                     # "jbang" | "java" | "exec" (future-proof)
-  alias: hello-world              # JBang agent name (from spring-ai-agents)
+  alias: hello-world              # JBang agent name (from agent-client)
   args: []                        # extra args (rare for hello-world)
 
 inputs:

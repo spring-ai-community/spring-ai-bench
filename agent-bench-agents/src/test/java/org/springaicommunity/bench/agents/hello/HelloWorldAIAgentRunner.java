@@ -21,7 +21,7 @@ import org.springaicommunity.bench.agents.judge.HelloWorldJudge;
 /**
  * Specific agent runner for the Hello World AI agent test. Extends the generic
  * AgentModelAdapter with a HelloWorldAIAgentModel that uses Claude Code or Gemini via
- * JBang integration with spring-ai-agents.
+ * JBang integration with agent-client.
  */
 public class HelloWorldAIAgentRunner extends AgentModelAdapter {
 

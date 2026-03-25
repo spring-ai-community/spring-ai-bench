@@ -165,7 +165,7 @@ class HelloWorldAIIntegrationTest {
 	}
 
 	private boolean isSpringAIAgentsBuilt() {
-		Path launcherPath = Path.of("/home/mark/community/spring-ai-agents/jbang/launcher.java");
+		Path launcherPath = Path.of("/home/mark/community/agent-client/jbang/launcher.java");
 		return Files.exists(launcherPath);
 	}
 

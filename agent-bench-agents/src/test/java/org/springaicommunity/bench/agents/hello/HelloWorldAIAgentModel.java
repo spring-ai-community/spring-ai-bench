@@ -53,7 +53,7 @@ public class HelloWorldAIAgentModel implements AgentModel {
 			// Build JBang command to invoke hello-world-agent-ai
 			List<String> command = new ArrayList<>();
 			command.add("jbang");
-			command.add("/home/mark/community/spring-ai-agents/jbang/launcher.java");
+			command.add("/home/mark/community/agent-client/jbang/launcher.java");
 			command.add("hello-world-agent-ai");
 			command.add("path=hello.txt");
 			command.add("content=Hello World!");
@@ -129,7 +129,7 @@ public class HelloWorldAIAgentModel implements AgentModel {
 
 	@Override
 	public boolean isAvailable() {
-		// Check if JBang is available and spring-ai-agents is built locally
+		// Check if JBang is available and agent-client is built locally
 		try {
 			ProcessBuilder pb = new ProcessBuilder("jbang", "--version");
 			Process process = pb.start();
@@ -141,8 +141,8 @@ public class HelloWorldAIAgentModel implements AgentModel {
 
 			boolean jbangAvailable = process.exitValue() == 0;
 
-			// Check if spring-ai-agents launcher exists
-			Path launcherPath = Path.of("/home/mark/community/spring-ai-agents/jbang/launcher.java");
+			// Check if agent-client launcher exists
+			Path launcherPath = Path.of("/home/mark/community/agent-client/jbang/launcher.java");
 			boolean launcherExists = Files.exists(launcherPath);
 
 			return jbangAvailable && launcherExists;

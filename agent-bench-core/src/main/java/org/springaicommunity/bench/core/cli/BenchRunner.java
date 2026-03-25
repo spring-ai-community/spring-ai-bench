@@ -115,7 +115,7 @@ public class BenchRunner {
 		command.add("jbang");
 
 		// Use absolute path for Phase 0-2
-		command.add("/home/mark/community/spring-ai-agents/jbang/launcher.java");
+		command.add("/home/mark/community/agent-client/jbang/launcher.java");
 		command.add(runSpec.getAgent().getAlias());
 
 		// Add inputs as key=value pairs

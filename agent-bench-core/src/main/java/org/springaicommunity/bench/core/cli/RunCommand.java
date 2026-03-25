@@ -194,13 +194,15 @@ public class RunCommand {
 
 			// Grade: evaluate result
 			Instant gradeStart = Instant.now();
-			JudgmentContext context = JudgmentContext.builder()
+			JudgmentContext.Builder contextBuilder = JudgmentContext.builder()
 				.workspace(workspace)
 				.goal(item.instruction())
 				.executionTime(agentDuration)
 				.startedAt(agentStart)
-				.status(ExecutionStatus.SUCCESS)
-				.build();
+				.status(ExecutionStatus.SUCCESS);
+			// Pass item metadata through to judges (e.g., baselineCoverage for coverage judges)
+			item.metadata().forEach(contextBuilder::metadata);
+			JudgmentContext context = contextBuilder.build();
 
 			Judgment judgment = judge.judge(context);
 			boolean resolved = judgment.pass();

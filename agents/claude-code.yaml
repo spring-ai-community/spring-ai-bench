@@ -1,5 +1,2 @@
-name: claude-code
-type: exec
-command: ["claude", "-p", "${instruction}", "--output-format", "text"]
-working-dir: "${workspace}"
-timeout: PT10M
+command: claude
+timeout: PT45M

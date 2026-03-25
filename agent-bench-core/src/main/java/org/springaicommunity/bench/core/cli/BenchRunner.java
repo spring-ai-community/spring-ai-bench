@@ -1,22 +1,19 @@
 package org.springaicommunity.bench.core.cli;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.springaicommunity.bench.core.agent.ExecAgentInvoker;
 import org.springaicommunity.judge.Judge;
+import org.zeroturnaround.exec.ProcessExecutor;
+import org.zeroturnaround.exec.ProcessResult;
 import org.springaicommunity.judge.context.JudgmentContext;
 import org.springaicommunity.judge.result.Judgment;
 
@@ -51,11 +48,14 @@ public class BenchRunner {
 			writeLog(logFile, "STARTED: " + UTC_FORMATTER.format(startedAt));
 			writeLog(logFile, "[WORKSPACE] Clearing existing workspace");
 
-			// Write instruction to workspace for the agent
-			String instruction = runSpec.getDescription() != null ? runSpec.getDescription() : "";
-			Files.writeString(workspace.resolve("INSTRUCTION.md"), instruction);
+			// Write instruction if the case spec provides one (optional —
+			// purpose-built agents have their own baked-in instructions)
+			String instruction = runSpec.getDescription();
+			if (instruction != null && !instruction.isBlank()) {
+				Files.writeString(workspace.resolve("INSTRUCTION.md"), instruction);
+				writeLog(logFile, "[WORKSPACE] Wrote INSTRUCTION.md");
+			}
 
-			// Invoke agent
 			writeLog(logFile, "[AGENT] Starting agent invocation");
 			AgentInvocationResult agentResult = invokeAgent(runSpec, workspace, logFile);
 
@@ -115,76 +115,35 @@ public class BenchRunner {
 	}
 
 	private AgentInvocationResult invokeAgent(RunSpec runSpec, Path workspace, Path logFile) throws Exception {
-		AgentConfig agent = runSpec.getAgent();
-		String type = agent.getType() != null ? agent.getType() : "exec";
+		ExecAgentInvoker agent = loadAgentConfig(runSpec.getAgent().getAlias());
+		String command = agent.command();
+		long timeoutSec = agent.timeout().toSeconds();
 
-		List<String> command;
-		if ("exec".equals(type)) {
-			command = resolveExecCommand(agent, workspace);
-		}
-		else if ("jbang".equals(type)) {
-			// Legacy JBang path — kept for backward compatibility
-			command = new ArrayList<>();
-			command.add("jbang");
-			command.add(resolveJBangLauncher());
-			command.add(agent.getAlias());
-			for (Map.Entry<String, Object> input : runSpec.getInputs().entrySet()) {
-				command.add(input.getKey() + "=" + input.getValue());
-			}
-		}
-		else {
-			throw new IllegalArgumentException("Unknown agent type: " + type + ". Supported: exec, jbang");
-		}
+		writeLog(logFile, "[AGENT] Running: " + command + " (in " + workspace + ")");
 
-		String commandStr = String.join(" ", command);
-		writeLog(logFile, "[AGENT] Invoking " + commandStr);
+		ProcessResult result = new ProcessExecutor().command(command)
+			.directory(workspace.toFile())
+			.timeout(timeoutSec, TimeUnit.SECONDS)
+			.readOutput(true)
+			.redirectErrorStream(true)
+			.execute();
 
-		ProcessBuilder pb = new ProcessBuilder(command);
-		pb.directory(workspace.toFile());
-		pb.redirectErrorStream(true);
+		String output = result.outputUTF8();
+		writeLog(logFile, "[AGENT] Output:\n" + output);
+		writeLog(logFile, "[AGENT] Completed with exit code: " + result.getExitValue());
 
-		Process process = pb.start();
-
-		StringBuilder output = new StringBuilder();
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-			String line;
-			while ((line = reader.readLine()) != null) {
-				writeLog(logFile, "[AGENT] " + line);
-				output.append(line).append("\n");
-			}
-		}
-
-		boolean finished = process.waitFor(10, TimeUnit.MINUTES);
-		if (!finished) {
-			process.destroyForcibly();
-			throw new RuntimeException("Agent execution timed out");
-		}
-
-		int exitCode = process.exitValue();
-		writeLog(logFile, "[AGENT] Agent completed with exit code: " + exitCode);
-
-		return new AgentInvocationResult(exitCode, commandStr, output.toString());
+		return new AgentInvocationResult(result.getExitValue(), command, output);
 	}
 
-	private List<String> resolveExecCommand(AgentConfig agent, Path workspace) throws IOException {
-		Path agentYaml = Path.of("agents", agent.getAlias() + ".yaml");
+	private ExecAgentInvoker loadAgentConfig(String alias) throws IOException {
+		Path agentYaml = Path.of("agents", alias + ".yaml");
 		if (!Files.isRegularFile(agentYaml)) {
 			agentYaml = agentYaml.toAbsolutePath();
 		}
 		if (!Files.isRegularFile(agentYaml)) {
-			throw new IllegalStateException("Agent config not found: agents/" + agent.getAlias()
-					+ ".yaml — create it to define the agent command.");
+			throw new IllegalStateException("Agent config not found: agents/" + alias + ".yaml");
 		}
-
-		ExecAgentInvoker invoker = ExecAgentInvoker.fromYaml(agentYaml);
-		String instruction = Files.readString(workspace.resolve("INSTRUCTION.md"));
-
-		List<String> command = new ArrayList<>();
-		for (String part : invoker.commandTemplate()) {
-			command.add(part.replace("${instruction}", instruction)
-				.replace("${workspace}", workspace.toAbsolutePath().toString()));
-		}
-		return command;
+		return ExecAgentInvoker.fromYaml(agentYaml);
 	}
 
 	private void generateReports(RunSpec runSpec, Instant startedAt, Instant finishedAt, long durationMs, String status,
@@ -203,30 +162,6 @@ public class BenchRunner {
 		catch (IOException e) {
 			System.err.println("Failed to write log: " + e.getMessage());
 		}
-	}
-
-	/**
-	 * Resolve the JBang launcher path. Checks in order:
-	 * <ol>
-	 * <li>AGENT_CLIENT_HOME env var → $AGENT_CLIENT_HOME/jbang/launcher.java</li>
-	 * <li>Sibling directory convention → ../agent-client/jbang/launcher.java</li>
-	 * </ol>
-	 */
-	static String resolveJBangLauncher() {
-		String agentClientHome = System.getenv("AGENT_CLIENT_HOME");
-		if (agentClientHome != null) {
-			Path launcher = Path.of(agentClientHome, "jbang", "launcher.java");
-			if (Files.isRegularFile(launcher)) {
-				return launcher.toAbsolutePath().toString();
-			}
-		}
-		Path sibling = Path.of("../agent-client/jbang/launcher.java").toAbsolutePath().normalize();
-		if (Files.isRegularFile(sibling)) {
-			return sibling.toString();
-		}
-		throw new IllegalStateException(
-				"Cannot find agent-client JBang launcher. Set AGENT_CLIENT_HOME env var "
-						+ "or clone agent-client as a sibling directory.");
 	}
 
 	private void deleteRecursively(Path path) throws IOException {

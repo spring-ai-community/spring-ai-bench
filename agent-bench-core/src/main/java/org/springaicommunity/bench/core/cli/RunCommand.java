@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -23,6 +24,7 @@ import org.springaicommunity.bench.core.result.BenchmarkResult;
 import org.springaicommunity.bench.core.result.FailureMode;
 import org.springaicommunity.bench.core.result.ItemResult;
 import org.springaicommunity.judge.Judge;
+import org.zeroturnaround.exec.ProcessExecutor;
 import org.springaicommunity.judge.context.ExecutionStatus;
 import org.springaicommunity.judge.context.JudgmentContext;
 import org.springaicommunity.judge.result.Judgment;
@@ -103,7 +105,7 @@ public class RunCommand {
 
 		Duration totalDuration = Duration.between(runStart, Instant.now());
 		BenchmarkResult benchmarkResult = BenchmarkResult.fromItems(benchmarkName, benchmark.version(), runId,
-				invoker != null ? invoker.name() : "manual", results, totalDuration, 0.0);
+				invoker != null ? invoker.command() : "manual", results, totalDuration, 0.0);
 
 		// Write aggregate result
 		jsonMapper.writerWithDefaultPrettyPrinter().writeValue(runDir.resolve("result.json").toFile(), benchmarkResult);
@@ -129,8 +131,18 @@ public class RunCommand {
 			// Invoke agent (if configured)
 			Instant agentStart = Instant.now();
 			if (invoker != null) {
+				// Write instruction if the item provides one
+				String instruction = item.instruction();
+				if (instruction != null && !instruction.isBlank()) {
+					Files.writeString(workspace.resolve("INSTRUCTION.md"), instruction);
+				}
 				Duration timeout = item.timeout() != null ? item.timeout() : benchmark.defaultTimeout();
-				invoker.invoke(item.instruction(), workspace, timeout);
+				new ProcessExecutor().command(invoker.command())
+					.directory(workspace.toFile())
+					.timeout(timeout.toSeconds(), TimeUnit.SECONDS)
+					.redirectErrorStream(true)
+					.redirectOutput(System.out)
+					.execute();
 			}
 			else {
 				System.out.println("  No agent configured. Grade workspace manually.");

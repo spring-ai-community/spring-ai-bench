@@ -4,11 +4,11 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.springaicommunity</groupId>
-    <artifactId>spring-ai-bench-parent</artifactId>
+    <artifactId>agent-bench-parent</artifactId>
     <version>0.2.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>bench-site</artifactId>
+  <artifactId>agent-bench-site</artifactId>
   <packaging>jar</packaging>
 
   <dependencies>

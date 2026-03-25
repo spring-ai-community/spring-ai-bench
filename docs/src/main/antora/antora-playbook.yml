@@ -5,10 +5,10 @@ antora:
   extensions:
     - '@antora/collector-extension'
     - require: '@springio/antora-extensions'
-      root_component_name: 'spring-ai-bench'
+      root_component_name: 'agent-bench'
 site:
-  title: Spring AI Bench Reference
-  url: https://spring-ai-community.github.io/spring-ai-bench/
+  title: Agent Bench Reference
+  url: https://spring-ai-community.github.io/agent-bench/
   robots: allow
 git:
   ensure_git_suffix: false

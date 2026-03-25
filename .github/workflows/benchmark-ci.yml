@@ -95,13 +95,13 @@ jobs:
 
       - name: Build project
         run: |
-          echo "Building spring-ai-bench project..."
+          echo "Building agent-bench project..."
           ./mvnw --batch-mode --quiet clean install -DskipTests
 
       - name: Run benchmarks
         run: |
           echo "Running hello-world benchmark..."
-          ./mvnw exec:java -pl bench-core -Dexec.args="run --run-file runs/examples/hello-world-run.yaml"
+          ./mvnw exec:java -pl agent-bench-core -Dexec.args="run --run-file runs/examples/hello-world-run.yaml"
 
           # Verify benchmark results
           if [ -d "bench-reports" ] && [ "$(ls bench-reports/ | wc -l)" -gt 0 ]; then

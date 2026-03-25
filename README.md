@@ -1,27 +1,27 @@
-# Spring AI Bench
+# Agent Bench
 
-<!-- [![Build Status](https://github.com/spring-ai-community/spring-ai-bench/workflows/CI/badge.svg)](https://github.com/spring-ai-community/spring-ai-bench/actions) -->
-<!-- [![Maven Central](https://img.shields.io/maven-central/v/org.springaicommunity.bench/spring-ai-bench-parent.svg)](https://search.maven.org/search?q=g:org.springaicommunity.bench) -->
+<!-- [![Build Status](https://github.com/spring-ai-community/agent-bench/workflows/CI/badge.svg)](https://github.com/spring-ai-community/agent-bench/actions) -->
+<!-- [![Maven Central](https://img.shields.io/maven-central/v/org.springaicommunity.bench/agent-bench-parent.svg)](https://search.maven.org/search?q=g:org.springaicommunity.bench) -->
 
 **Maven Snapshot Artifacts Coming Soon**
 
-📖 **[Documentation](https://spring-ai-community.github.io/spring-ai-bench/)** | [Getting Started](https://spring-ai-community.github.io/spring-ai-bench/getting-started.html) | [Benchmarks](https://spring-ai-community.github.io/spring-ai-bench/benchmarks/overview.html) | [Spring AI Agents](https://github.com/spring-ai-community/spring-ai-agents)
+📖 **[Documentation](https://spring-ai-community.github.io/agent-bench/)** | [Getting Started](https://spring-ai-community.github.io/agent-bench/getting-started.html) | [Benchmarks](https://spring-ai-community.github.io/agent-bench/benchmarks/overview.html) | [Spring AI Agents](https://github.com/spring-ai-community/spring-ai-agents)
 
 ## What & Why
 
 Existing benchmarks (SWE-bench) measure yesterday's agents on static 2023 Python patches. They can't evaluate the agents teams actually use (Claude, Gemini, Amazon Q, Amp) on enterprise Java workflows.
 
-**Spring AI Bench measures modern agents on real enterprise development tasks** — issue triage, PR review, coverage uplift, compliance validation, dependency upgrades. Run benchmarks on YOUR repos to measure YOUR scenarios.
+**Agent Bench measures modern agents on real enterprise development tasks** — issue triage, PR review, coverage uplift, compliance validation, dependency upgrades. Run benchmarks on YOUR repos to measure YOUR scenarios.
 
 **If agents have evolved, benchmarks must evolve too.**
 
-📖 **[Read the full analysis →](https://spring-ai-community.github.io/spring-ai-bench/)** | [Why SWE-bench Falls Short](https://spring-ai-community.github.io/spring-ai-bench/#_the_evidence_why_swe_bench_falls_short)
+📖 **[Read the full analysis →](https://spring-ai-community.github.io/agent-bench/)** | [Why SWE-bench Falls Short](https://spring-ai-community.github.io/agent-bench/#_the_evidence_why_swe_bench_falls_short)
 
 ---
 
 ## Why Different
 
-|Dimension |SWE-bench |Spring AI Bench|
+|Dimension |SWE-bench |Agent Bench|
 |---|---|---|
 |**Scope**|Patch loops only|Full dev lifecycle (triage, PR review, coverage, compliance)|
 |**Language**|Python-only (~75% scores)|Java-first (~7-10% gap shows training bias)|
@@ -30,11 +30,11 @@ Existing benchmarks (SWE-bench) measure yesterday's agents on static 2023 Python
 |**Agent Paradigm**|2024 patch-loop agents|2025 declarative goal agents|
 |**Standards**|Pre-BetterBench|Following BetterBench principles|
 
-📖 **[See detailed evidence & analysis](https://spring-ai-community.github.io/spring-ai-bench/#_the_evidence_why_swe_bench_falls_short)** for contamination data (60%+ Verified → 19% Live), language bias analysis, and scaffolding transparency.
+📖 **[See detailed evidence & analysis](https://spring-ai-community.github.io/agent-bench/#_the_evidence_why_swe_bench_falls_short)** for contamination data (60%+ Verified → 19% Live), language bias analysis, and scaffolding transparency.
 
 ---
 
-## What Spring AI Bench Does
+## What Agent Bench Does
 
 **Can AI act as a true Java developer agent?**
 
@@ -56,7 +56,7 @@ That's the standard enterprise developers hold themselves to — and the standar
 
 ### What Works Today
 
-Spring AI Bench provides a comprehensive **execution framework and benchmarking platform** for AI agents in Java environments with isolated sandboxes, customizable execution, and evaluation capabilities.
+Agent Bench provides a comprehensive **execution framework and benchmarking platform** for AI agents in Java environments with isolated sandboxes, customizable execution, and evaluation capabilities.
 
 #### Available Agents
 - **hello-world**: Deterministic mock agent for testing infrastructure and baseline comparisons
@@ -77,7 +77,7 @@ Spring AI Bench provides a comprehensive **execution framework and benchmarking 
 ```
 
 #### Multi-Agent Benchmarking
-Spring AI Bench supports comparative benchmarking between different agent implementations:
+Agent Bench supports comparative benchmarking between different agent implementations:
 
 |Implementation |Duration |Performance Notes|
 |---|---|---|
@@ -89,7 +89,7 @@ Spring AI Bench supports comparative benchmarking between different agent implem
 
 ### Benchmark Tracks: The Full Vision
 
-Spring AI Bench is designed to support tracks that map directly to **real enterprise developer workflows** - this is what makes it different from existing benchmarks that focus only on narrow bug-fixing loops.
+Agent Bench is designed to support tracks that map directly to **real enterprise developer workflows** - this is what makes it different from existing benchmarks that focus only on narrow bug-fixing loops.
 
 #### ✅ Available Now
 - **hello-world**: File creation and basic infrastructure validation
@@ -113,7 +113,7 @@ The complete enterprise development lifecycle:
 - **Performance Optimization**: Identify and resolve performance bottlenecks
 - **Documentation Generation**: Auto-generate and maintain technical documentation
 
-**This is the vision that sets Spring AI Bench apart** - measuring AI agents on the full spectrum of enterprise Java development, not just isolated bug fixes.
+**This is the vision that sets Agent Bench apart** - measuring AI agents on the full spectrum of enterprise Java development, not just isolated bug fixes.
 
 ## Quick Start
 
@@ -128,9 +128,9 @@ cd spring-ai-agents
 ./mvnw clean install -DskipTests
 cd ..
 
-# Then build spring-ai-bench
-git clone https://github.com/spring-ai-community/spring-ai-bench.git
-cd spring-ai-bench
+# Then build agent-bench
+git clone https://github.com/spring-ai-community/agent-bench.git
+cd agent-bench
 ./mvnw clean install
 ```
 
@@ -178,7 +178,7 @@ file:///tmp/bench-site/index.html
 
 ## Architecture
 
-Spring AI Bench is built around a **Sandbox abstraction** that provides isolated execution environments:
+Agent Bench is built around a **Sandbox abstraction** that provides isolated execution environments:
 
 - **LocalSandbox**: Direct process execution (fast, development)
 - **DockerSandbox**: Container isolation (secure, production-ready)
@@ -190,14 +190,14 @@ Key components:
 - `SuccessVerifier`: Validation of benchmark results *(temporary implementation - will evolve into judge concept in spring-ai-agents)*
 - `ReportGenerator`: HTML and JSON report generation
 
-For detailed architecture information, see [Architecture Documentation](https://spring-ai-community.github.io/spring-ai-bench/architecture.html).
+For detailed architecture information, see [Architecture Documentation](https://spring-ai-community.github.io/agent-bench/architecture.html).
 
 ## Integration with Spring AI Agents
 
-Spring AI Bench integrates with the [Spring AI Agents](https://github.com/spring-ai-community/spring-ai-agents) framework via JBang execution:
+Agent Bench integrates with the [Spring AI Agents](https://github.com/spring-ai-community/spring-ai-agents) framework via JBang execution:
 
 ```bash
-# Pattern: spring-ai-bench → JBang → spring-ai-agents → AI provider
+# Pattern: agent-bench → JBang → spring-ai-agents → AI provider
 jbang /path/to/spring-ai-agents/jbang/launcher.java \
   hello-world-agent-ai \
   path=hello.txt \
@@ -209,15 +209,15 @@ This ensures benchmark success guarantees good end-user experience by testing th
 
 ## Run It Yourself: The Big Differentiator
 
-Unlike static benchmarks, Spring AI Bench runs on YOUR repos to measure YOUR scenarios:
+Unlike static benchmarks, Agent Bench runs on YOUR repos to measure YOUR scenarios:
 
 ```bash
 # 1. Clone and build dependencies (5 minutes)
 git clone https://github.com/spring-ai-community/spring-ai-agents.git
 cd spring-ai-agents && ./mvnw clean install -DskipTests
 
-git clone https://github.com/spring-ai-community/spring-ai-bench.git
-cd spring-ai-bench
+git clone https://github.com/spring-ai-community/agent-bench.git
+cd agent-bench
 
 # 2. Set your API keys
 export ANTHROPIC_API_KEY=your_key
@@ -236,11 +236,11 @@ open file:///tmp/bench-reports/index.html
 
 For comprehensive documentation, visit:
 
-- 📖 **[Full Documentation](https://spring-ai-community.github.io/spring-ai-bench/)**
-- 📖 **[Getting Started Guide](https://spring-ai-community.github.io/spring-ai-bench/getting-started.html)**
-- 📖 **[Architecture Overview](https://spring-ai-community.github.io/spring-ai-bench/architecture.html)**
-- 📖 **[Running Benchmarks](https://spring-ai-community.github.io/spring-ai-bench/benchmarks/running-benchmarks.html)**
-- 📖 **[Agent Configuration](https://spring-ai-community.github.io/spring-ai-bench/agents/claude-code.html)**
+- 📖 **[Full Documentation](https://spring-ai-community.github.io/agent-bench/)**
+- 📖 **[Getting Started Guide](https://spring-ai-community.github.io/agent-bench/getting-started.html)**
+- 📖 **[Architecture Overview](https://spring-ai-community.github.io/agent-bench/architecture.html)**
+- 📖 **[Running Benchmarks](https://spring-ai-community.github.io/agent-bench/benchmarks/running-benchmarks.html)**
+- 📖 **[Agent Configuration](https://spring-ai-community.github.io/agent-bench/agents/claude-code.html)**
 
 ## Related Projects
 
@@ -264,8 +264,8 @@ For comprehensive documentation, visit:
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/spring-ai-community/spring-ai-bench/issues)
-- **Documentation**: [Documentation Site](https://spring-ai-community.github.io/spring-ai-bench/)
+- **Issues**: [GitHub Issues](https://github.com/spring-ai-community/agent-bench/issues)
+- **Documentation**: [Documentation Site](https://spring-ai-community.github.io/agent-bench/)
 
 ## License
 
@@ -273,4 +273,4 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ---
 
-**Spring AI Bench** - *Open benchmarking suite for Java-centric AI developer agents*
+**Agent Bench** - *Open benchmarking suite for Java-centric AI developer agents*

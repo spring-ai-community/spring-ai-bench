@@ -1,6 +1,6 @@
-name: spring-ai-bench
+name: agent-bench
 version: true
-title: Spring AI Bench
+title: Agent Bench
 nav:
   - modules/ROOT/nav.adoc
 ext:

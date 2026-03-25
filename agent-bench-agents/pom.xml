@@ -6,22 +6,22 @@
 
     <parent>
         <groupId>org.springaicommunity</groupId>
-        <artifactId>spring-ai-bench-parent</artifactId>
+        <artifactId>agent-bench-parent</artifactId>
         <version>0.2.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>bench-agents</artifactId>
+    <artifactId>agent-bench-agents</artifactId>
     <packaging>jar</packaging>
 
-    <name>Spring AI Bench - Agent Integrations</name>
-    <description>Integration layer between Spring AI Bench and Spring AI Agents</description>
+    <name>Agent Bench - Agent Integrations</name>
+    <description>Integration layer between Agent Bench and Spring AI Agents</description>
 
     <dependencies>
         <!-- Bench core for AgentRunner, AgentSpec, etc -->
         <dependency>
             <groupId>org.springaicommunity</groupId>
-            <artifactId>bench-core</artifactId>
+            <artifactId>agent-bench-core</artifactId>
             <version>${project.version}</version>
         </dependency>
 

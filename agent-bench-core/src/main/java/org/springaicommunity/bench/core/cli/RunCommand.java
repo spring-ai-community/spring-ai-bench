@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import org.springaicommunity.bench.core.agent.ExecAgentInvoker;
+import org.springaicommunity.bench.core.result.AgentJournal;
 import org.springaicommunity.bench.core.benchmark.Benchmark;
 import org.springaicommunity.bench.core.benchmark.BenchmarkCatalog;
 import org.springaicommunity.bench.core.benchmark.BenchmarkItem;
@@ -175,6 +176,13 @@ public class RunCommand {
 			Instant agentEnd = Instant.now();
 			Duration agentDuration = Duration.between(agentStart, agentEnd);
 
+			// Read journal if the agent produced one
+			AgentJournal journal = readJournal(workspace);
+			if (journal != null) {
+				System.out.printf("  Journal: %d turns, $%.4f, %dms%n", journal.totalTurns(), journal.totalCostUsd(),
+						journal.durationMs());
+			}
+
 			// Post scripts (after agent, before grading)
 			runScripts(item.post(), workspace, "post");
 
@@ -192,8 +200,18 @@ public class RunCommand {
 			boolean resolved = judgment.pass();
 			Instant gradeEnd = Instant.now();
 
-			return new ItemResult(item.id(), resolved, Map.of("reasoning", judgment.reasoning()),
-					resolved ? FailureMode.NONE : FailureMode.TEST_FAILURE, agentDuration, 0, workspace,
+			Map<String, Object> scores = new java.util.HashMap<>();
+			scores.put("reasoning", judgment.reasoning());
+			if (journal != null) {
+				scores.put("journal", journal);
+				scores.put("costUsd", journal.totalCostUsd());
+				scores.put("turns", journal.totalTurns());
+				scores.put("efficiencyVerified", journal.hasCostData());
+			}
+			long tokens = journal != null ? journal.totalInputTokens() + journal.totalOutputTokens() : 0;
+
+			return new ItemResult(item.id(), resolved, scores,
+					resolved ? FailureMode.NONE : FailureMode.TEST_FAILURE, agentDuration, tokens, workspace,
 					agentStart, agentEnd, gradeStart, gradeEnd);
 		}
 		catch (Exception e) {
@@ -202,6 +220,20 @@ public class RunCommand {
 				mode = FailureMode.AGENT_TIMEOUT;
 			}
 			return new ItemResult(item.id(), false, Map.of("error", e.getMessage()), mode, null, 0, workspace);
+		}
+	}
+
+	private AgentJournal readJournal(Path workspace) {
+		Path journalPath = workspace.resolve("journal.yaml");
+		if (!Files.isRegularFile(journalPath)) {
+			return null;
+		}
+		try {
+			return yamlMapper.readValue(journalPath.toFile(), AgentJournal.class);
+		}
+		catch (IOException e) {
+			System.err.println("  Warning: failed to parse journal.yaml: " + e.getMessage());
+			return null;
 		}
 	}
 

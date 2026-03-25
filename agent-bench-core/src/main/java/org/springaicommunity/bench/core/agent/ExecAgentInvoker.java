@@ -40,6 +40,10 @@ public class ExecAgentInvoker {
 		return name;
 	}
 
+	public List<String> commandTemplate() {
+		return commandTemplate;
+	}
+
 	/**
 	 * Invokes the agent with the given instruction in the specified workspace.
 	 * @param instruction the task instruction

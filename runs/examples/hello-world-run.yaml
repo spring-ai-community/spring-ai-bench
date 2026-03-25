@@ -6,10 +6,11 @@ runId: auto                       # "auto" → UUIDv4; or set a fixed ID for rep
 outDir: bench-reports             # output root dir
 
 agent:
-  # Abstraction: how to call the agent
-  type: jbang                     # "jbang" | "java" | "exec" (future-proof)
-  alias: hello-world              # JBang agent name (from agent-client)
-  args: []                        # extra args (rare for hello-world)
+  # type: "exec" loads agents/<alias>.yaml for direct CLI invocation
+  # type: "jbang" uses JBang + agent-client launcher (legacy)
+  type: jbang
+  alias: hello-world
+  args: []
 
 inputs:
   # Optional overrides to the case inputs (merged: run.inputs overrides case.inputs)

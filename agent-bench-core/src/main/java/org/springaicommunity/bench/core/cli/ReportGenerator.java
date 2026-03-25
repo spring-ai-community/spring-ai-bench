@@ -27,7 +27,7 @@ public class ReportGenerator {
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	public void generateReports(RunSpec runSpec, Instant startedAt, Instant finishedAt, long durationMs, String status,
-			Judgment judgment, BenchRunner.JBangResult agentResult) throws IOException {
+			Judgment judgment, BenchRunner.AgentInvocationResult agentResult) throws IOException {
 
 		// Generate JSON report
 		generateJsonReport(runSpec, startedAt, finishedAt, durationMs, status, judgment, agentResult);
@@ -37,7 +37,7 @@ public class ReportGenerator {
 	}
 
 	private void generateJsonReport(RunSpec runSpec, Instant startedAt, Instant finishedAt, long durationMs,
-			String status, Judgment judgment, BenchRunner.JBangResult agentResult) throws IOException {
+			String status, Judgment judgment, BenchRunner.AgentInvocationResult agentResult) throws IOException {
 
 		Map<String, Object> report = new HashMap<>();
 		report.put("schemaVersion", "0.2");
@@ -100,7 +100,7 @@ public class ReportGenerator {
 
 		// Reproduce command (JBang)
 		Map<String, Object> reproduce = new HashMap<>();
-		reproduce.put("jbangCommand", agentResult.getCommand());
+		reproduce.put("command", agentResult.getCommand());
 		report.put("reproduce", reproduce);
 
 		// Provenance
@@ -149,7 +149,7 @@ public class ReportGenerator {
 	}
 
 	private void generateHtmlReport(RunSpec runSpec, Instant startedAt, Instant finishedAt, long durationMs,
-			String status, Judgment judgment, BenchRunner.JBangResult agentResult) throws IOException {
+			String status, Judgment judgment, BenchRunner.AgentInvocationResult agentResult) throws IOException {
 
 		StringBuilder html = new StringBuilder();
 		html.append("<!DOCTYPE html>\n");

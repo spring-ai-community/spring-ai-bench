@@ -15,13 +15,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.springaicommunity.bench.core.agent.ExecAgentInvoker;
 import org.springaicommunity.judge.Judge;
 import org.springaicommunity.judge.context.JudgmentContext;
 import org.springaicommunity.judge.result.Judgment;
 
 /**
- * Core runner that executes benchmarks according to the genesis plan. Handles workspace
- * management, JBang agent invocation, judgment via Judge framework, and reporting.
+ * Core runner that executes benchmarks. Handles workspace management, agent invocation,
+ * judgment via Judge framework, and reporting.
  */
 public class BenchRunner {
 
@@ -50,9 +51,13 @@ public class BenchRunner {
 			writeLog(logFile, "STARTED: " + UTC_FORMATTER.format(startedAt));
 			writeLog(logFile, "[WORKSPACE] Clearing existing workspace");
 
-			// Invoke agent via JBang
+			// Write instruction to workspace for the agent
+			String instruction = runSpec.getDescription() != null ? runSpec.getDescription() : "";
+			Files.writeString(workspace.resolve("INSTRUCTION.md"), instruction);
+
+			// Invoke agent
 			writeLog(logFile, "[AGENT] Starting agent invocation");
-			JBangResult agentResult = invokeAgent(runSpec, workspace, logFile);
+			AgentInvocationResult agentResult = invokeAgent(runSpec, workspace, logFile);
 
 			// Execute judgment using Judge framework
 			writeLog(logFile, "[JUDGE] Starting judgment via Judge framework");
@@ -109,31 +114,37 @@ public class BenchRunner {
 		return workspace;
 	}
 
-	private JBangResult invokeAgent(RunSpec runSpec, Path workspace, Path logFile) throws Exception {
-		// Build JBang command according to genesis plan
-		List<String> command = new ArrayList<>();
-		command.add("jbang");
+	private AgentInvocationResult invokeAgent(RunSpec runSpec, Path workspace, Path logFile) throws Exception {
+		AgentConfig agent = runSpec.getAgent();
+		String type = agent.getType() != null ? agent.getType() : "exec";
 
-		command.add(resolveJBangLauncher());
-		command.add(runSpec.getAgent().getAlias());
-
-		// Add inputs as key=value pairs
-		for (Map.Entry<String, Object> input : runSpec.getInputs().entrySet()) {
-			command.add(input.getKey() + "=" + input.getValue());
+		List<String> command;
+		if ("exec".equals(type)) {
+			command = resolveExecCommand(agent, workspace);
+		}
+		else if ("jbang".equals(type)) {
+			// Legacy JBang path — kept for backward compatibility
+			command = new ArrayList<>();
+			command.add("jbang");
+			command.add(resolveJBangLauncher());
+			command.add(agent.getAlias());
+			for (Map.Entry<String, Object> input : runSpec.getInputs().entrySet()) {
+				command.add(input.getKey() + "=" + input.getValue());
+			}
+		}
+		else {
+			throw new IllegalArgumentException("Unknown agent type: " + type + ". Supported: exec, jbang");
 		}
 
-		// Record exact command for reproducibility
 		String commandStr = String.join(" ", command);
 		writeLog(logFile, "[AGENT] Invoking " + commandStr);
 
-		// Execute with ProcessBuilder (safe for spaces/quotes)
 		ProcessBuilder pb = new ProcessBuilder(command);
 		pb.directory(workspace.toFile());
 		pb.redirectErrorStream(true);
 
 		Process process = pb.start();
 
-		// Capture output
 		StringBuilder output = new StringBuilder();
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
 			String line;
@@ -143,20 +154,41 @@ public class BenchRunner {
 			}
 		}
 
-		boolean finished = process.waitFor(5, TimeUnit.MINUTES);
+		boolean finished = process.waitFor(10, TimeUnit.MINUTES);
 		if (!finished) {
 			process.destroyForcibly();
-			throw new RuntimeException("Agent execution timed out after 5 minutes");
+			throw new RuntimeException("Agent execution timed out");
 		}
 
 		int exitCode = process.exitValue();
 		writeLog(logFile, "[AGENT] Agent completed with exit code: " + exitCode);
 
-		return new JBangResult(exitCode, commandStr, output.toString());
+		return new AgentInvocationResult(exitCode, commandStr, output.toString());
+	}
+
+	private List<String> resolveExecCommand(AgentConfig agent, Path workspace) throws IOException {
+		Path agentYaml = Path.of("agents", agent.getAlias() + ".yaml");
+		if (!Files.isRegularFile(agentYaml)) {
+			agentYaml = agentYaml.toAbsolutePath();
+		}
+		if (!Files.isRegularFile(agentYaml)) {
+			throw new IllegalStateException("Agent config not found: agents/" + agent.getAlias()
+					+ ".yaml — create it to define the agent command.");
+		}
+
+		ExecAgentInvoker invoker = ExecAgentInvoker.fromYaml(agentYaml);
+		String instruction = Files.readString(workspace.resolve("INSTRUCTION.md"));
+
+		List<String> command = new ArrayList<>();
+		for (String part : invoker.commandTemplate()) {
+			command.add(part.replace("${instruction}", instruction)
+				.replace("${workspace}", workspace.toAbsolutePath().toString()));
+		}
+		return command;
 	}
 
 	private void generateReports(RunSpec runSpec, Instant startedAt, Instant finishedAt, long durationMs, String status,
-			Judgment judgment, JBangResult agentResult) throws IOException {
+			Judgment judgment, AgentInvocationResult agentResult) throws IOException {
 
 		ReportGenerator reportGen = new ReportGenerator();
 		reportGen.generateReports(runSpec, startedAt, finishedAt, durationMs, status, judgment, agentResult);
@@ -202,7 +234,7 @@ public class BenchRunner {
 	}
 
 	// Helper class for JBang result
-	static class JBangResult {
+	static class AgentInvocationResult {
 
 		private final int exitCode;
 
@@ -210,7 +242,7 @@ public class BenchRunner {
 
 		private final String output;
 
-		public JBangResult(int exitCode, String command, String output) {
+		public AgentInvocationResult(int exitCode, String command, String output) {
 			this.exitCode = exitCode;
 			this.command = command;
 			this.output = output;

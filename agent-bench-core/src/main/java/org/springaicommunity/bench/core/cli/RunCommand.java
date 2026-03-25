@@ -17,6 +17,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import org.springaicommunity.bench.core.agent.ExecAgentInvoker;
 import org.springaicommunity.bench.core.result.AgentJournal;
+import org.springaicommunity.bench.core.result.RunMetadata;
 import org.springaicommunity.bench.core.benchmark.Benchmark;
 import org.springaicommunity.bench.core.benchmark.BenchmarkCatalog;
 import org.springaicommunity.bench.core.benchmark.BenchmarkItem;
@@ -85,11 +86,13 @@ public class RunCommand {
 			}
 		}
 
-		// Write run metadata
+		// Write run metadata and lock file
 		Files.createDirectories(runDir);
-		Map<String, Object> runMeta = Map.of("benchmark", benchmarkName, "agent",
-				agentConfig != null ? agentConfig : "manual", "timestamp", Instant.now().toString(), "runId", runId);
-		yamlMapper.writerWithDefaultPrettyPrinter().writeValue(runDir.resolve("run.yaml").toFile(), runMeta);
+		RunMetadata runMetadata = RunMetadata.start(runId, benchmarkName, benchmark.version(),
+				agentConfig != null ? agentConfig : "manual", attempts);
+		jsonMapper.writerWithDefaultPrettyPrinter().writeValue(runDir.resolve("run-metadata.json").toFile(),
+				runMetadata);
+		jsonMapper.writerWithDefaultPrettyPrinter().writeValue(runDir.resolve("bench.lock").toFile(), runMetadata);
 
 		// Load agent invoker if config provided
 		ExecAgentInvoker invoker = agentConfig != null ? ExecAgentInvoker.fromYaml(Paths.get(agentConfig)) : null;
@@ -121,17 +124,20 @@ public class RunCommand {
 		BenchmarkResult benchmarkResult = BenchmarkResult.fromItems(benchmarkName, benchmark.version(), runId,
 				invoker != null ? invoker.command() : "manual", results, totalDuration, 0.0);
 
-		// Write aggregate result
+		// Write aggregate result and update metadata
 		jsonMapper.writerWithDefaultPrettyPrinter().writeValue(runDir.resolve("result.json").toFile(), benchmarkResult);
+		@SuppressWarnings("unchecked")
+		Map<Integer, Double> passAtK = (Map<Integer, Double>) benchmarkResult.aggregateScores()
+			.getOrDefault("passAtK", Map.of());
+		RunMetadata completedMetadata = runMetadata.complete(benchmarkResult.accuracy(), passAtK);
+		jsonMapper.writerWithDefaultPrettyPrinter()
+			.writeValue(runDir.resolve("run-metadata.json").toFile(), completedMetadata);
 
 		System.out.println();
 		System.out.printf("Benchmark: %s%n", benchmarkName);
 		System.out.printf("Accuracy: %.1f%% (%d/%d)%n", benchmarkResult.accuracy() * 100,
 				results.stream().filter(ItemResult::resolved).count(), results.size());
 		if (attempts > 1) {
-			@SuppressWarnings("unchecked")
-			Map<Integer, Double> passAtK = (Map<Integer, Double>) benchmarkResult.aggregateScores()
-				.getOrDefault("passAtK", Map.of());
 			passAtK.forEach(
 					(k, v) -> System.out.printf("Pass@%d: %.1f%%%n", k, v * 100));
 		}

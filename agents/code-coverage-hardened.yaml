@@ -1,6 +1,0 @@
-# Purpose-built code-coverage agent from experiment-code-coverage-v2.
-# Handles its own workflow internally: compile, JaCoCo setup, baseline measurement,
-# skills install, knowledge copy, Claude invocation, coverage measurement.
-# No setup/post scripts needed — the agent handles everything.
-command: java -jar ~/projects/experiment-code-coverage-v2/target/experiment-code-coverage-v2.jar --variant hardened+skills+preanalysis
-timeout: PT45M

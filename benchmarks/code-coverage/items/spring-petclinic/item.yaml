@@ -7,7 +7,10 @@ instruction: |
   Use narrow test slices (@WebMvcTest, @DataJpaTest) over @SpringBootTest.
 timeout: PT45M
 metadata:
-  # Pin to a specific commit for reproducibility. Petclinic doesn't tag releases.
   petclinic-commit: edf4db28affc
-  # Baseline coverage for preservation/improvement judges. Petclinic ships with no tests.
   baselineCoverage: 0.0
+setup:
+  - "git init && git remote add origin https://github.com/spring-projects/spring-petclinic.git && git fetch --depth 1 origin edf4db28affc && git checkout FETCH_HEAD"
+  - "./mvnw clean compile -q -Dspring-javaformat.skip=true -Dcheckstyle.skip=true"
+post:
+  - "./mvnw clean test jacoco:report -q -Dspring-javaformat.skip=true -Dcheckstyle.skip=true"

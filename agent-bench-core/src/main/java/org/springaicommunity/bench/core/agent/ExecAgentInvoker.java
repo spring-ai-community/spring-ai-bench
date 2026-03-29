@@ -3,20 +3,14 @@ package org.springaicommunity.bench.core.agent;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 /**
- * Agent configuration loaded from YAML. Defines the command to run, timeout, and optional
- * setup/post scripts. The agent is launched in the workspace directory.
- *
- * <p>
- * Setup/post scripts live on the agent config (not the benchmark item) because the
- * lifecycle depends on the agent type: a generic agent needs the bench to clone the repo
- * and run tests; a purpose-built agent handles its own workflow internally.
+ * Agent configuration loaded from YAML. Defines the command to run and the timeout. The
+ * agent is launched in the workspace directory.
  */
 public class ExecAgentInvoker {
 
@@ -24,19 +18,9 @@ public class ExecAgentInvoker {
 
 	private final Duration timeout;
 
-	private final List<String> setup;
-
-	private final List<String> post;
-
-	public ExecAgentInvoker(String command, Duration timeout, List<String> setup, List<String> post) {
+	public ExecAgentInvoker(String command, Duration timeout) {
 		this.command = command;
 		this.timeout = timeout;
-		this.setup = setup != null ? List.copyOf(setup) : List.of();
-		this.post = post != null ? List.copyOf(post) : List.of();
-	}
-
-	public ExecAgentInvoker(String command, Duration timeout) {
-		this(command, timeout, List.of(), List.of());
 	}
 
 	public String command() {
@@ -45,14 +29,6 @@ public class ExecAgentInvoker {
 
 	public Duration timeout() {
 		return timeout;
-	}
-
-	public List<String> setup() {
-		return setup;
-	}
-
-	public List<String> post() {
-		return post;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -66,10 +42,8 @@ public class ExecAgentInvoker {
 		}
 		String timeoutStr = (String) config.getOrDefault("timeout", "PT10M");
 		Duration timeout = Duration.parse(timeoutStr);
-		List<String> setup = (List<String>) config.getOrDefault("setup", List.of());
-		List<String> post = (List<String>) config.getOrDefault("post", List.of());
 
-		return new ExecAgentInvoker(command, timeout, setup, post);
+		return new ExecAgentInvoker(command, timeout);
 	}
 
 }

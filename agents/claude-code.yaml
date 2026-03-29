@@ -1,7 +1,2 @@
-command: claude --print --dangerously-skip-permissions 'Read INSTRUCTION.md and follow the instructions precisely.'
+command: ~/scripts/claude-run.sh 'unset ANTHROPIC_API_KEY && claude --print --dangerously-skip-permissions "Read INSTRUCTION.md and follow the instructions precisely."'
 timeout: PT45M
-setup:
-  - "git init && git remote add origin https://github.com/spring-projects/spring-petclinic.git && git fetch --depth 1 origin edf4db28affc && git checkout FETCH_HEAD"
-  - "./mvnw clean compile -q -Dspring-javaformat.skip=true -Dcheckstyle.skip=true"
-post:
-  - "./mvnw clean test jacoco:report -q -Dspring-javaformat.skip=true -Dcheckstyle.skip=true"

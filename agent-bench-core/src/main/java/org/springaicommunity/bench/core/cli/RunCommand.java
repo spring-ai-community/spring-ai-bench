@@ -160,10 +160,8 @@ public class RunCommand {
 			// Provide: set up workspace
 			provideCommand.provide(benchmark.name(), item.id(), workspace);
 
-			// Setup scripts from agent config (before agent)
-			if (invoker != null) {
-				runScripts(invoker.setup(), workspace, "setup");
-			}
+			// Setup scripts (before agent)
+			runScripts(item.setup(), workspace, "setup");
 
 			// Write instruction if the item provides one
 			String instruction = item.instruction();
@@ -196,10 +194,8 @@ public class RunCommand {
 						journal.durationMs());
 			}
 
-			// Post scripts from agent config (after agent, before grading)
-			if (invoker != null) {
-				runScripts(invoker.post(), workspace, "post");
-			}
+			// Post scripts (after agent, before grading)
+			runScripts(item.post(), workspace, "post");
 
 			// Grade: evaluate result
 			Instant gradeStart = Instant.now();

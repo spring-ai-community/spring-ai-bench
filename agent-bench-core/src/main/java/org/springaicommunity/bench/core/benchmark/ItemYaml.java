@@ -1,5 +1,6 @@
 package org.springaicommunity.bench.core.benchmark;
 
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -8,5 +9,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * Jackson mapping for {@code item.yaml} deserialization.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record ItemYaml(String schema, String id, String instruction, String timeout, Map<String, Object> metadata) {
+public record ItemYaml(String schema, String id, String instruction, String timeout, Map<String, Object> metadata,
+		List<String> setup, List<String> post) {
 }

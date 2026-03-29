@@ -43,14 +43,19 @@ public class RunCommand {
 
 	private final ProvideCommand provideCommand;
 
-	private final ObjectMapper jsonMapper = new ObjectMapper();
+	private final ObjectMapper jsonMapper = new ObjectMapper()
+		.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
 
 	private final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
 
-	public RunCommand(Path benchmarksDir) {
+	public RunCommand(Path benchmarksDir, JudgeFactory judgeFactory) {
 		this.catalog = new BenchmarkCatalog(benchmarksDir);
-		this.judgeFactory = new JudgeFactory();
+		this.judgeFactory = judgeFactory;
 		this.provideCommand = new ProvideCommand(benchmarksDir);
+	}
+
+	public RunCommand(Path benchmarksDir) {
+		this(benchmarksDir, new JudgeFactory());
 	}
 
 	public RunCommand() {
@@ -155,8 +160,10 @@ public class RunCommand {
 			// Provide: set up workspace
 			provideCommand.provide(benchmark.name(), item.id(), workspace);
 
-			// Setup scripts (before agent)
-			runScripts(item.setup(), workspace, "setup");
+			// Setup scripts from agent config (before agent)
+			if (invoker != null) {
+				runScripts(invoker.setup(), workspace, "setup");
+			}
 
 			// Write instruction if the item provides one
 			String instruction = item.instruction();
@@ -168,7 +175,7 @@ public class RunCommand {
 			Instant agentStart = Instant.now();
 			if (invoker != null) {
 				Duration timeout = item.timeout() != null ? item.timeout() : benchmark.defaultTimeout();
-				new ProcessExecutor().command(invoker.command())
+				new ProcessExecutor().command("bash", "-c", invoker.command())
 					.directory(workspace.toFile())
 					.timeout(timeout.toSeconds(), TimeUnit.SECONDS)
 					.redirectErrorStream(true)
@@ -189,8 +196,10 @@ public class RunCommand {
 						journal.durationMs());
 			}
 
-			// Post scripts (after agent, before grading)
-			runScripts(item.post(), workspace, "post");
+			// Post scripts from agent config (after agent, before grading)
+			if (invoker != null) {
+				runScripts(invoker.post(), workspace, "post");
+			}
 
 			// Grade: evaluate result
 			Instant gradeStart = Instant.now();

@@ -82,8 +82,7 @@ public class BenchmarkCatalog {
 
 		return new DefaultBenchmarkItem(yaml.id(), yaml.instruction(),
 				Files.isDirectory(workspaceTemplate) ? workspaceTemplate : null,
-				Files.isDirectory(referenceDir) ? referenceDir : null, yaml.metadata(), timeout, yaml.setup(),
-				yaml.post());
+				Files.isDirectory(referenceDir) ? referenceDir : null, yaml.metadata(), timeout);
 	}
 
 }

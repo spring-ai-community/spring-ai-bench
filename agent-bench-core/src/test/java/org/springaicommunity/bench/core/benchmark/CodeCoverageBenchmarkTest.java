@@ -38,8 +38,7 @@ class CodeCoverageBenchmarkTest {
 		BenchmarkItem item = benchmark.items().get(0);
 		assertThat(item.id()).isEqualTo("spring-petclinic");
 		assertThat(item.instruction()).contains("JUnit tests");
-		assertThat(item.setup()).isNotEmpty();
-		assertThat(item.post()).isNotEmpty();
+		assertThat(item.metadata()).containsKey("baselineCoverage");
 	}
 
 	@Test

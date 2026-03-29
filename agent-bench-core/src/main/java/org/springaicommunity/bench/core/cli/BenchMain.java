@@ -2,6 +2,8 @@ package org.springaicommunity.bench.core.cli;
 
 import java.nio.file.Paths;
 
+import org.springaicommunity.bench.core.benchmark.JudgeFactory;
+
 /**
  * CLI entry point for Agent Bench. Dispatches to command handlers for the benchmark
  * architecture (list, items, provide, grade, run).
@@ -85,7 +87,14 @@ public class BenchMain {
 		}
 		String agent = parseArg(args, "--agent");
 		String item = parseArg(args, "--item");
-		new RunCommand().run(benchmark, agent, item);
+
+		JudgeFactory factory = new JudgeFactory();
+		// Register test-quality-llm as a pass-through until agent-bench-agents provides
+		// the real LLM judge. This keeps the cascade functional for T0-T2.
+		factory.register("test-quality-llm",
+				config -> ctx -> org.springaicommunity.judge.result.Judgment.abstain("LLM judge not configured"));
+
+		new RunCommand(Paths.get("benchmarks"), factory).run(benchmark, agent, item);
 	}
 
 	static String parseArg(String[] args, String name) {

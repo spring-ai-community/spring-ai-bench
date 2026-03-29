@@ -2,7 +2,6 @@ package org.springaicommunity.bench.core.benchmark;
 
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,11 +21,5 @@ public interface BenchmarkItem {
 	Map<String, Object> metadata();
 
 	Duration timeout();
-
-	/** Scripts to run in the workspace before agent invocation. */
-	List<String> setup();
-
-	/** Scripts to run in the workspace after agent completes, before grading. */
-	List<String> post();
 
 }

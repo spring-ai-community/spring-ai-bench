@@ -11,8 +11,3 @@ metadata:
   petclinic-commit: edf4db28affc
   # Baseline coverage for preservation/improvement judges. Petclinic ships with no tests.
   baselineCoverage: 0.0
-setup:
-  - "git clone https://github.com/spring-projects/spring-petclinic.git . && git checkout edf4db28affc"
-  - "./mvnw clean compile -q -Dspring-javaformat.skip=true -Dcheckstyle.skip=true"
-post:
-  - "./mvnw clean test jacoco:report -q -Dspring-javaformat.skip=true -Dcheckstyle.skip=true"

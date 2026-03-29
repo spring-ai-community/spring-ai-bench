@@ -55,10 +55,7 @@
 
 	<modules>
 		<module>agent-bench-core</module>
-		<module>agent-bench-app</module>
 		<module>agent-bench-agents</module>
-		<module>agent-bench-site</module>
-		<module>docs</module>
 	</modules>
 
 	<repositories>

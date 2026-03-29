@@ -6,13 +6,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Immutable implementation of {@link BenchmarkItem}.
+ * Immutable implementation of {@link BenchmarkTask}.
  */
-public record DefaultBenchmarkItem(String id, String instruction, Path workspaceTemplate, Path referenceDir,
+public record DefaultBenchmarkTask(String id, String instruction, Path workspaceTemplate, Path referenceDir,
 		Map<String, Object> metadata, Duration timeout, List<String> setup, List<String> post)
-		implements BenchmarkItem {
+		implements BenchmarkTask {
 
-	public DefaultBenchmarkItem {
+	public DefaultBenchmarkTask {
 		metadata = metadata != null ? Map.copyOf(metadata) : Map.of();
 		setup = setup != null ? List.copyOf(setup) : List.of();
 		post = post != null ? List.copyOf(post) : List.of();

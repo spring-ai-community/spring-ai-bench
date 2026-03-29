@@ -20,11 +20,11 @@ import org.springaicommunity.bench.core.result.AgentJournal;
 import org.springaicommunity.bench.core.result.RunMetadata;
 import org.springaicommunity.bench.core.benchmark.Benchmark;
 import org.springaicommunity.bench.core.benchmark.BenchmarkCatalog;
-import org.springaicommunity.bench.core.benchmark.BenchmarkItem;
+import org.springaicommunity.bench.core.benchmark.BenchmarkTask;
 import org.springaicommunity.bench.core.benchmark.JudgeFactory;
 import org.springaicommunity.bench.core.result.BenchmarkResult;
 import org.springaicommunity.bench.core.result.FailureMode;
-import org.springaicommunity.bench.core.result.ItemResult;
+import org.springaicommunity.bench.core.result.TrialResult;
 import org.springaicommunity.judge.Judge;
 import org.zeroturnaround.exec.ProcessExecutor;
 import org.springaicommunity.judge.context.ExecutionStatus;
@@ -66,28 +66,28 @@ public class RunCommand {
 	 * Runs a complete benchmark with a specified agent.
 	 * @param benchmarkName the benchmark name
 	 * @param agentConfig path to agent config YAML, or null for manual mode
-	 * @param itemFilter optional item ID to run only a specific item
+	 * @param taskFilter optional item ID to run only a specific item
 	 */
-	public BenchmarkResult run(String benchmarkName, String agentConfig, String itemFilter) throws Exception {
-		return run(benchmarkName, agentConfig, itemFilter, 1);
+	public BenchmarkResult run(String benchmarkName, String agentConfig, String taskFilter) throws Exception {
+		return run(benchmarkName, agentConfig, taskFilter, 1);
 	}
 
 	/**
 	 * Runs the benchmark with the specified number of attempts per item. Multiple
 	 * attempts enable pass@k computation.
 	 */
-	public BenchmarkResult run(String benchmarkName, String agentConfig, String itemFilter, int attempts)
+	public BenchmarkResult run(String benchmarkName, String agentConfig, String taskFilter, int attempts)
 			throws Exception {
 		Benchmark benchmark = findBenchmark(benchmarkName);
 		String runId = UUID.randomUUID().toString();
 		Path runDir = Paths.get("runs", runId);
 
 		// Filter items if requested
-		List<BenchmarkItem> items = benchmark.items();
-		if (itemFilter != null) {
-			items = items.stream().filter(i -> i.id().equals(itemFilter)).toList();
-			if (items.isEmpty()) {
-				throw new IllegalArgumentException("Item not found: " + itemFilter);
+		List<BenchmarkTask> tasks = benchmark.tasks();
+		if (taskFilter != null) {
+			tasks = tasks.stream().filter(i -> i.id().equals(taskFilter)).toList();
+			if (tasks.isEmpty()) {
+				throw new IllegalArgumentException("Task not found: " + taskFilter);
 			}
 		}
 
@@ -106,17 +106,17 @@ public class RunCommand {
 		Judge judge = judgeFactory.createFromConfig(benchmark.juryConfig());
 
 		Instant runStart = Instant.now();
-		List<ItemResult> results = new ArrayList<>();
+		List<TrialResult> results = new ArrayList<>();
 
-		for (BenchmarkItem item : items) {
+		for (BenchmarkTask task : tasks) {
 			for (int attempt = 1; attempt <= attempts; attempt++) {
-				String trialName = attempts > 1 ? item.id() + "__attempt-" + attempt : item.id();
+				String trialName = attempts > 1 ? task.id() + "__attempt-" + attempt : task.id();
 				System.out.printf("Running: %s%n", trialName);
-				ItemResult result = runItem(benchmark, item, judge, invoker, runDir, runId, trialName);
+				TrialResult result = runTrial(benchmark, task, judge, invoker, runDir, runId, trialName);
 				results.add(result);
 
 				// Write individual result incrementally
-				Path trialDir = runDir.resolve("items").resolve(trialName);
+				Path trialDir = runDir.resolve("tasks").resolve(trialName);
 				Files.createDirectories(trialDir);
 				jsonMapper.writerWithDefaultPrettyPrinter()
 					.writeValue(trialDir.resolve("result.json").toFile(), result);
@@ -126,7 +126,7 @@ public class RunCommand {
 		}
 
 		Duration totalDuration = Duration.between(runStart, Instant.now());
-		BenchmarkResult benchmarkResult = BenchmarkResult.fromItems(benchmarkName, benchmark.version(), runId,
+		BenchmarkResult benchmarkResult = BenchmarkResult.fromTrials(benchmarkName, benchmark.version(), runId,
 				invoker != null ? invoker.command() : "manual", results, totalDuration, 0.0);
 
 		// Write aggregate result and update metadata
@@ -141,7 +141,7 @@ public class RunCommand {
 		System.out.println();
 		System.out.printf("Benchmark: %s%n", benchmarkName);
 		System.out.printf("Accuracy: %.1f%% (%d/%d)%n", benchmarkResult.accuracy() * 100,
-				results.stream().filter(ItemResult::resolved).count(), results.size());
+				results.stream().filter(TrialResult::resolved).count(), results.size());
 		if (attempts > 1) {
 			passAtK.forEach(
 					(k, v) -> System.out.printf("Pass@%d: %.1f%%%n", k, v * 100));
@@ -152,19 +152,19 @@ public class RunCommand {
 		return benchmarkResult;
 	}
 
-	private ItemResult runItem(Benchmark benchmark, BenchmarkItem item, Judge judge, ExecAgentInvoker invoker,
+	private TrialResult runTrial(Benchmark benchmark, BenchmarkTask task, Judge judge, ExecAgentInvoker invoker,
 			Path runDir, String runId, String trialName) {
-		Path workspace = runDir.resolve("items").resolve(trialName).resolve("workspace");
+		Path workspace = runDir.resolve("tasks").resolve(trialName).resolve("workspace");
 
 		try {
 			// Provide: set up workspace
-			provideCommand.provide(benchmark.name(), item.id(), workspace);
+			provideCommand.provide(benchmark.name(), task.id(), workspace);
 
 			// Setup scripts (before agent)
-			runScripts(item.setup(), workspace, "setup");
+			runScripts(task.setup(), workspace, "setup");
 
 			// Write instruction if the item provides one
-			String instruction = item.instruction();
+			String instruction = task.instruction();
 			if (instruction != null && !instruction.isBlank()) {
 				Files.writeString(workspace.resolve("INSTRUCTION.md"), instruction);
 			}
@@ -172,7 +172,7 @@ public class RunCommand {
 			// Invoke agent
 			Instant agentStart = Instant.now();
 			if (invoker != null) {
-				Duration timeout = item.timeout() != null ? item.timeout() : benchmark.defaultTimeout();
+				Duration timeout = task.timeout() != null ? task.timeout() : benchmark.defaultTimeout();
 				new ProcessExecutor().command("bash", "-c", invoker.command())
 					.directory(workspace.toFile())
 					.timeout(timeout.toSeconds(), TimeUnit.SECONDS)
@@ -182,7 +182,7 @@ public class RunCommand {
 			}
 			else {
 				System.out.println("  No agent configured. Grade workspace manually.");
-				return new ItemResult(item.id(), false, Map.of(), FailureMode.AGENT_ERROR, Duration.ZERO, 0, workspace);
+				return new TrialResult(task.id(), false, Map.of(), FailureMode.AGENT_ERROR, Duration.ZERO, 0, workspace);
 			}
 			Instant agentEnd = Instant.now();
 			Duration agentDuration = Duration.between(agentStart, agentEnd);
@@ -195,18 +195,18 @@ public class RunCommand {
 			}
 
 			// Post scripts (after agent, before grading)
-			runScripts(item.post(), workspace, "post");
+			runScripts(task.post(), workspace, "post");
 
 			// Grade: evaluate result
 			Instant gradeStart = Instant.now();
 			JudgmentContext.Builder contextBuilder = JudgmentContext.builder()
 				.workspace(workspace)
-				.goal(item.instruction())
+				.goal(task.instruction())
 				.executionTime(agentDuration)
 				.startedAt(agentStart)
 				.status(ExecutionStatus.SUCCESS);
 			// Pass item metadata through to judges (e.g., baselineCoverage for coverage judges)
-			item.metadata().forEach(contextBuilder::metadata);
+			task.metadata().forEach(contextBuilder::metadata);
 			JudgmentContext context = contextBuilder.build();
 
 			Judgment judgment = judge.judge(context);
@@ -223,7 +223,7 @@ public class RunCommand {
 			}
 			long tokens = journal != null ? journal.totalInputTokens() + journal.totalOutputTokens() : 0;
 
-			return new ItemResult(item.id(), resolved, scores,
+			return new TrialResult(task.id(), resolved, scores,
 					resolved ? FailureMode.NONE : FailureMode.TEST_FAILURE, agentDuration, tokens, workspace,
 					agentStart, agentEnd, gradeStart, gradeEnd);
 		}
@@ -232,7 +232,7 @@ public class RunCommand {
 			if (e.getMessage() != null && e.getMessage().contains("timed out")) {
 				mode = FailureMode.AGENT_TIMEOUT;
 			}
-			return new ItemResult(item.id(), false, Map.of("error", e.getMessage()), mode, null, 0, workspace);
+			return new TrialResult(task.id(), false, Map.of("error", e.getMessage()), mode, null, 0, workspace);
 		}
 	}
 

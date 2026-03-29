@@ -10,42 +10,42 @@ import java.util.stream.Collectors;
  * Aggregate result of running a complete benchmark.
  */
 public record BenchmarkResult(String benchmarkName, String benchmarkVersion, String runId, String agentName,
-		List<ItemResult> items, double accuracy, Map<String, Object> aggregateScores, Duration totalDuration,
+		List<TrialResult> trials, double accuracy, Map<String, Object> aggregateScores, Duration totalDuration,
 		double cost) {
 
 	public BenchmarkResult {
-		items = List.copyOf(items);
+		trials = List.copyOf(trials);
 		aggregateScores = aggregateScores != null ? Map.copyOf(aggregateScores) : Map.of();
 	}
 
-	public static BenchmarkResult fromItems(String benchmarkName, String benchmarkVersion, String runId,
-			String agentName, List<ItemResult> items, Duration totalDuration, double cost) {
-		long resolved = items.stream().filter(ItemResult::resolved).count();
-		double accuracy = items.isEmpty() ? 0.0 : (double) resolved / items.size();
+	public static BenchmarkResult fromTrials(String benchmarkName, String benchmarkVersion, String runId,
+			String agentName, List<TrialResult> trials, Duration totalDuration, double cost) {
+		long resolved = trials.stream().filter(TrialResult::resolved).count();
+		double accuracy = trials.isEmpty() ? 0.0 : (double) resolved / trials.size();
 		Map<String, Object> scores = new HashMap<>();
-		scores.put("passAtK", computePassAtK(items));
-		return new BenchmarkResult(benchmarkName, benchmarkVersion, runId, agentName, items, accuracy, scores,
+		scores.put("passAtK", computePassAtK(trials));
+		return new BenchmarkResult(benchmarkName, benchmarkVersion, runId, agentName, trials, accuracy, scores,
 				totalDuration, cost);
 	}
 
 	/**
-	 * Computes pass@k metrics from item results. Groups by itemId (multiple attempts
+	 * Computes pass@k metrics from item results. Groups by taskId (multiple attempts
 	 * per item), then for each k computes: 1 - C(n-c, k) / C(n, k) where n = attempts,
 	 * c = successes. Formula from terminal-bench / Chen et al. (2021).
 	 */
-	public static Map<Integer, Double> computePassAtK(List<ItemResult> items) {
-		// Group by itemId
-		Map<String, List<ItemResult>> byItem = items.stream()
-			.collect(Collectors.groupingBy(ItemResult::itemId));
+	public static Map<Integer, Double> computePassAtK(List<TrialResult> trials) {
+		// Group by taskId
+		Map<String, List<TrialResult>> byTask = trials.stream()
+			.collect(Collectors.groupingBy(TrialResult::taskId));
 
-		if (byItem.isEmpty()) {
+		if (byTask.isEmpty()) {
 			return Map.of();
 		}
 
-		int minAttempts = byItem.values().stream().mapToInt(List::size).min().orElse(1);
+		int minAttempts = byTask.values().stream().mapToInt(List::size).min().orElse(1);
 		if (minAttempts <= 1) {
-			return Map.of(1, items.isEmpty() ? 0.0
-					: (double) items.stream().filter(ItemResult::resolved).count() / items.size());
+			return Map.of(1, trials.isEmpty() ? 0.0
+					: (double) trials.stream().filter(TrialResult::resolved).count() / trials.size());
 		}
 
 		Map<Integer, Double> passAtK = new HashMap<>();
@@ -59,12 +59,12 @@ public record BenchmarkResult(String benchmarkName, String benchmarkVersion, Str
 		for (int k : kValues) {
 			double sum = 0.0;
 			int eligible = 0;
-			for (List<ItemResult> attempts : byItem.values()) {
+			for (List<TrialResult> attempts : byTask.values()) {
 				if (attempts.size() < k) {
 					continue;
 				}
 				int n = attempts.size();
-				int c = (int) attempts.stream().filter(ItemResult::resolved).count();
+				int c = (int) attempts.stream().filter(TrialResult::resolved).count();
 				// pass@k = 1 - C(n-c, k) / C(n, k)
 				double passK = 1.0 - binomialCoeff(n - c, k) / binomialCoeff(n, k);
 				sum += passK;

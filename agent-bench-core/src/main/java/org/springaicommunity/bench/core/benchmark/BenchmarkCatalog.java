@@ -45,7 +45,7 @@ public class BenchmarkCatalog {
 	private Benchmark loadBenchmark(Path benchmarkDir, Path yamlFile) throws IOException {
 		BenchmarkYaml yaml = yamlMapper.readValue(yamlFile.toFile(), BenchmarkYaml.class);
 
-		List<BenchmarkItem> items = loadItems(benchmarkDir);
+		List<BenchmarkTask> items = loadTasks(benchmarkDir);
 
 		Duration timeout = yaml.defaultTimeout() != null ? Duration.parse(yaml.defaultTimeout())
 				: Duration.ofMinutes(5);
@@ -54,33 +54,33 @@ public class BenchmarkCatalog {
 				items, yaml.jury(), timeout);
 	}
 
-	private List<BenchmarkItem> loadItems(Path benchmarkDir) throws IOException {
-		Path itemsDir = benchmarkDir.resolve("items");
+	private List<BenchmarkTask> loadTasks(Path benchmarkDir) throws IOException {
+		Path itemsDir = benchmarkDir.resolve("tasks");
 		if (!Files.isDirectory(itemsDir)) {
 			return List.of();
 		}
 
-		List<BenchmarkItem> items = new ArrayList<>();
+		List<BenchmarkTask> items = new ArrayList<>();
 		try (Stream<Path> dirs = Files.list(itemsDir)) {
-			for (Path itemDir : dirs.filter(Files::isDirectory).toList()) {
-				Path itemYamlFile = itemDir.resolve("item.yaml");
-				if (Files.exists(itemYamlFile)) {
-					items.add(loadItem(itemDir, itemYamlFile));
+			for (Path taskDir : dirs.filter(Files::isDirectory).toList()) {
+				Path taskYamlFile = taskDir.resolve("task.yaml");
+				if (Files.exists(taskYamlFile)) {
+					items.add(loadTask(taskDir, taskYamlFile));
 				}
 			}
 		}
 		return items;
 	}
 
-	private BenchmarkItem loadItem(Path itemDir, Path itemYamlFile) throws IOException {
-		ItemYaml yaml = yamlMapper.readValue(itemYamlFile.toFile(), ItemYaml.class);
+	private BenchmarkTask loadTask(Path taskDir, Path taskYamlFile) throws IOException {
+		TaskYaml yaml = yamlMapper.readValue(taskYamlFile.toFile(), TaskYaml.class);
 
-		Path workspaceTemplate = itemDir.resolve("workspace");
-		Path referenceDir = itemDir.resolve("reference");
+		Path workspaceTemplate = taskDir.resolve("workspace");
+		Path referenceDir = taskDir.resolve("reference");
 
 		Duration timeout = yaml.timeout() != null ? Duration.parse(yaml.timeout()) : null;
 
-		return new DefaultBenchmarkItem(yaml.id(), yaml.instruction(),
+		return new DefaultBenchmarkTask(yaml.id(), yaml.instruction(),
 				Files.isDirectory(workspaceTemplate) ? workspaceTemplate : null,
 				Files.isDirectory(referenceDir) ? referenceDir : null, yaml.metadata(), timeout, yaml.setup(),
 				yaml.post());

@@ -1,7 +1,7 @@
 package org.springaicommunity.bench.core.result;
 
 /**
- * Classifies why a benchmark item did not pass.
+ * Classifies why a benchmark task did not pass.
  */
 public enum FailureMode {
 

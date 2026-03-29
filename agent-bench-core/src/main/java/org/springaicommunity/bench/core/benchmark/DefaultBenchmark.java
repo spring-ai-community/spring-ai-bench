@@ -7,12 +7,12 @@ import java.util.Map;
 /**
  * Immutable implementation of {@link Benchmark}.
  */
-public record DefaultBenchmark(String name, String version, Map<String, Object> metadata, List<BenchmarkItem> items,
+public record DefaultBenchmark(String name, String version, Map<String, Object> metadata, List<BenchmarkTask> tasks,
 		Map<String, Object> juryConfig, Duration defaultTimeout) implements Benchmark {
 
 	public DefaultBenchmark {
 		metadata = metadata != null ? Map.copyOf(metadata) : Map.of();
-		items = List.copyOf(items);
+		tasks = List.copyOf(tasks);
 		juryConfig = juryConfig != null ? Map.copyOf(juryConfig) : Map.of();
 		if (defaultTimeout == null) {
 			defaultTimeout = Duration.ofMinutes(5);

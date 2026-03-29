@@ -15,7 +15,7 @@ public interface Benchmark {
 
 	Map<String, Object> metadata();
 
-	List<BenchmarkItem> items();
+	List<BenchmarkTask> tasks();
 
 	Map<String, Object> juryConfig();
 

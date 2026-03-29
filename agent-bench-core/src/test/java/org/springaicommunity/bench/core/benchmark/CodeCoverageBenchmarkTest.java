@@ -34,11 +34,11 @@ class CodeCoverageBenchmarkTest {
 			.findFirst()
 			.orElseThrow();
 
-		assertThat(benchmark.items()).hasSize(1);
-		BenchmarkItem item = benchmark.items().get(0);
-		assertThat(item.id()).isEqualTo("spring-petclinic");
-		assertThat(item.instruction()).contains("JUnit tests");
-		assertThat(item.metadata()).containsKey("baselineCoverage");
+		assertThat(benchmark.tasks()).hasSize(1);
+		BenchmarkTask task = benchmark.tasks().get(0);
+		assertThat(task.id()).isEqualTo("spring-petclinic");
+		assertThat(task.instruction()).contains("JUnit tests");
+		assertThat(task.metadata()).containsKey("baselineCoverage");
 	}
 
 	@Test

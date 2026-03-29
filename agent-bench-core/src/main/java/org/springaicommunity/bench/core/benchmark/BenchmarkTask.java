@@ -9,7 +9,7 @@ import java.util.Map;
  * A single item within a benchmark that provides an instruction and workspace for an
  * agent to work on.
  */
-public interface BenchmarkItem {
+public interface BenchmarkTask {
 
 	String id();
 

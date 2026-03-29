@@ -16,7 +16,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import org.springaicommunity.bench.core.benchmark.Benchmark;
 import org.springaicommunity.bench.core.benchmark.BenchmarkCatalog;
-import org.springaicommunity.bench.core.benchmark.BenchmarkItem;
+import org.springaicommunity.bench.core.benchmark.BenchmarkTask;
 
 /**
  * Handles the {@code provide} CLI command. Sets up a workspace for an agent by copying
@@ -37,36 +37,36 @@ public class ProvideCommand {
 	}
 
 	/**
-	 * Provides a workspace for a specific benchmark item.
+	 * Provides a workspace for a specific benchmark task.
 	 * @param benchmarkName the benchmark name
-	 * @param itemId the item ID (null for single-item benchmarks)
+	 * @param taskId the item ID (null for single-item benchmarks)
 	 * @param workspace the target workspace directory
 	 */
-	public void provide(String benchmarkName, String itemId, Path workspace) throws IOException {
+	public void provide(String benchmarkName, String taskId, Path workspace) throws IOException {
 		Benchmark benchmark = findBenchmark(benchmarkName);
-		BenchmarkItem item = findItem(benchmark, itemId);
+		BenchmarkTask task = findTask(benchmark, taskId);
 
 		// Create workspace directory
 		Files.createDirectories(workspace);
 
 		// Copy workspace template if it exists
-		if (item.workspaceTemplate() != null && Files.isDirectory(item.workspaceTemplate())) {
-			copyDirectory(item.workspaceTemplate(), workspace);
+		if (task.workspaceTemplate() != null && Files.isDirectory(task.workspaceTemplate())) {
+			copyDirectory(task.workspaceTemplate(), workspace);
 		}
 
 		// Write INSTRUCTION.md
-		Files.writeString(workspace.resolve("INSTRUCTION.md"), item.instruction());
+		Files.writeString(workspace.resolve("INSTRUCTION.md"), task.instruction());
 
 		// Write .bench-context.yaml
-		Map<String, Object> context = Map.of("benchmark", benchmarkName, "item", item.id(), "version",
+		Map<String, Object> context = Map.of("benchmark", benchmarkName, "task", task.id(), "version",
 				benchmark.version(), "timeout",
-				item.timeout() != null ? item.timeout().toString() : benchmark.defaultTimeout().toString());
+				task.timeout() != null ? task.timeout().toString() : benchmark.defaultTimeout().toString());
 		yamlMapper.writerWithDefaultPrettyPrinter()
 			.writeValue(workspace.resolve(".bench-context.yaml").toFile(), context);
 
 		System.out.printf("Workspace prepared at: %s%n", workspace);
 		System.out.printf("  Benchmark: %s%n", benchmarkName);
-		System.out.printf("  Item: %s%n", item.id());
+		System.out.printf("  Item: %s%n", task.id());
 		System.out.println("  Read INSTRUCTION.md for the task description.");
 	}
 
@@ -78,19 +78,19 @@ public class ProvideCommand {
 			.orElseThrow(() -> new IllegalArgumentException("Benchmark not found: " + name));
 	}
 
-	private BenchmarkItem findItem(Benchmark benchmark, String itemId) {
-		if (itemId == null && benchmark.items().size() == 1) {
-			return benchmark.items().get(0);
+	private BenchmarkTask findTask(Benchmark benchmark, String taskId) {
+		if (taskId == null && benchmark.tasks().size() == 1) {
+			return benchmark.tasks().get(0);
 		}
-		if (itemId == null) {
+		if (taskId == null) {
 			throw new IllegalArgumentException("Item ID required for benchmarks with multiple items. "
 					+ "Use 'bench items --benchmark " + benchmark.name() + "' to see available items.");
 		}
-		return benchmark.items()
+		return benchmark.tasks()
 			.stream()
-			.filter(i -> i.id().equals(itemId))
+			.filter(i -> i.id().equals(taskId))
 			.findFirst()
-			.orElseThrow(() -> new IllegalArgumentException("Item not found: " + itemId));
+			.orElseThrow(() -> new IllegalArgumentException("Item not found: " + taskId));
 	}
 
 	private void copyDirectory(Path source, Path target) throws IOException {

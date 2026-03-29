@@ -7,10 +7,10 @@ import java.util.List;
 
 import org.springaicommunity.bench.core.benchmark.Benchmark;
 import org.springaicommunity.bench.core.benchmark.BenchmarkCatalog;
-import org.springaicommunity.bench.core.benchmark.BenchmarkItem;
+import org.springaicommunity.bench.core.benchmark.BenchmarkTask;
 
 /**
- * Handles the {@code list} and {@code items} CLI commands.
+ * Handles the {@code list} and {@code tasks} CLI commands.
  */
 public class ListCommand {
 
@@ -37,27 +37,27 @@ public class ListCommand {
 		System.out.println("Available benchmarks:");
 		System.out.println();
 		for (Benchmark b : benchmarks) {
-			System.out.printf("  %-30s v%-8s (%d items)%n", b.name(), b.version(), b.items().size());
+			System.out.printf("  %-30s v%-8s (%d tasks)%n", b.name(), b.version(), b.tasks().size());
 		}
 	}
 
 	/**
-	 * Lists items within a specific benchmark.
+	 * Lists tasks within a specific benchmark.
 	 */
-	public void listItems(String benchmarkName) throws IOException {
+	public void listTasks(String benchmarkName) throws IOException {
 		List<Benchmark> benchmarks = catalog.discover();
 		Benchmark target = benchmarks.stream()
 			.filter(b -> b.name().equals(benchmarkName))
 			.findFirst()
 			.orElseThrow(() -> new IllegalArgumentException("Benchmark not found: " + benchmarkName));
 
-		System.out.printf("Items in benchmark '%s' (v%s):%n", target.name(), target.version());
+		System.out.printf("Tasks in benchmark '%s' (v%s):%n", target.name(), target.version());
 		System.out.println();
-		for (BenchmarkItem item : target.items()) {
-			String timeout = item.timeout() != null ? item.timeout().toString() : target.defaultTimeout().toString();
-			System.out.printf("  %-30s timeout=%s%n", item.id(), timeout);
-			if (item.instruction() != null) {
-				String instr = item.instruction();
+		for (BenchmarkTask task : target.tasks()) {
+			String timeout = task.timeout() != null ? task.timeout().toString() : target.defaultTimeout().toString();
+			System.out.printf("  %-30s timeout=%s%n", task.id(), timeout);
+			if (task.instruction() != null) {
+				String instr = task.instruction();
 				if (instr.length() > 80) {
 					instr = instr.substring(0, 77) + "...";
 				}

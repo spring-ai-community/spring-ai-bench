@@ -1,4 +1,4 @@
-schema: bench.item.v1
+schema: bench.task.v1
 id: spring-petclinic
 instruction: |
   Write JUnit tests for this Spring Boot project to maximize code coverage.

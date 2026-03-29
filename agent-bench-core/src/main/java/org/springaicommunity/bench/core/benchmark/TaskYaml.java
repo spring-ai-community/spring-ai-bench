@@ -6,9 +6,9 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * Jackson mapping for {@code item.yaml} deserialization.
+ * Jackson mapping for {@code task.yaml} deserialization.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record ItemYaml(String schema, String id, String instruction, String timeout, Map<String, Object> metadata,
+public record TaskYaml(String schema, String id, String instruction, String timeout, Map<String, Object> metadata,
 		List<String> setup, List<String> post) {
 }

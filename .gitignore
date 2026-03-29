@@ -41,3 +41,6 @@ bench-reports/
 site/
 target/bench-reports/
 CLAUDE.md
+agent-bench-tsinghua/
+webarena/
+swe-bench/

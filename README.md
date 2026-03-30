@@ -1,276 +1,224 @@
 # Agent Bench
 
-<!-- [![Build Status](https://github.com/spring-ai-community/agent-bench/workflows/CI/badge.svg)](https://github.com/spring-ai-community/agent-bench/actions) -->
-<!-- [![Maven Central](https://img.shields.io/maven-central/v/org.springaicommunity.bench/agent-bench-parent.svg)](https://search.maven.org/search?q=g:org.springaicommunity.bench) -->
-
-**Maven Snapshot Artifacts Coming Soon**
-
-📖 **[Documentation](https://spring-ai-community.github.io/agent-bench/)** | [Getting Started](https://spring-ai-community.github.io/agent-bench/getting-started.html) | [Benchmarks](https://spring-ai-community.github.io/agent-bench/benchmarks/overview.html) | [Spring AI Agents](https://github.com/spring-ai-community/agent-client)
-
-## What & Why
-
-Existing benchmarks (SWE-bench) measure yesterday's agents on static 2023 Python patches. They can't evaluate the agents teams actually use (Claude, Gemini, Amazon Q, Amp) on enterprise Java workflows.
-
-**Agent Bench measures modern agents on real enterprise development tasks** — issue triage, PR review, coverage uplift, compliance validation, dependency upgrades. Run benchmarks on YOUR repos to measure YOUR scenarios.
-
-**If agents have evolved, benchmarks must evolve too.**
-
-📖 **[Read the full analysis →](https://spring-ai-community.github.io/agent-bench/)** | [Why SWE-bench Falls Short](https://spring-ai-community.github.io/agent-bench/#_the_evidence_why_swe_bench_falls_short)
-
----
-
-## Why Different
-
-|Dimension |SWE-bench |Agent Bench|
-|---|---|---|
-|**Scope**|Patch loops only|Full dev lifecycle (triage, PR review, coverage, compliance)|
-|**Language**|Python-only (~75% scores)|Java-first (~7-10% gap shows training bias)|
-|**Agent Support**|One architecture (SWE-agent)|Any agent (Claude, Gemini, Q, Amp, custom)|
-|**Reproducibility**|No disclosure required|One-click Docker + open scaffolding|
-|**Agent Paradigm**|2024 patch-loop agents|2025 declarative goal agents|
-|**Standards**|Pre-BetterBench|Following BetterBench principles|
-
-📖 **[See detailed evidence & analysis](https://spring-ai-community.github.io/agent-bench/#_the_evidence_why_swe_bench_falls_short)** for contamination data (60%+ Verified → 19% Live), language bias analysis, and scaffolding transparency.
-
----
-
-## What Agent Bench Does
-
-**Can AI act as a true Java developer agent?**
-
-- Not just fixing bugs,
-- But analyzing and labeling issues,
-- Reviewing pull requests,
-- Running integration tests,
-- Raising coverage,
-- Cleaning up static analysis issues,
-- Migrating APIs,
-- Upgrading dependencies,
-- Keeping builds compliant.
-
-That's the standard enterprise developers hold themselves to — and the standard we should evaluate AI against.
-
-**Supports any agent via `AgentModel` abstraction** — Claude Code, Gemini CLI, Amazon Q Developer, Amp, Codex, or custom implementations. Measure the agents YOUR team uses, not just academic research artifacts.
-
-## Current Implementation (September 2024)
-
-### What Works Today
-
-Agent Bench provides a comprehensive **execution framework and benchmarking platform** for AI agents in Java environments with isolated sandboxes, customizable execution, and evaluation capabilities.
-
-#### Available Agents
-- **hello-world**: Deterministic mock agent for testing infrastructure and baseline comparisons
-- **hello-world-ai**: AI-powered agent via [Spring AI Agents](https://github.com/spring-ai-community/agent-client) AgentClient integration
-  - Supports Claude and Gemini providers
-  - Uses JBang launcher pattern for seamless execution
-
-#### Execution Framework
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Agent Types   │    │  Execution Core  │    │   Sandboxes     │
-├─────────────────┤    ├──────────────────┤    ├─────────────────┤
-│ ✅ Claude Code  │────│ BenchHarness     │────│LocalSandbox     │
-│ ✅ Gemini       │    │ AgentRunner      │    │DockerSandbox    │
-│ ✅ HelloWorld   │    │ SpecLoader       │    │CloudSandbox     │
-│                 │    │ ReportGenerator  │    │   (Future)      │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-```
-
-#### Multi-Agent Benchmarking
-Agent Bench supports comparative benchmarking between different agent implementations:
-
-|Implementation |Duration |Performance Notes|
-|---|---|---|
-|**hello-world (deterministic)**|115 ms|Fast baseline for infrastructure testing|
-|**hello-world-ai (Gemini provider)**|5.3 seconds|Efficient AI processing|
-|**hello-world-ai (Claude provider)**|99 seconds|Thorough, detailed analysis|
-
-*All implementations successfully completed the hello-world file creation task with 100% accuracy.*
-
-### Benchmark Tracks: The Full Vision
-
-Agent Bench is designed to support tracks that map directly to **real enterprise developer workflows** - this is what makes it different from existing benchmarks that focus only on narrow bug-fixing loops.
-
-#### ✅ Available Now
-- **hello-world**: File creation and basic infrastructure validation
-
-#### 🚧 In Active Development
-These tracks represent the core enterprise Java workflows that current benchmarks ignore:
-
-- **Test Coverage Uplift**: Generate tests to achieve specific coverage thresholds while keeping builds green
-- **Issue Analysis & Labeling**: Automated issue triage and classification using domain-specific labels
-- **Pull Request Review**: Comprehensive PR analysis with structured reports, risk assessment, and policy compliance
-- **Static Analysis Remediation**: Fix checkstyle violations and code quality issues while preserving functionality
-
-#### 📋 Future Roadmap
-The complete enterprise development lifecycle:
-
-- **Integration Testing**: Validate system integration points and service boundaries
-- **Bug Fixing**: Resolve real issues while maintaining build health and test coverage
-- **Dependency Upgrades**: Manage Maven dependency updates with compatibility validation
-- **API Migration**: Update code to use newer API versions with deprecation handling
-- **Compliance Validation**: Ensure code meets enterprise security and governance standards
-- **Performance Optimization**: Identify and resolve performance bottlenecks
-- **Documentation Generation**: Auto-generate and maintain technical documentation
-
-**This is the vision that sets Agent Bench apart** - measuring AI agents on the full spectrum of enterprise Java development, not just isolated bug fixes.
+Benchmarking framework for AI coding agents on enterprise Java tasks. Defines benchmarks as YAML, launches any CLI agent, grades results with cascaded judge tiers from [Agent Judge](https://github.com/spring-ai-community/agent-judge).
 
 ## Quick Start
 
-### Prerequisites
-
-For AI agent integration testing, you'll need to build and install agent-client locally:
-
 ```bash
-# Build agent-client first
-git clone https://github.com/spring-ai-community/agent-client.git
-cd agent-client
-./mvnw clean install -DskipTests
-cd ..
-
-# Then build agent-bench
 git clone https://github.com/spring-ai-community/agent-bench.git
 cd agent-bench
-./mvnw clean install
+./mvnw clean install -DskipTests
 ```
 
-### Basic Testing
+List available benchmarks:
+
+```
+$ bench list
+
+Available benchmarks:
+
+  code-coverage                  v1.0      (1 tasks)
+  hello-world                    v1.0      (1 tasks)
+```
+
+Run a benchmark with an agent:
 
 ```bash
-# Run hello-world benchmark via Maven exec plugin
-./mvnw exec:java -pl bench-core -Dexec.args="run --run-file runs/examples/hello-world-run.yaml"
-
-# Generate static site from benchmark results (JBang - much simpler!)
-jbang jbang/site.java --reportsDir /tmp/bench-reports --siteDir /tmp/bench-site
+bench run --benchmark hello-world --agent agents/claude-code.yaml
 ```
 
-### Agent Integration Testing
+## How It Works
 
-Set up API keys for live agent testing:
+The bench orchestrates a per-task lifecycle:
+
+```
+provide → setup scripts → agent → post scripts → grade → result.json
+```
+
+1. **Provide** copies the workspace template and writes `INSTRUCTION.md`
+2. **Setup** scripts run in the workspace (clone repo, compile, measure baseline)
+3. **Agent** executes — any CLI tool that reads `INSTRUCTION.md` and modifies the workspace
+4. **Post** scripts run (build, test, generate reports)
+5. **Grade** evaluates the workspace with a cascaded jury from [Agent Judge](https://github.com/spring-ai-community/agent-judge)
+
+## Benchmark Format
+
+Benchmarks live in `benchmarks/` as YAML:
+
+```
+benchmarks/code-coverage/
+├── benchmark.yaml
+├── prompts/
+│   └── judge-practice-adherence.txt
+└── tasks/
+    └── spring-petclinic/
+        └── task.yaml
+```
+
+### benchmark.yaml
+
+Defines the jury — a cascaded sequence of judge tiers:
+
+```yaml
+schema: bench.benchmark.v1
+name: code-coverage
+version: "1.0"
+description: "Write JUnit tests to maximize JaCoCo instruction coverage."
+default-timeout: PT45M
+
+jury:
+  tiers:
+    - name: build
+      policy: REJECT_ON_ANY_FAIL
+      checks:
+        - type: maven-build
+          goals: [clean, test]
+    - name: coverage-preservation
+      policy: REJECT_ON_ANY_FAIL
+      checks:
+        - type: coverage-preservation
+    - name: coverage-improvement
+      policy: ACCEPT_ON_ALL_PASS
+      checks:
+        - type: coverage-improvement
+          min: 50.0
+```
+
+### task.yaml
+
+Defines a single task — the problem, setup, and post-processing:
+
+```yaml
+schema: bench.task.v1
+id: spring-petclinic
+instruction: |
+  Write JUnit tests for this Spring Boot project to maximize code coverage.
+  Run ./mvnw clean test jacoco:report to measure coverage.
+  Focus on behavioral code — skip Application main classes, records, and config.
+  Use narrow test slices (@WebMvcTest, @DataJpaTest) over @SpringBootTest.
+timeout: PT45M
+metadata:
+  baselineCoverage: 0.0
+setup:
+  - "git init && git remote add origin https://github.com/spring-projects/spring-petclinic.git && git fetch --depth 1 origin edf4db28affc && git checkout FETCH_HEAD"
+  - "./mvnw clean compile -q -Dspring-javaformat.skip=true -Dcheckstyle.skip=true"
+post:
+  - "./mvnw clean test jacoco:report -q -Dspring-javaformat.skip=true -Dcheckstyle.skip=true"
+```
+
+### Agent Config
+
+Agent configs are minimal — just a command and timeout:
+
+```yaml
+# agents/claude-code.yaml
+command: claude --print --dangerously-skip-permissions 'Read INSTRUCTION.md and follow the instructions precisely.'
+timeout: PT45M
+```
+
+The bench launches the command via `bash -c` in the workspace directory. Any CLI tool works.
+
+## Bring Your Own Agent
+
+The filesystem is the contract. The bench writes `INSTRUCTION.md` to the workspace; the agent reads it and modifies files. You can also run the provide/grade steps separately:
 
 ```bash
-# API Keys
-export ANTHROPIC_API_KEY=your_key
-export GEMINI_API_KEY=your_key
+# Set up workspace
+bench provide --benchmark code-coverage --task spring-petclinic --workspace /tmp/petclinic
 
-# Core tests (no API keys required)
-./mvnw test
+# Run your agent (any tool that reads INSTRUCTION.md)
+cd /tmp/petclinic && your-agent "$(cat INSTRUCTION.md)"
 
-# Live agent tests (requires API keys)
-./mvnw test -Pagents-live
-
-# Multi-agent comparison test (runs deterministic + AI agents)
-ANTHROPIC_API_KEY=your_key GEMINI_API_KEY=your_key \
-./mvnw test -Dtest=HelloWorldMultiAgentTest -pl bench-agents
+# Grade the result
+bench grade --benchmark code-coverage --task spring-petclinic --workspace /tmp/petclinic
 ```
 
-### Viewing Reports
+## CLI Reference
 
-After running tests or benchmarks, reports are generated in multiple formats:
-
-```bash
-# Main benchmark reports index
-file:///tmp/bench-reports/index.html
-
-# Generated benchmark site (after running site generator)
-file:///tmp/bench-site/index.html
-```
+| Command | Purpose |
+|---------|---------|
+| `bench list` | List available benchmarks |
+| `bench tasks --benchmark <name>` | List tasks in a benchmark |
+| `bench provide --benchmark <name> --task <id> --workspace <dir>` | Set up workspace with instruction |
+| `bench grade --benchmark <name> --task <id> --workspace <dir>` | Evaluate agent's work |
+| `bench run --benchmark <name> --agent <config> [--task <id>]` | Full pipeline: provide + agent + grade |
 
 ## Architecture
 
-Agent Bench is built around a **Sandbox abstraction** that provides isolated execution environments:
+Two modules:
 
-- **LocalSandbox**: Direct process execution (fast, development)
-- **DockerSandbox**: Container isolation (secure, production-ready)
-- **CloudSandbox**: Distributed execution (planned)
+- **agent-bench-core** — CLI, benchmark catalog, run orchestration, result model, judge factory
+- **agent-bench-agents** — Agent-specific judge implementations (e.g., LLM-based test quality judge)
 
-Key components:
-- `BenchHarness`: End-to-end benchmark execution
-- `AgentRunner`: Agent execution interface with Spring AI Agents integration
-- `SuccessVerifier`: Validation of benchmark results *(temporary implementation - will evolve into judge concept in agent-client)*
-- `ReportGenerator`: HTML and JSON report generation
+Key classes:
 
-For detailed architecture information, see [Architecture Documentation](https://spring-ai-community.github.io/agent-bench/architecture.html).
+| Class | Role |
+|-------|------|
+| `BenchmarkCatalog` | Discovers benchmarks from `benchmarks/` directory |
+| `BenchmarkTask` | A single task: instruction, setup/post scripts, metadata |
+| `RunCommand` | Orchestrates the full lifecycle per task |
+| `JudgeFactory` | Materializes YAML jury config into Judge instances |
+| `TrialResult` | Per-attempt result with timestamps and scores |
+| `BenchmarkResult` | Aggregate result with accuracy and pass@k |
+| `ExecAgentInvoker` | Loads agent config and launches the command |
 
-## Integration with Spring AI Agents
+Module layering is enforced by ArchUnit — core does not depend on agents.
 
-Agent Bench integrates with the [Spring AI Agents](https://github.com/spring-ai-community/agent-client) framework via JBang execution:
+## Built-in Judge Types
 
-```bash
-# Pattern: agent-bench → JBang → agent-client → AI provider
-jbang /path/to/agent-client/jbang/launcher.java \
-  hello-world-agent-ai \
-  path=hello.txt \
-  content="Hello World!" \
-  provider=claude
+| Type | What it checks |
+|------|----------------|
+| `file-exists` | File exists at path |
+| `file-content` | File content matches expected (EXACT or CONTAINS) |
+| `maven-build` | Maven build succeeds with specified goals |
+| `coverage-preservation` | JaCoCo coverage not dropped from baseline |
+| `coverage-improvement` | JaCoCo coverage exceeds threshold |
+
+Custom judge types can be registered via `JudgeFactory.register()`.
+
+## Programmatic Usage
+
+```java
+// Discover benchmarks
+BenchmarkCatalog catalog = new BenchmarkCatalog(Path.of("benchmarks"));
+List<Benchmark> benchmarks = catalog.discover();
+
+// Find a specific benchmark
+Benchmark benchmark = benchmarks.stream()
+    .filter(b -> b.name().equals("code-coverage"))
+    .findFirst()
+    .orElseThrow();
+
+// Access tasks
+BenchmarkTask task = benchmark.tasks().get(0);
+assert task.id().equals("spring-petclinic");
+assert task.instruction().contains("JUnit tests");
+
+// Wire judges from YAML config
+JudgeFactory factory = new JudgeFactory();
+Judge judge = factory.createFromConfig(benchmark.juryConfig());
 ```
 
-This ensures benchmark success guarantees good end-user experience by testing the exact CLI interface users would use.
+## Available Benchmarks
 
-## Run It Yourself: The Big Differentiator
-
-Unlike static benchmarks, Agent Bench runs on YOUR repos to measure YOUR scenarios:
-
-```bash
-# 1. Clone and build dependencies (5 minutes)
-git clone https://github.com/spring-ai-community/agent-client.git
-cd agent-client && ./mvnw clean install -DskipTests
-
-git clone https://github.com/spring-ai-community/agent-bench.git
-cd agent-bench
-
-# 2. Set your API keys
-export ANTHROPIC_API_KEY=your_key
-export GEMINI_API_KEY=your_key
-
-# 3. Run on YOUR codebase
-./mvnw test -Dtest=HelloWorldMultiAgentTest -pl bench-agents
-
-# 4. View results in your browser
-open file:///tmp/bench-reports/index.html
-```
-
-**Curated golden benchmark set** (for standardized comparison) **+ run same benchmarks on YOUR repos** (to measure real-world effectiveness). Get results you can trust.
-
-## Documentation
-
-For comprehensive documentation, visit:
-
-- 📖 **[Full Documentation](https://spring-ai-community.github.io/agent-bench/)**
-- 📖 **[Getting Started Guide](https://spring-ai-community.github.io/agent-bench/getting-started.html)**
-- 📖 **[Architecture Overview](https://spring-ai-community.github.io/agent-bench/architecture.html)**
-- 📖 **[Running Benchmarks](https://spring-ai-community.github.io/agent-bench/benchmarks/running-benchmarks.html)**
-- 📖 **[Agent Configuration](https://spring-ai-community.github.io/agent-bench/agents/claude-code.html)**
+| Benchmark | Tasks | Status |
+|-----------|-------|--------|
+| `hello-world` | 1 | Working — validates file creation |
+| `code-coverage` | 1 (spring-petclinic) | Judges validated, end-to-end run pending |
 
 ## Related Projects
 
-- **[Spring AI Agents](https://github.com/spring-ai-community/agent-client)**: Autonomous CLI agent integrations for the Spring AI ecosystem
-- **[Spring AI](https://github.com/spring-projects/spring-ai)**: The Spring AI framework
+- **[Agent Judge](https://github.com/spring-ai-community/agent-judge)** — Cascaded judge framework (core dependency)
+- **[Agent Client](https://github.com/spring-ai-community/agent-client)** — CLI agent integrations (Claude, Gemini)
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
+2. Create a feature branch
+3. Write tests for new features
+4. Ensure `./mvnw clean test` passes
 5. Open a Pull Request
-
-### Development Guidelines
-
-- Follow Spring Java formatting conventions: `./mvnw spring-javaformat:apply`
-- Write tests for new features
-- Update documentation for API changes
-- Ensure all tests pass: `./mvnw clean test`
-
-## Support
-
-- **Issues**: [GitHub Issues](https://github.com/spring-ai-community/agent-bench/issues)
-- **Documentation**: [Documentation Site](https://spring-ai-community.github.io/agent-bench/)
 
 ## License
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
-
----
-
-**Agent Bench** - *Open benchmarking suite for Java-centric AI developer agents*
+Apache License 2.0 — see [LICENSE](LICENSE).

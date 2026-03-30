@@ -66,7 +66,7 @@ public class ProvideCommand {
 
 		System.out.printf("Workspace prepared at: %s%n", workspace);
 		System.out.printf("  Benchmark: %s%n", benchmarkName);
-		System.out.printf("  Item: %s%n", task.id());
+		System.out.printf("  Task: %s%n", task.id());
 		System.out.println("  Read INSTRUCTION.md for the task description.");
 	}
 
@@ -83,14 +83,14 @@ public class ProvideCommand {
 			return benchmark.tasks().get(0);
 		}
 		if (taskId == null) {
-			throw new IllegalArgumentException("Item ID required for benchmarks with multiple items. "
-					+ "Use 'bench items --benchmark " + benchmark.name() + "' to see available items.");
+			throw new IllegalArgumentException("Task ID required for benchmarks with multiple tasks. "
+					+ "Use 'bench tasks --benchmark " + benchmark.name() + "' to see available tasks.");
 		}
 		return benchmark.tasks()
 			.stream()
 			.filter(i -> i.id().equals(taskId))
 			.findFirst()
-			.orElseThrow(() -> new IllegalArgumentException("Item not found: " + taskId));
+			.orElseThrow(() -> new IllegalArgumentException("Task not found: " + taskId));
 	}
 
 	private void copyDirectory(Path source, Path target) throws IOException {

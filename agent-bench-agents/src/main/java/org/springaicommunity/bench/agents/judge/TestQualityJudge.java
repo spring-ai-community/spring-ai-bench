@@ -30,8 +30,8 @@ import org.springaicommunity.judge.score.NumericalScore;
 /**
  * LLM-based judge that evaluates practice adherence of a test suite against a rubric
  * prompt. Copied from experiment-code-coverage-v2 (frozen experiment). Produces practice
- * adherence scores — a separate dimension from functional correctness (T0–T2 deterministic
- * judges).
+ * adherence scores — a separate dimension from functional correctness (T0–T2
+ * deterministic judges).
  */
 public class TestQualityJudge implements Judge {
 

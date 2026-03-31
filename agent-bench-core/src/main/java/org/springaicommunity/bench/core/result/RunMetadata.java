@@ -7,7 +7,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
- * Provenance metadata for a benchmark run. Written at run start and updated at completion.
+ * Provenance metadata for a benchmark run. Written at run start and updated at
+ * completion.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)

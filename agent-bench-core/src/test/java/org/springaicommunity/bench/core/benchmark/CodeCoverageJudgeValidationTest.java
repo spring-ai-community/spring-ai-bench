@@ -54,8 +54,8 @@ class CodeCoverageJudgeValidationTest {
 		assumeTrue(Files.isDirectory(WORKSPACE), "Experiment workspace not found: " + WORKSPACE);
 
 		// Baseline: zero coverage (no tests before agent ran)
-		JaCoCoReportParser.CoverageMetrics baseline = new JaCoCoReportParser.CoverageMetrics(0.0, 0.0, 0.0, 0, 0, 0,
-				0, 0, 0, "No tests");
+		JaCoCoReportParser.CoverageMetrics baseline = new JaCoCoReportParser.CoverageMetrics(0.0, 0.0, 0.0, 0, 0, 0, 0,
+				0, 0, "No tests");
 
 		CoveragePreservationJudge judge = new CoveragePreservationJudge();
 		JudgmentContext context = JudgmentContext.builder()
@@ -73,8 +73,8 @@ class CodeCoverageJudgeValidationTest {
 	void t2_coverageImprovement() {
 		assumeTrue(Files.isDirectory(WORKSPACE), "Experiment workspace not found: " + WORKSPACE);
 
-		JaCoCoReportParser.CoverageMetrics baseline = new JaCoCoReportParser.CoverageMetrics(0.0, 0.0, 0.0, 0, 0, 0,
-				0, 0, 0, "No tests");
+		JaCoCoReportParser.CoverageMetrics baseline = new JaCoCoReportParser.CoverageMetrics(0.0, 0.0, 0.0, 0, 0, 0, 0,
+				0, 0, "No tests");
 
 		CoverageImprovementJudge judge = new CoverageImprovementJudge(50.0);
 		JudgmentContext context = JudgmentContext.builder()

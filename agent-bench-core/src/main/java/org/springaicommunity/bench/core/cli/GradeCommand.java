@@ -64,8 +64,8 @@ public class GradeCommand {
 					resolved ? FailureMode.NONE : FailureMode.TEST_FAILURE, null, 0, workspace);
 		}
 		catch (Exception e) {
-			result = new TrialResult(task.id(), false, Map.of("error", e.getMessage()), FailureMode.GRADE_ERROR, null, 0,
-					workspace);
+			result = new TrialResult(task.id(), false, Map.of("error", e.getMessage()), FailureMode.GRADE_ERROR, null,
+					0, workspace);
 		}
 
 		// Output result as JSON

@@ -5,7 +5,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -50,8 +52,10 @@ public class BenchmarkCatalog {
 		Duration timeout = yaml.defaultTimeout() != null ? Duration.parse(yaml.defaultTimeout())
 				: Duration.ofMinutes(5);
 
+		Map<String, Object> juryConfig = resolveJuryPaths(yaml.jury(), benchmarkDir);
+
 		return new DefaultBenchmark(yaml.name(), yaml.version() != null ? yaml.version() : "1.0", yaml.metadata(),
-				items, yaml.jury(), timeout);
+				items, juryConfig, timeout);
 	}
 
 	private List<BenchmarkTask> loadTasks(Path benchmarkDir) throws IOException {
@@ -72,6 +76,55 @@ public class BenchmarkCatalog {
 		return items;
 	}
 
+	/**
+	 * Resolves relative file paths in jury check configs (e.g., prompt paths) to absolute
+	 * paths using the benchmark directory as base.
+	 */
+	@SuppressWarnings("unchecked")
+	private Map<String, Object> resolveJuryPaths(Map<String, Object> juryConfig, Path benchmarkDir) {
+		if (juryConfig == null) {
+			return null;
+		}
+		Map<String, Object> resolved = new HashMap<>(juryConfig);
+		Object tiers = resolved.get("tiers");
+		if (tiers instanceof List<?> tierList) {
+			List<Object> resolvedTiers = new ArrayList<>();
+			for (Object tier : tierList) {
+				if (tier instanceof Map<?, ?> tierMap) {
+					Map<String, Object> resolvedTier = new HashMap<>((Map<String, Object>) tierMap);
+					Object checks = resolvedTier.get("checks");
+					if (checks instanceof List<?> checkList) {
+						List<Object> resolvedChecks = new ArrayList<>();
+						for (Object check : checkList) {
+							if (check instanceof Map<?, ?> checkMap) {
+								Map<String, Object> resolvedCheck = new HashMap<>((Map<String, Object>) checkMap);
+								resolvePathField(resolvedCheck, "prompt", benchmarkDir);
+								resolvedChecks.add(resolvedCheck);
+							}
+							else {
+								resolvedChecks.add(check);
+							}
+						}
+						resolvedTier.put("checks", resolvedChecks);
+					}
+					resolvedTiers.add(resolvedTier);
+				}
+				else {
+					resolvedTiers.add(tier);
+				}
+			}
+			resolved.put("tiers", resolvedTiers);
+		}
+		return resolved;
+	}
+
+	private void resolvePathField(Map<String, Object> config, String field, Path baseDir) {
+		Object value = config.get(field);
+		if (value instanceof String path && !path.startsWith("/")) {
+			config.put(field, baseDir.resolve(path).toAbsolutePath().toString());
+		}
+	}
+
 	private BenchmarkTask loadTask(Path taskDir, Path taskYamlFile) throws IOException {
 		TaskYaml yaml = yamlMapper.readValue(taskYamlFile.toFile(), TaskYaml.class);
 
@@ -82,8 +135,8 @@ public class BenchmarkCatalog {
 
 		return new DefaultBenchmarkTask(yaml.id(), yaml.instruction(),
 				Files.isDirectory(workspaceTemplate) ? workspaceTemplate : null,
-				Files.isDirectory(referenceDir) ? referenceDir : null, yaml.metadata(), timeout, yaml.setup(),
-				yaml.post());
+				Files.isDirectory(referenceDir) ? referenceDir : null, yaml.metadata(), yaml.difficulty(), timeout,
+				yaml.setup(), yaml.post());
 	}
 
 }

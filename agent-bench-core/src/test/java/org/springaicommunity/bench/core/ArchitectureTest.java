@@ -16,8 +16,7 @@ import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.sli
 class ArchitectureTest {
 
 	@ArchTest
-	static final ArchRule core_does_not_depend_on_agents_module = noClasses()
-		.that()
+	static final ArchRule core_does_not_depend_on_agents_module = noClasses().that()
 		.resideInAPackage("org.springaicommunity.bench.core..")
 		.should()
 		.dependOnClassesThat()
@@ -25,8 +24,7 @@ class ArchitectureTest {
 		.because("core must not depend on the agents module — agents depends on core, not the reverse");
 
 	@ArchTest
-	static final ArchRule result_package_does_not_depend_on_cli = noClasses()
-		.that()
+	static final ArchRule result_package_does_not_depend_on_cli = noClasses().that()
 		.resideInAPackage("..result..")
 		.should()
 		.dependOnClassesThat()
@@ -34,8 +32,7 @@ class ArchitectureTest {
 		.because("result records are pure data — they must not depend on CLI infrastructure");
 
 	@ArchTest
-	static final ArchRule benchmark_package_does_not_depend_on_cli = noClasses()
-		.that()
+	static final ArchRule benchmark_package_does_not_depend_on_cli = noClasses().that()
 		.resideInAPackage("..benchmark..")
 		.should()
 		.dependOnClassesThat()

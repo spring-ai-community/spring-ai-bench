@@ -1,0 +1,2 @@
+command: claude --print --dangerously-skip-permissions "Read INSTRUCTION.md and do exactly what it says. Write your changes to the current directory."
+timeout: PT5M

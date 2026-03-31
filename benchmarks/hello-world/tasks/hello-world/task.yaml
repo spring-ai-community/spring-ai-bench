@@ -1,5 +1,6 @@
 schema: bench.task.v1
 id: hello-world
+difficulty: easy
 instruction: |
   Create a file named `hello.txt` in the current directory
   with the exact content: Hello World!

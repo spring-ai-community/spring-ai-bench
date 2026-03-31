@@ -9,8 +9,8 @@ import java.util.Map;
  * Immutable implementation of {@link BenchmarkTask}.
  */
 public record DefaultBenchmarkTask(String id, String instruction, Path workspaceTemplate, Path referenceDir,
-		Map<String, Object> metadata, Duration timeout, List<String> setup, List<String> post)
-		implements BenchmarkTask {
+		Map<String, Object> metadata, String difficulty, Duration timeout, List<String> setup,
+		List<String> post) implements BenchmarkTask {
 
 	public DefaultBenchmarkTask {
 		metadata = metadata != null ? Map.copyOf(metadata) : Map.of();

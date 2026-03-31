@@ -21,6 +21,9 @@ public interface BenchmarkTask {
 
 	Map<String, Object> metadata();
 
+	/** Optional difficulty tag: easy, medium, hard. Null if unset. */
+	String difficulty();
+
 	Duration timeout();
 
 	/** Scripts to run in the workspace before agent invocation. */

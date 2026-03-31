@@ -118,8 +118,7 @@ public class JudgeFactory {
 			String type = (String) check.get("type");
 			Function<Map<String, Object>, Judge> factory = registry.get(type);
 			if (factory == null) {
-				throw new IllegalArgumentException("Unknown check type: " + type
-						+ ". Available: " + registry.keySet());
+				throw new IllegalArgumentException("Unknown check type: " + type + ". Available: " + registry.keySet());
 			}
 			judges.add(factory.apply(check));
 		}

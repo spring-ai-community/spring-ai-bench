@@ -1,6 +1,9 @@
 package org.springaicommunity.bench.core.cli;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springaicommunity.bench.core.benchmark.JudgeFactory;
 
@@ -24,6 +27,8 @@ public class BenchMain {
 				case "provide" -> handleProvideCommand(args);
 				case "grade" -> handleGradeCommand(args);
 				case "run" -> handleRunCommand(args);
+				case "resume" -> handleResumeCommand(args);
+				case "compare" -> handleCompareCommand(args);
 				default -> {
 					System.err.println("Unknown command: " + command);
 					printUsage();
@@ -48,8 +53,10 @@ public class BenchMain {
 		System.out.println("           Set up workspace for an agent");
 		System.out.println("  grade    --benchmark <name> --task <id> --workspace <dir>");
 		System.out.println("           Evaluate agent results");
-		System.out.println("  run      --benchmark <name> [--agent <config>] [--task <id>]");
+		System.out.println("  run      --benchmark <name> [--agent <config>] [--task <id>] [--difficulty <level>]");
 		System.out.println("           Run provide + agent + grade end-to-end");
+		System.out.println("  resume   --run-id <uuid>     Resume an interrupted run");
+		System.out.println("  compare  --runs <dir1> <dir2> ...  Compare benchmark results");
 	}
 
 	private static void handleTasksCommand(String[] args) throws Exception {
@@ -87,6 +94,7 @@ public class BenchMain {
 		}
 		String agent = parseArg(args, "--agent");
 		String task = parseArg(args, "--task");
+		String difficulty = parseArg(args, "--difficulty");
 
 		JudgeFactory factory = new JudgeFactory();
 		// Register test-quality-llm as a pass-through until agent-bench-agents provides
@@ -94,7 +102,44 @@ public class BenchMain {
 		factory.register("test-quality-llm",
 				config -> ctx -> org.springaicommunity.judge.result.Judgment.abstain("LLM judge not configured"));
 
-		new RunCommand(Paths.get("benchmarks"), factory).run(benchmark, agent, task);
+		new RunCommand(Paths.get("benchmarks"), factory).run(benchmark, agent, task, 1, difficulty);
+	}
+
+	private static void handleResumeCommand(String[] args) throws Exception {
+		String runId = parseArg(args, "--run-id");
+		if (runId == null) {
+			throw new IllegalArgumentException("--run-id is required");
+		}
+		JudgeFactory factory = new JudgeFactory();
+		factory.register("test-quality-llm",
+				config -> ctx -> org.springaicommunity.judge.result.Judgment.abstain("LLM judge not configured"));
+		new RunCommand(Paths.get("benchmarks"), factory).resume(runId);
+	}
+
+	private static void handleCompareCommand(String[] args) throws Exception {
+		List<Path> runDirs = parseRunDirs(args);
+		if (runDirs.isEmpty()) {
+			throw new IllegalArgumentException("--runs requires at least one directory");
+		}
+		new CompareCommand().compare(runDirs);
+	}
+
+	private static List<Path> parseRunDirs(String[] args) {
+		List<Path> dirs = new ArrayList<>();
+		boolean collecting = false;
+		for (int i = 1; i < args.length; i++) {
+			if ("--runs".equals(args[i])) {
+				collecting = true;
+				continue;
+			}
+			if (collecting) {
+				if (args[i].startsWith("--")) {
+					break;
+				}
+				dirs.add(Paths.get(args[i]));
+			}
+		}
+		return dirs;
 	}
 
 	static String parseArg(String[] args, String name) {

@@ -1,5 +1,6 @@
 schema: bench.task.v1
 id: spring-petclinic
+difficulty: medium
 instruction: |
   Write JUnit tests for this Spring Boot project to maximize code coverage.
   Run ./mvnw clean test jacoco:report to measure coverage.
@@ -7,10 +8,10 @@ instruction: |
   Use narrow test slices (@WebMvcTest, @DataJpaTest) over @SpringBootTest.
 timeout: PT45M
 metadata:
-  petclinic-commit: edf4db28affc
+  petclinic-commit: edf4db28affcc4741c79850a3d95bc3f177b5ff9
   baselineCoverage: 0.0
 setup:
-  - "git init && git remote add origin https://github.com/spring-projects/spring-petclinic.git && git fetch --depth 1 origin edf4db28affc && git checkout FETCH_HEAD"
+  - "git init && git remote add origin https://github.com/spring-projects/spring-petclinic.git && git fetch --depth 1 origin edf4db28affcc4741c79850a3d95bc3f177b5ff9 && git checkout FETCH_HEAD"
   - "./mvnw clean compile -q -Dspring-javaformat.skip=true -Dcheckstyle.skip=true"
 post:
   - "./mvnw clean test jacoco:report -q -Dspring-javaformat.skip=true -Dcheckstyle.skip=true"

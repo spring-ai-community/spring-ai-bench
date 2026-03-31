@@ -15,73 +15,44 @@
     <packaging>jar</packaging>
 
     <name>Agent Bench - Agent Integrations</name>
-    <description>Integration layer between Agent Bench and Spring AI Agents</description>
+    <description>Full CLI entry point (BenchApp) and LLM judge (TestQualityJudge) for Agent Bench</description>
 
     <dependencies>
-        <!-- Bench core for AgentRunner, AgentSpec, etc -->
+        <!-- Bench core -->
         <dependency>
             <groupId>org.springaicommunity</groupId>
             <artifactId>agent-bench-core</artifactId>
             <version>${project.version}</version>
         </dependency>
 
-        <!-- Spring AI Agents core -->
+        <!-- Agent Client (for LLM judge invocation) -->
         <dependency>
             <groupId>org.springaicommunity.agents</groupId>
-            <artifactId>spring-ai-agent-model</artifactId>
-            <version>0.10.0-SNAPSHOT</version>
+            <artifactId>agent-client-core</artifactId>
+            <version>0.11.0</version>
         </dependency>
 
+        <!-- Claude Agent (LLM judge uses Claude as evaluator) -->
         <dependency>
             <groupId>org.springaicommunity.agents</groupId>
-            <artifactId>spring-ai-agent-client</artifactId>
-            <version>0.10.0-SNAPSHOT</version>
-        </dependency>
-
-        <!-- Claude Agent -->
-        <dependency>
-            <groupId>org.springaicommunity.agents</groupId>
-            <artifactId>spring-ai-claude-agent</artifactId>
-            <version>0.10.0-SNAPSHOT</version>
-        </dependency>
-
-        <!-- Gemini Agent -->
-        <dependency>
-            <groupId>org.springaicommunity.agents</groupId>
-            <artifactId>spring-ai-gemini</artifactId>
-            <version>0.10.0-SNAPSHOT</version>
+            <artifactId>agent-claude</artifactId>
+            <version>0.11.0</version>
         </dependency>
 
         <!-- Judge Framework -->
         <dependency>
             <groupId>org.springaicommunity</groupId>
             <artifactId>agent-judge-core</artifactId>
-            <version>0.9.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springaicommunity</groupId>
-            <artifactId>agent-judge-exec</artifactId>
-            <version>0.9.0-SNAPSHOT</version>
+            <version>0.9.1</version>
         </dependency>
 
-        <!-- Jackson for JSON reports -->
+        <!-- Jackson for JSON -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
-        <!-- Spring Boot autoconfigure for conditional annotations -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-autoconfigure</artifactId>
-        </dependency>
-
         <!-- Testing -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -104,43 +75,6 @@
                     <mainClass>org.springaicommunity.bench.agents.cli.BenchApp</mainClass>
                 </configuration>
             </plugin>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.5</version>
-                <configuration>
-                    <environmentVariables>
-                        <ANTHROPIC_API_KEY>${env.ANTHROPIC_API_KEY}</ANTHROPIC_API_KEY>
-                        <GEMINI_API_KEY>${env.GEMINI_API_KEY}</GEMINI_API_KEY>
-                        <GOOGLE_API_KEY>${env.GOOGLE_API_KEY}</GOOGLE_API_KEY>
-                    </environmentVariables>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>agents-live</id>
-            <!-- No activation block - use explicit -P flag -->
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <version>3.2.5</version>
-                        <configuration>
-                            <properties>
-                                <configurationParameters>junit.jupiter.tags=agents-live</configurationParameters>
-                            </properties>
-                            <systemPropertyVariables>
-                                <spring.profiles.active>agents-live</spring.profiles.active>
-                            </systemPropertyVariables>
-                            <environmentVariables>
-                                <ANTHROPIC_API_KEY>${env.ANTHROPIC_API_KEY}</ANTHROPIC_API_KEY>
-                            </environmentVariables>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>

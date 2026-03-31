@@ -1,0 +1,22 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 0.2.0)'
+        required: true
+        type: string
+
+jobs:
+  release:
+    permissions:
+      contents: write
+    uses: spring-ai-community/community-workflows/.github/workflows/maven-central-release.yml@main
+    with:
+      version: ${{ inputs.version }}
+    secrets:
+      MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+      MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+      GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
+      GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}

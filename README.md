@@ -1,5 +1,7 @@
 # Agent Bench
 
+📖 **[Documentation](https://springaicommunity.mintlify.app/projects/incubating/agent-bench)**
+
 Benchmarking framework for AI coding agents on enterprise Java tasks. Defines benchmarks as YAML, launches any CLI agent, grades results with cascaded judge tiers from [Agent Judge](https://github.com/spring-ai-community/agent-judge).
 
 ## Quick Start

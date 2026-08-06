@@ -1,3 +1,14 @@
+> [!IMPORTANT]
+> **This repository is no longer maintained.**
+>
+> Active development has moved to
+> [markpollack/agent-bench](https://github.com/markpollack/agent-bench).
+> Current documentation is available at [lab.pollack.ai](https://lab.pollack.ai/projects/agent-bench).
+>
+> This repository remains available for historical Spring AI Community releases.
+> Its Apache 2.0 license and historical contents are unchanged. Please submit new
+> issues and pull requests to the active repository.
+
 # Agent Bench
 
 📖 **[Documentation](https://springaicommunity.mintlify.app/projects/incubating/agent-bench)**
